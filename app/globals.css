@@ -1,7 +1,27 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Basis-Reset */
-html, body { height: 100%; }
-body { background: #ffffff; color: #0f172a; }
+/* Basiseinstellungen */
+html, body {
+  min-height: 100%;
+}
+
+/* Globale Text- und Hintergrundgestaltung */
+body {
+  @apply antialiased bg-white text-slate-900 font-sans;
+}
+
+/* Listen-Reset (wie im Canvas) */
+ul[role="list"] {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* Optionale Helper für bessere Textdarstellung */
+p {
+  @apply leading-relaxed;
+}
+
+img {
+  @apply block max-w-full h-auto;
+}

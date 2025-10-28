@@ -1,0 +1,565 @@
+"use client";
+
+import * as React from "react";
+import { createPortal } from "react-dom";
+import {
+  Users,
+  UserSearch,
+  UserStar,
+  Gem,
+  Scale,
+  HeartHandshake,
+  Earth,
+  Trophy,
+  RefreshCw,
+  FolderOpen,
+  WandSparkles,
+  Sparkles,
+  HandCoins,
+  ScanEye,
+  BrickWallShield,
+  HandHeart,
+  Plus,
+  X,
+} from "lucide-react";
+
+import MobileFullBleedSnapSlider from "@/components/slider/MobileFullBleedSnapSlider";
+import { KOMMUNIKATION_CARDS, type KommunikationCard } from "@/data/kommunikationCards";
+
+/* =========================================================================================
+   Helpers
+   ========================================================================================= */
+function splitLead(text: string): { lead: string; rest: string } {
+  const idx = text.indexOf(".");
+  if (idx === -1) return { lead: text, rest: "" };
+  return { lead: text.slice(0, idx + 1), rest: text.slice(idx + 1).trim() };
+}
+
+/* =========================================================================================
+   Icon-Registry (String → React-Element)
+   ========================================================================================= */
+const ICONS: Record<NonNullable<KommunikationCard["icon"]>, React.ReactNode> = {
+  Users: <Users className="h-7 w-7 text-slate-700" />,
+  UserSearch: <UserSearch className="h-7 w-7 text-slate-700" />,
+  UserStar: <UserStar className="h-7 w-7 text-slate-700" />,
+  Gem: <Gem className="h-7 w-7 text-slate-700" />,
+  Scale: <Scale className="h-7 w-7 text-slate-700" />,
+  HeartHandshake: <HeartHandshake className="h-7 w-7 text-slate-700" />,
+  Earth: <Earth className="h-7 w-7 text-slate-700" />,
+  Trophy: <Trophy className="h-7 w-7 text-slate-700" />,
+  RefreshCw: <RefreshCw className="h-7 w-7 text-slate-700" />,
+  FolderOpen: <FolderOpen className="h-7 w-7 text-slate-700" />,
+  WandSparkles: <WandSparkles className="h-7 w-7 text-slate-700" />,
+  Sparkles: <Sparkles className="h-7 w-7 text-slate-700" />,
+  HandCoins: <HandCoins className="h-8 w-8 text-slate-700" />,
+};
+
+const SUB_ICONS = {
+  Users: <Users className="h-7 w-7" />,
+  ScanEye: <ScanEye className="h-8 w-8" />,
+  FolderOpen: <FolderOpen className="h-7 w-7" />,
+  HandCoins: <HandCoins className="h-8 w-8" />,
+  BrickWallShield: <BrickWallShield className="h-7 w-7" />,
+  HandHeart: <HandHeart className="h-8 w-8" />,
+  WandSparkles: <WandSparkles className="h-6 w-6" />,
+  Sparkles: <Sparkles className="h-7 w-7" />,
+} as const;
+
+/* =========================================================================================
+   CloseDock – IMMER 16px Top/Right; Docking misst Right-Offset dynamisch
+   ========================================================================================= */
+function CloseDock({
+  sheetRef,
+  onClose,
+  active = true,
+}: {
+  sheetRef: React.RefObject<HTMLElement | null>;
+  onClose: () => void;
+  active?: boolean;
+}) {
+  const [docked, setDocked] = React.useState(false);
+  const sentinelRef = React.useRef<HTMLDivElement>(null);
+  const [rightOffset, setRightOffset] = React.useState<number>(16);
+
+  const measure = React.useCallback(() => {
+    const el = sheetRef.current as HTMLElement | null;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const ro = Math.max(16, window.innerWidth - rect.right + 16);
+    setRightOffset(ro);
+  }, [sheetRef]);
+
+  React.useEffect(() => {
+    if (!active) return;
+    const s = sentinelRef.current;
+    if (!s) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        const shouldDock = !e.isIntersecting;
+        if (shouldDock) measure();
+        setDocked(shouldDock);
+      },
+      { root: null, threshold: 0, rootMargin: "-6px 0px 0px 0px" }
+    );
+    io.observe(s);
+    return () => io.disconnect();
+  }, [measure, active]);
+
+  React.useEffect(() => {
+    if (!active) setDocked(false);
+  }, [active]);
+
+  React.useEffect(() => {
+    if (!docked || !active) return;
+    let raf = 0;
+    const onResize = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(measure);
+    };
+    window.addEventListener("resize", onResize);
+    const ro = new ResizeObserver(() => measure());
+    if (sheetRef.current) ro.observe(sheetRef.current as Element);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      ro.disconnect();
+      cancelAnimationFrame(raf);
+    };
+  }, [docked, active, measure, sheetRef]);
+
+  const styleAbs: React.CSSProperties = { position: "absolute", top: 16, right: 16, zIndex: 10 };
+  const styleFix: React.CSSProperties = {
+    position: "fixed",
+    top: `calc(env(safe-area-inset-top, 0px) + 16px)`,
+    right: rightOffset,
+    zIndex: 1100,
+  };
+
+  const renderDocked = (btn: React.ReactElement) =>
+    typeof window === "undefined" ? btn : createPortal(btn, document.body);
+
+  return (
+    <>
+      <div ref={sentinelRef} aria-hidden style={{ position: "absolute", top: 0, left: 0, height: 1, width: 1 }} />
+      {!docked && active && (
+        <button
+          type="button"
+          aria-label="Overlay schließen"
+          onClick={onClose}
+          style={styleAbs}
+          className="group inline-flex h-11 w-11 items-center justify-center rounded-full
+                     bg-slate-900 text-white shadow-md ring-1 ring-white/10
+                     hover:bg-slate-800 hover:shadow-lg hover:ring-white/30
+                     active:scale-[0.98]
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white
+                     transition-transform transition-colors transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)]
+                     motion-reduce:transition-none cursor-pointer select-none touch-manipulation"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      )}
+      {docked &&
+        active &&
+        renderDocked(
+          <button
+            type="button"
+            aria-label="Overlay schließen"
+            onClick={onClose}
+            style={styleFix}
+            className="group inline-flex h-11 w-11 items-center justify-center rounded-full
+                       bg-slate-900 text-white shadow-md ring-1 ring-white/10
+                       hover:bg-slate-800 hover:shadow-lg hover:ring-white/30
+                       active:scale-[0.98]
+                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white
+                       transition-transform transition-colors transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)]
+                       motion-reduce:transition-none cursor-pointer select-none touch-manipulation"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
+    </>
+  );
+}
+
+/* =========================================================================================
+   OverlayModal + OverlayBody (wie abgestimmt)
+   ========================================================================================= */
+type OverlayModalProps = {
+  open: boolean;
+  onClose: () => void;
+  ariaLabel?: string;
+  title?: string;
+  headline?: string;
+  children?: React.ReactNode;
+  durationMs?: number;
+  topGapMobile?: number;
+  topGapMobileSm?: number;
+};
+
+function OverlayModal({
+  open,
+  onClose,
+  ariaLabel,
+  title,
+  headline,
+  children,
+  durationMs = 400,
+  topGapMobile = 16,
+  topGapMobileSm = 24,
+}: OverlayModalProps) {
+  const overlayRef = React.useRef<HTMLDivElement | null>(null);
+  const contentRef = React.useRef<HTMLDivElement | null>(null);
+  const [mounted, setMounted] = React.useState(false);
+  const previouslyFocused = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => setMounted(true), []);
+  React.useEffect(() => {
+    if (!open) return;
+    previouslyFocused.current = document.activeElement as HTMLElement | null;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const focusTarget =
+      contentRef.current?.querySelector<HTMLElement>("[data-autofocus]") ??
+      contentRef.current?.querySelector<HTMLElement>("button,[href],input,select,textarea,[tabindex]:not([tabindex='-1'])") ??
+      contentRef.current ?? undefined;
+    focusTarget?.focus();
+    return () => {
+      document.body.style.overflow = original;
+      previouslyFocused.current?.focus?.();
+    };
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  const onOverlayMouseDown = (e: React.MouseEvent) => {
+    if (e.target === overlayRef.current) onClose();
+  };
+
+  const onKeyDownTrap = (e: React.KeyboardEvent) => {
+    if (e.key !== "Tab") return;
+    const root = contentRef.current;
+    if (!root) return;
+    const focusables = Array.from(
+      root.querySelectorAll<HTMLElement>("button,[href],input,select,textarea,[tabindex]:not([tabindex='-1'])")
+    ).filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+
+  const portalStyle: React.CSSProperties & Record<string, string> = {
+    "--modal-open-timeout": `${durationMs}ms`,
+  } as any;
+  const overlayVars: React.CSSProperties & Record<string, string> = {
+    "--overlay-top-gap": `${topGapMobile}px`,
+    "--overlay-top-gap-sm": `${topGapMobileSm}px`,
+  } as any;
+
+  if (!mounted) return null;
+
+  const computedAriaLabel = ariaLabel || headline || title || "Overlay";
+
+  return createPortal(
+    <div
+      className={[
+        "fixed inset-0 z-[1000] transition-[opacity] ease-out",
+        open ? "opacity-100 duration-0" : "opacity-0 pointer-events-none duration-0 md:duration-[var(--modal-open-timeout)]",
+      ].join(" ")}
+      style={portalStyle}
+      aria-hidden={!open}
+    >
+      <div
+        ref={overlayRef}
+        className="absolute inset-0 bg-black/45 backdrop-blur-md backdrop-saturate-150
+                   flex items-start md:items-start justify-center
+                   overflow-y-auto
+                   p-0 pt-[var(--overlay-top-gap,16px)] sm:pt-[var(--overlay-top-gap-sm,24px)] md:py-12
+                   transition-opacity duration-200 ease-out motion-reduce:transition-none"
+        style={overlayVars}
+        onMouseDown={onOverlayMouseDown}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={computedAriaLabel}
+          aria-labelledby={title ? "om-title" : undefined}
+          aria-describedby={headline ? "om-headline" : undefined}
+          tabIndex={-1}
+          onKeyDown={onKeyDownTrap}
+          ref={contentRef}
+          className="relative mx-0 my-0
+                     w-screen md:w-[min(96vw,680px)]
+                     rounded-t-3xl rounded-b-none md:rounded-3xl
+                     bg-white/95 shadow-xl ring-1 ring-black/5 md:bg-white md:shadow-2xl
+                     min-h-[calc(100vh-var(--overlay-top-gap,16px))]
+                     sm:min-h-[calc(100vh-var(--overlay-top-gap-sm,24px))]
+                     pb-[env(safe-area-inset-bottom)]
+                     overflow-visible md:overflow-visible
+                     transition-transform transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
+        >
+          <CloseDock
+            sheetRef={contentRef as unknown as React.RefObject<HTMLElement>}
+            active={open}
+            onClose={onClose}
+          />
+          <div className="px-6 sm:px-8 md:px-[66px] py-[66px] md:py-[99px]">
+            {(title || headline) && (
+              <h3 className="space-y-2">
+                {title && (
+                  <span id="om-title" className="block font-semibold text-slate-700 leading-[1.1] text-[17px] md:text-[18px]">
+                    {title}
+                  </span>
+                )}
+                {headline && (
+                  <span id="om-headline" className="block font-semibold tracking-tight text-slate-900 leading-[1.05] text-[33px] md:text-[56px]">
+                    {headline}
+                  </span>
+                )}
+              </h3>
+            )}
+            {children && <div className="mt-4 antialiased text-[17px] md:text-[18px] leading-[1.3] md:leading-[1.35] text-slate-700">{children}</div>}
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+function OverlayBody({
+  paras,
+  card,
+  link,
+  imgRadius = "1.5rem",
+}: {
+  paras: Array<string | React.ReactNode>;
+  card?: {
+    variant: "clickable" | "static";
+    textParas?: Array<string | React.ReactNode>;
+    paras?: Array<string | React.ReactNode>;
+    img?: { src: string; alt: string };
+    href?: string;
+  };
+  link?: { href: string; label: string };
+  imgRadius?: string;
+}) {
+  const renderTextParas = (arr?: Array<string | React.ReactNode>) => {
+    if (!arr || !arr.length) return null;
+    return arr.map((p, i) => {
+      if (typeof p === "string") {
+        if (i === 0) {
+          const { lead, rest } = splitLead(p);
+          return (
+            <p key={`tp-${i}`} className={i ? "mt-4" : undefined}>
+              <span className="font-semibold text-slate-900">{lead}</span>
+              {rest ? " " + rest : null}
+            </p>
+          );
+        }
+        return (
+          <p key={`tp-${i}`} className="mt-4">
+            {p}
+          </p>
+        );
+      }
+      return (
+        <p key={`tp-${i}`} className={i ? "mt-4" : undefined}>
+          {p}
+        </p>
+      );
+    });
+  };
+
+  const renderExtraParas = (arr?: Array<string | React.ReactNode>) =>
+    arr?.map((p, i) => (
+      <p key={`ep-${i}`} className={i ? "mt-4" : undefined}>
+        {p}
+      </p>
+    )) ?? null;
+
+  return (
+    <div style={{ ["--img-radius" as any]: imgRadius }}>
+      {paras.map((p, idx) => (
+        <p key={idx} className={idx ? "mt-4" : undefined}>
+          {p}
+        </p>
+      ))}
+
+      {link && (
+        <div className="mt-6">
+          <a
+            href={link.href}
+            role="link"
+            aria-label={link.label}
+            className="inline-flex items-center gap-2 text-yellow-400 hover:underline decoration-yellow-400 decoration-2 underline-offset-4 cursor-pointer"
+          >
+            <span>{link.label}</span>
+          </a>
+        </div>
+      )}
+
+      {card &&
+        (card.variant === "clickable" ? (
+          <a href={card.href} aria-label="Mehr erfahren" className="group mt-6 block focus:outline-none">
+            <div className="rounded-3xl bg-slate-200 ring-1 ring-black/10 p-5 md:p-6 pb-5 transition-all duration-200 hover:ring-black/20 hover:bg-slate-200/95 focus-visible:ring-2 focus-visible:ring-slate-400">
+              {renderTextParas(card.textParas)}
+              {renderExtraParas(card.paras)}
+              {card.img && (
+                <div className="mt-4 overflow-hidden -mx-5 md:-mx-6 -mb-5 md:-mb-6 rounded-b-3xl">
+                  <img src={card.img.src} alt={card.img.alt} className="block w-full h-auto rounded-t-[var(--img-radius)]" loading="lazy" />
+                </div>
+              )}
+            </div>
+          </a>
+        ) : (
+          <div className="mt-6 rounded-3xl bg-slate-200/90 ring-1 ring-black/10 p-5 md:p-6 pb-5">
+            {renderTextParas(card.textParas)}
+            {renderExtraParas(card.paras)}
+            {card.img && (
+              <div className="mt-4 overflow-hidden -mx-5 md:-mx-6 -mb-5 md:-mb-6 rounded-b-3xl">
+                <img src={card.img.src} alt={card.img.alt} className="block w-full h-auto rounded-t-[var(--img-radius)]" loading="lazy" />
+              </div>
+            )}
+          </div>
+        ))}
+    </div>
+  );
+}
+
+/* =========================================================================================
+   SetupCard – nutzt OverlayModal + OverlayBody
+   ========================================================================================= */
+function SetupCard({
+  data,
+}: {
+  data: KommunikationCard;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const titleSize = data.titleClassName ?? "text-[clamp(22px,6.4vw,28px)] md:text-[30px]";
+  const subtitleSize = data.subtitleClassName ?? "text-[clamp(14px,4.2vw,17px)] md:text-[19px]";
+  const subIcon = data.subtitleIcon
+    ? React.cloneElement((SUB_ICONS as any)[data.subtitleIcon], {
+        className:
+          `${(SUB_ICONS as any)[data.subtitleIcon].props?.className ?? ""}`
+            .replace(/text-[^ ]+/g, "")
+            .trim() + " text-yellow-400",
+      })
+    : null;
+
+  return (
+    <>
+      <div
+        className="w-[260px] h-[314px] sm:w-[448px] sm:h-[282px]"
+        style={{ ["--intent-top" as any]: "152px", ["--intent-top-mobile" as any]: "176px" }}
+      >
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setOpen(true);
+            }
+          }}
+          className="relative h-full rounded-3xl p-6 sm:p-8 pb-16 group select-none cursor-pointer transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-[2px]"
+        >
+          {/* Hintergrund */}
+          <div className="absolute inset-0 rounded-3xl bg-white border border-slate-200 shadow-sm transition duration-300 will-change-transform md:group-hover:shadow-lg md:group-hover:border-slate-300" />
+          {/* Inhalt */}
+          <div className="relative z-10 h-full">
+            <div className="grid gap-[clamp(12px,3vw,16px)] md:gap-4 pt-0">
+              <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
+                {ICONS[data.icon] ?? ICONS.Users}
+              </div>
+              <h3 className={[titleSize, "font-semibold tracking-tight text-slate-900"].join(" ")}>{data.title}</h3>
+            </div>
+
+            {/* Intent-Row */}
+            <div className="absolute left-0 right-0 top-[var(--intent-top-mobile)] sm:left-6 sm:right-6 sm:top-[var(--intent-top)]">
+              <div className="flex items-start gap-2">
+                {subIcon}
+                <p
+                  className={[
+                    subtitleSize,
+                    "leading-[1.35] md:leading-6",
+                    "text-slate-900 underline decoration-yellow-400 decoration-2 underline-offset-4",
+                  ].join(" ")}
+                >
+                  {data.subtitle}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Plus-Button */}
+          <button
+            type="button"
+            aria-label="Weitere Infos"
+            onClick={() => setOpen(true)}
+            className="group absolute z-10 bottom-4 right-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-white shadow ring-1 ring-white/10 hover:bg-slate-700 hover:ring-white/40 cursor-pointer"
+          >
+            <Plus className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Overlay */}
+      <OverlayModal
+        open={open}
+        onClose={() => setOpen(false)}
+        title={data.overlayTitle}
+        headline={data.overlayHeadline}
+        ariaLabel={data.overlayTitle}
+      >
+        <OverlayBody
+          paras={data.overlayParas}
+          card={data.overlayCard}
+          link={data.overlayLink}
+        />
+      </OverlayModal>
+    </>
+  );
+}
+
+/* =========================================================================================
+   SECTION (mit externem MobileFullBleedSnapSlider)
+   ========================================================================================= */
+export default function Sektor2_TransparenteKommunikation() {
+  return (
+    <section className="relative bg-white">
+      <div className="max-w-6xl mx-auto px-4 py-[44px]">
+        <h2 className="text-[clamp(29px,8vw,55px)] md:text-[55px] font-semibold tracking-tight text-slate-900 leading-[1.05] pb-[44px]">
+          Warum wir offen miteinander reden.
+        </h2>
+
+        <div className="relative [--y-gap:16px] md:[--y-gap:24px]">
+          <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] [--padX:16px] md:[--padX:24px]">
+            {/* HIER: der ausgelagerte Slider */}
+            <MobileFullBleedSnapSlider scrollerPaddingX={16}>
+              {KOMMUNIKATION_CARDS.map((card, i) => (
+                <SetupCard key={i} data={card} />
+              ))}
+            </MobileFullBleedSnapSlider>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

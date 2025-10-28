@@ -12,19 +12,24 @@ import {
   Earth,
   Trophy,
   RefreshCw,
+  ScanEye,
   FolderOpen,
+  HandCoins,
   WandSparkles,
   Sparkles,
-  HandCoins,
-  ScanEye,
-  BrickWallShield,
-  HandHeart,
   Plus,
   X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
-import MobileFullBleedSnapSlider from "@/components/slider/MobileFullBleedSnapSlider";
-import { KOMMUNIKATION_CARDS, type KommunikationCard } from "@/data/kommunikationCards";
+import MobileFullBleedSnapSlider, {
+  type SliderHandle,
+} from "@/components/slider/MobileFullBleedSnapSlider";
+import {
+  KOMMUNIKATION_CARDS,
+  type KommunikationCard,
+} from "@/data/kommunikationCards";
 
 /* =========================================================================================
    Helpers
@@ -36,9 +41,9 @@ function splitLead(text: string): { lead: string; rest: string } {
 }
 
 /* =========================================================================================
-   Icon-Registry (String → React-Element)
+   Icons registry
    ========================================================================================= */
-const ICONS: Record<NonNullable<KommunikationCard["icon"]>, React.ReactNode> = {
+const ICONS: Record<NonNullable<KommunikationCard["icon"]>, JSX.Element> = {
   Users: <Users className="h-7 w-7 text-slate-700" />,
   UserSearch: <UserSearch className="h-7 w-7 text-slate-700" />,
   UserStar: <UserStar className="h-7 w-7 text-slate-700" />,
@@ -51,22 +56,25 @@ const ICONS: Record<NonNullable<KommunikationCard["icon"]>, React.ReactNode> = {
   FolderOpen: <FolderOpen className="h-7 w-7 text-slate-700" />,
   WandSparkles: <WandSparkles className="h-7 w-7 text-slate-700" />,
   Sparkles: <Sparkles className="h-7 w-7 text-slate-700" />,
-  HandCoins: <HandCoins className="h-8 w-8 text-slate-700" />,
+  HandCoins: <HandCoins className="h-7 w-7 text-slate-700" />,
 };
 
-const SUB_ICONS = {
+const SUB_ICONS: Record<
+  NonNullable<KommunikationCard["subtitleIcon"]>,
+  JSX.Element
+> = {
   Users: <Users className="h-7 w-7" />,
   ScanEye: <ScanEye className="h-8 w-8" />,
   FolderOpen: <FolderOpen className="h-7 w-7" />,
   HandCoins: <HandCoins className="h-8 w-8" />,
-  BrickWallShield: <BrickWallShield className="h-7 w-7" />,
-  HandHeart: <HandHeart className="h-8 w-8" />,
+  BrickWallShield: <HeartHandshake className="h-7 w-7" />, // Fallback
+  HandHeart: <HeartHandshake className="h-8 w-8" />,
   WandSparkles: <WandSparkles className="h-6 w-6" />,
   Sparkles: <Sparkles className="h-7 w-7" />,
-} as const;
+};
 
 /* =========================================================================================
-   CloseDock – IMMER 16px Top/Right; Docking misst Right-Offset dynamisch
+   CloseDock – 16/16 immer; TS-sicheres IO-Callback
    ========================================================================================= */
 function CloseDock({
   sheetRef,
@@ -82,9 +90,10 @@ function CloseDock({
   const [rightOffset, setRightOffset] = React.useState<number>(16);
 
   const measure = React.useCallback(() => {
-    const el = sheetRef.current as HTMLElement | null;
+    const el = sheetRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
+    // Abstand vom Viewport-Rechts bis zur SHEET-Rechtskante + 16px Innenabstand
     const ro = Math.max(16, window.innerWidth - rect.right + 16);
     setRightOffset(ro);
   }, [sheetRef]);
@@ -93,14 +102,18 @@ function CloseDock({
     if (!active) return;
     const s = sentinelRef.current;
     if (!s) return;
+
     const io = new IntersectionObserver(
-      ([e]) => {
-        const shouldDock = !e.isIntersecting;
+      (entries: IntersectionObserverEntry[]) => {
+        const entry = entries[0];
+        if (!entry) return; // TS guard
+        const shouldDock = !entry.isIntersecting;
         if (shouldDock) measure();
         setDocked(shouldDock);
       },
       { root: null, threshold: 0, rootMargin: "-6px 0px 0px 0px" }
     );
+
     io.observe(s);
     return () => io.disconnect();
   }, [measure, active]);
@@ -126,7 +139,12 @@ function CloseDock({
     };
   }, [docked, active, measure, sheetRef]);
 
-  const styleAbs: React.CSSProperties = { position: "absolute", top: 16, right: 16, zIndex: 10 };
+  const styleAbs: React.CSSProperties = {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 10,
+  };
   const styleFix: React.CSSProperties = {
     position: "fixed",
     top: `calc(env(safe-area-inset-top, 0px) + 16px)`,
@@ -139,7 +157,11 @@ function CloseDock({
 
   return (
     <>
-      <div ref={sentinelRef} aria-hidden style={{ position: "absolute", top: 0, left: 0, height: 1, width: 1 }} />
+      <div
+        ref={sentinelRef}
+        aria-hidden
+        style={{ position: "absolute", top: 0, left: 0, height: 1, width: 1 }}
+      />
       {!docked && active && (
         <button
           type="button"
@@ -152,7 +174,8 @@ function CloseDock({
                      active:scale-[0.98]
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white
                      transition-transform transition-colors transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)]
-                     motion-reduce:transition-none cursor-pointer select-none touch-manipulation"
+                     motion-reduce:transition-none motion-reduce:transform-none
+                     cursor-pointer select-none touch-manipulation"
         >
           <X className="h-5 w-5" />
         </button>
@@ -171,7 +194,8 @@ function CloseDock({
                        active:scale-[0.98]
                        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white
                        transition-transform transition-colors transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)]
-                       motion-reduce:transition-none cursor-pointer select-none touch-manipulation"
+                       motion-reduce:transition-none motion-reduce:transform-none
+                       cursor-pointer select-none touch-manipulation"
           >
             <X className="h-5 w-5" />
           </button>
@@ -181,7 +205,7 @@ function CloseDock({
 }
 
 /* =========================================================================================
-   OverlayModal + OverlayBody (wie abgestimmt)
+   OverlayModal – Scroll-Reset, Backdrop, Focus-Trap (TS-safe)
    ========================================================================================= */
 type OverlayModalProps = {
   open: boolean;
@@ -212,16 +236,22 @@ function OverlayModal({
   const previouslyFocused = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => setMounted(true), []);
+
   React.useEffect(() => {
     if (!open) return;
     previouslyFocused.current = document.activeElement as HTMLElement | null;
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
     const focusTarget =
       contentRef.current?.querySelector<HTMLElement>("[data-autofocus]") ??
-      contentRef.current?.querySelector<HTMLElement>("button,[href],input,select,textarea,[tabindex]:not([tabindex='-1'])") ??
-      contentRef.current ?? undefined;
+      contentRef.current?.querySelector<HTMLElement>(
+        "button,[href],input,select,textarea,[tabindex]:not([tabindex='-1'])"
+      ) ??
+      contentRef.current ??
+      undefined;
     focusTarget?.focus();
+
     return () => {
       document.body.style.overflow = original;
       previouslyFocused.current?.focus?.();
@@ -249,11 +279,18 @@ function OverlayModal({
     const root = contentRef.current;
     if (!root) return;
     const focusables = Array.from(
-      root.querySelectorAll<HTMLElement>("button,[href],input,select,textarea,[tabindex]:not([tabindex='-1'])")
-    ).filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
+      root.querySelectorAll<HTMLElement>(
+        "button,[href],input,select,textarea,[tabindex]:not([tabindex='-1'])"
+      )
+    ).filter(
+      (el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden")
+    );
     if (!focusables.length) return;
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
+
+    const first = focusables[0] ?? null;
+    const last = focusables[focusables.length - 1] ?? null;
+    if (!first || !last) return;
+
     if (e.shiftKey && document.activeElement === first) {
       e.preventDefault();
       last.focus();
@@ -271,6 +308,25 @@ function OverlayModal({
     "--overlay-top-gap-sm": `${topGapMobileSm}px`,
   } as any;
 
+  // Scroll-Reset bei Öffnen/Schließen
+  React.useEffect(() => {
+    const overlay = overlayRef.current;
+    const dialog = contentRef.current;
+    const reset = () => {
+      requestAnimationFrame(() => {
+        if (overlay) overlay.scrollTop = 0;
+        if (dialog && typeof (dialog as any).scrollTop === "number")
+          (dialog as any).scrollTop = 0;
+        requestAnimationFrame(() => {
+          if (overlay) overlay.scrollTop = 0;
+          if (dialog && typeof (dialog as any).scrollTop === "number")
+            (dialog as any).scrollTop = 0;
+        });
+      });
+    };
+    reset();
+  }, [open]);
+
   if (!mounted) return null;
 
   const computedAriaLabel = ariaLabel || headline || title || "Overlay";
@@ -279,7 +335,9 @@ function OverlayModal({
     <div
       className={[
         "fixed inset-0 z-[1000] transition-[opacity] ease-out",
-        open ? "opacity-100 duration-0" : "opacity-0 pointer-events-none duration-0 md:duration-[var(--modal-open-timeout)]",
+        open
+          ? "opacity-100 duration-0"
+          : "opacity-0 pointer-events-none duration-0 md:duration-[var(--modal-open-timeout)]",
       ].join(" ")}
       style={portalStyle}
       aria-hidden={!open}
@@ -322,18 +380,28 @@ function OverlayModal({
             {(title || headline) && (
               <h3 className="space-y-2">
                 {title && (
-                  <span id="om-title" className="block font-semibold text-slate-700 leading-[1.1] text-[17px] md:text-[18px]">
+                  <span
+                    id="om-title"
+                    className="block font-semibold text-slate-700 leading-[1.1] text-[17px] md:text-[18px]"
+                  >
                     {title}
                   </span>
                 )}
                 {headline && (
-                  <span id="om-headline" className="block font-semibold tracking-tight text-slate-900 leading-[1.05] text-[33px] md:text-[56px]">
+                  <span
+                    id="om-headline"
+                    className="block font-semibold tracking-tight text-slate-900 leading-[1.05] text-[33px] md:text-[56px]"
+                  >
                     {headline}
                   </span>
                 )}
               </h3>
             )}
-            {children && <div className="mt-4 antialiased text-[17px] md:text-[18px] leading-[1.3] md:leading-[1.35] text-slate-700">{children}</div>}
+            {children && (
+              <div className="mt-4 antialiased text-[17px] md:text-[18px] leading-[1.3] md:leading-[1.35] text-slate-700">
+                {children}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -342,59 +410,26 @@ function OverlayModal({
   );
 }
 
+/* =========================================================================================
+   OverlayBody – dunkleres Grau, Absätze, Bild-Clip (oben Radius steuerbar)
+   ========================================================================================= */
 function OverlayBody({
   paras,
   card,
   link,
-  imgRadius = "1.5rem",
 }: {
   paras: Array<string | React.ReactNode>;
   card?: {
     variant: "clickable" | "static";
-    textParas?: Array<string | React.ReactNode>;
-    paras?: Array<string | React.ReactNode>;
-    img?: { src: string; alt: string };
+    text?: string; // optionaler Leittext (ein Satz)
+    paras?: Array<string | React.ReactNode>; // weitere Absätze
+    img?: { src: string; alt: string; imgClassName?: string };
     href?: string;
   };
   link?: { href: string; label: string };
-  imgRadius?: string;
 }) {
-  const renderTextParas = (arr?: Array<string | React.ReactNode>) => {
-    if (!arr || !arr.length) return null;
-    return arr.map((p, i) => {
-      if (typeof p === "string") {
-        if (i === 0) {
-          const { lead, rest } = splitLead(p);
-          return (
-            <p key={`tp-${i}`} className={i ? "mt-4" : undefined}>
-              <span className="font-semibold text-slate-900">{lead}</span>
-              {rest ? " " + rest : null}
-            </p>
-          );
-        }
-        return (
-          <p key={`tp-${i}`} className="mt-4">
-            {p}
-          </p>
-        );
-      }
-      return (
-        <p key={`tp-${i}`} className={i ? "mt-4" : undefined}>
-          {p}
-        </p>
-      );
-    });
-  };
-
-  const renderExtraParas = (arr?: Array<string | React.ReactNode>) =>
-    arr?.map((p, i) => (
-      <p key={`ep-${i}`} className={i ? "mt-4" : undefined}>
-        {p}
-      </p>
-    )) ?? null;
-
   return (
-    <div style={{ ["--img-radius" as any]: imgRadius }}>
+    <div>
       {paras.map((p, idx) => (
         <p key={idx} className={idx ? "mt-4" : undefined}>
           {p}
@@ -416,24 +451,66 @@ function OverlayBody({
 
       {card &&
         (card.variant === "clickable" ? (
-          <a href={card.href} aria-label="Mehr erfahren" className="group mt-6 block focus:outline-none">
-            <div className="rounded-3xl bg-slate-200 ring-1 ring-black/10 p-5 md:p-6 pb-5 transition-all duration-200 hover:ring-black/20 hover:bg-slate-200/95 focus-visible:ring-2 focus-visible:ring-slate-400">
-              {renderTextParas(card.textParas)}
-              {renderExtraParas(card.paras)}
+          <a
+            href={card.href}
+            aria-label="Mehr erfahren"
+            className="group mt-6 block focus:outline-none"
+          >
+            <div className="rounded-3xl bg-slate-200/90 ring-1 ring-black/10 p-5 md:p-6 pb-0 transition-all duration-200 hover:ring-black/20 hover:bg-slate-200 focus-visible:ring-2 focus-visible:ring-slate-400">
+              {card.text && (() => {
+                const { lead, rest } = splitLead(card.text!);
+                return (
+                  <p className="text-[17px] md:text-[18px] leading-[1.35] text-slate-800">
+                    <span className="font-semibold text-slate-900">{lead}</span>{" "}
+                    {rest}
+                  </p>
+                );
+              })()}
+              {card.paras?.map((tp, i) => (
+                <p key={i} className="mt-4 text-slate-800">
+                  {tp}
+                </p>
+              ))}
               {card.img && (
-                <div className="mt-4 overflow-hidden -mx-5 md:-mx-6 -mb-5 md:-mb-6 rounded-b-3xl">
-                  <img src={card.img.src} alt={card.img.alt} className="block w-full h-auto rounded-t-[var(--img-radius)]" loading="lazy" />
+                <div className="mt-4 -mx-5 md:-mx-6 -mb-5 md:-mb-6 overflow-hidden rounded-b-3xl">
+                  <img
+                    src={card.img.src}
+                    alt={card.img.alt}
+                    className={`block w-full h-auto ${
+                      card.img.imgClassName ?? "rounded-3xl"
+                    }`}
+                    loading="lazy"
+                  />
                 </div>
               )}
             </div>
           </a>
         ) : (
-          <div className="mt-6 rounded-3xl bg-slate-200/90 ring-1 ring-black/10 p-5 md:p-6 pb-5">
-            {renderTextParas(card.textParas)}
-            {renderExtraParas(card.paras)}
+          <div className="mt-6 rounded-3xl bg-slate-200/90 ring-1 ring-black/10 p-5 md:p-6 pb-0">
+            {card.text && (() => {
+              const { lead, rest } = splitLead(card.text!);
+              return (
+                <p className="text-[17px] md:text-[18px] leading-[1.35] text-slate-800">
+                  <span className="font-semibold text-slate-900">{lead}</span>{" "}
+                  {rest}
+                </p>
+              );
+            })()}
+            {card.paras?.map((tp, i) => (
+              <p key={i} className="mt-4 text-slate-800">
+                {tp}
+              </p>
+            ))}
             {card.img && (
-              <div className="mt-4 overflow-hidden -mx-5 md:-mx-6 -mb-5 md:-mb-6 rounded-b-3xl">
-                <img src={card.img.src} alt={card.img.alt} className="block w-full h-auto rounded-t-[var(--img-radius)]" loading="lazy" />
+              <div className="mt-4 -mx-5 md:-mx-6 -mb-5 md:-mb-6 overflow-hidden rounded-b-3xl">
+                <img
+                  src={card.img.src}
+                  alt={card.img.alt}
+                  className={`block w-full h-auto ${
+                    card.img.imgClassName ?? "rounded-3xl"
+                  }`}
+                  loading="lazy"
+                />
               </div>
             )}
           </div>
@@ -446,27 +523,54 @@ function OverlayBody({
    SetupCard – nutzt OverlayModal + OverlayBody
    ========================================================================================= */
 function SetupCard({
-  data,
+  title,
+  icon,
+  subtitle,
+  titleClassName,
+  subtitleClassName,
+  subtitleIcon,
+  overlayTitle,
+  overlayHeadline,
+  overlayBody,
 }: {
-  data: KommunikationCard;
+  title: string;
+  icon: React.ReactNode;
+  subtitle: React.ReactNode;
+  titleClassName?: string;
+  subtitleClassName?: string;
+  subtitleIcon?: React.ReactNode;
+  overlayTitle: string;
+  overlayHeadline: string;
+  overlayBody: React.ReactNode;
 }) {
   const [open, setOpen] = React.useState(false);
-  const titleSize = data.titleClassName ?? "text-[clamp(22px,6.4vw,28px)] md:text-[30px]";
-  const subtitleSize = data.subtitleClassName ?? "text-[clamp(14px,4.2vw,17px)] md:text-[19px]";
-  const subIcon = data.subtitleIcon
-    ? React.cloneElement((SUB_ICONS as any)[data.subtitleIcon], {
+
+  const titleSize =
+    titleClassName ??
+    "text-[clamp(22px,6.4vw,28px)] md:text-[30px] leading-[1.06] md:leading-[1.04]";
+  const subtitleSize =
+    subtitleClassName ??
+    "text-[clamp(14px,4.2vw,17px)] md:text-[19px] leading-[1.35] md:leading-6";
+
+  const subIcon = React.isValidElement(subtitleIcon)
+    ? React.cloneElement(subtitleIcon as any, {
         className:
-          `${(SUB_ICONS as any)[data.subtitleIcon].props?.className ?? ""}`
+          `${(subtitleIcon as any).props?.className ?? ""}`
             .replace(/text-[^ ]+/g, "")
             .trim() + " text-yellow-400",
       })
-    : null;
+    : subtitleIcon;
 
   return (
     <>
       <div
         className="w-[260px] h-[314px] sm:w-[448px] sm:h-[282px]"
-        style={{ ["--intent-top" as any]: "152px", ["--intent-top-mobile" as any]: "176px" }}
+        style={
+          {
+            ["--intent-top" as any]: "152px",
+            ["--intent-top-mobile" as any]: "176px",
+          } as React.CSSProperties
+        }
       >
         <div
           role="button"
@@ -478,31 +582,38 @@ function SetupCard({
               setOpen(true);
             }
           }}
-          className="relative h-full rounded-3xl p-6 sm:p-8 pb-16 group select-none cursor-pointer transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-[2px]"
+          className="relative h-full rounded-3xl p-6 sm:p-8 pb-16 group select-none cursor-pointer transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)] hover:-translate-y-[2px] active:translate-y-0"
         >
           {/* Hintergrund */}
           <div className="absolute inset-0 rounded-3xl bg-white border border-slate-200 shadow-sm transition duration-300 will-change-transform md:group-hover:shadow-lg md:group-hover:border-slate-300" />
+
           {/* Inhalt */}
           <div className="relative z-10 h-full">
             <div className="grid gap-[clamp(12px,3vw,16px)] md:gap-4 pt-0">
               <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100">
-                {ICONS[data.icon] ?? ICONS.Users}
+                {icon ?? ICONS.Users}
               </div>
-              <h3 className={[titleSize, "font-semibold tracking-tight text-slate-900"].join(" ")}>{data.title}</h3>
+              <h3
+                className={[
+                  titleSize,
+                  "font-semibold tracking-tight text-slate-900",
+                ].join(" ")}
+              >
+                {title}
+              </h3>
             </div>
 
             {/* Intent-Row */}
             <div className="absolute left-0 right-0 top-[var(--intent-top-mobile)] sm:left-6 sm:right-6 sm:top-[var(--intent-top)]">
               <div className="flex items-start gap-2">
-                {subIcon}
+                {subIcon && <span className="text-yellow-400">{subIcon}</span>}
                 <p
                   className={[
                     subtitleSize,
-                    "leading-[1.35] md:leading-6",
                     "text-slate-900 underline decoration-yellow-400 decoration-2 underline-offset-4",
                   ].join(" ")}
                 >
-                  {data.subtitle}
+                  {subtitle}
                 </p>
               </div>
             </div>
@@ -524,24 +635,22 @@ function SetupCard({
       <OverlayModal
         open={open}
         onClose={() => setOpen(false)}
-        title={data.overlayTitle}
-        headline={data.overlayHeadline}
-        ariaLabel={data.overlayTitle}
+        title={overlayTitle}
+        headline={overlayHeadline}
+        ariaLabel={overlayTitle}
       >
-        <OverlayBody
-          paras={data.overlayParas}
-          card={data.overlayCard}
-          link={data.overlayLink}
-        />
+        {overlayBody}
       </OverlayModal>
     </>
   );
 }
 
 /* =========================================================================================
-   SECTION (mit externem MobileFullBleedSnapSlider)
+   Section
    ========================================================================================= */
 export default function Sektor2_TransparenteKommunikation() {
+  const sliderRef = React.useRef<SliderHandle>(null);
+
   return (
     <section className="relative bg-white">
       <div className="max-w-6xl mx-auto px-4 py-[44px]">
@@ -551,12 +660,48 @@ export default function Sektor2_TransparenteKommunikation() {
 
         <div className="relative [--y-gap:16px] md:[--y-gap:24px]">
           <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] [--padX:16px] md:[--padX:24px]">
-            {/* HIER: der ausgelagerte Slider */}
-            <MobileFullBleedSnapSlider scrollerPaddingX={16}>
-              {KOMMUNIKATION_CARDS.map((card, i) => (
-                <SetupCard key={i} data={card} />
+            <MobileFullBleedSnapSlider ref={sliderRef} scrollerPaddingX={16}>
+              {KOMMUNIKATION_CARDS.map((c, i) => (
+                <SetupCard
+                  key={i}
+                  title={c.title}
+                  icon={ICONS[c.icon] ?? ICONS.Users}
+                  subtitle={c.subtitle}
+                  titleClassName={c.titleClassName}
+                  subtitleClassName={c.subtitleClassName}
+                  subtitleIcon={c.subtitleIcon ? SUB_ICONS[c.subtitleIcon] : undefined}
+                  overlayTitle={c.overlayTitle}
+                  overlayHeadline={c.overlayHeadline}
+                  overlayBody={
+                    <OverlayBody
+                      paras={c.overlayParas}
+                      card={c.overlayCard}
+                      link={c.overlayLink}
+                    />
+                  }
+                />
               ))}
             </MobileFullBleedSnapSlider>
+          </div>
+
+          {/* Slider Controls */}
+          <div className="max-w-6xl mx-auto px-4 md:px-24 flex items-center gap-2 justify-end mt-[var(--y-gap)] pb-2">
+            <button
+              type="button"
+              aria-label="Zurück"
+              onClick={() => sliderRef.current?.prev()}
+              className="h-10 w-10 rounded-full border border-slate-300 flex items-center justify-center bg-white/80 backdrop-blur hover:bg-white hover:shadow-md hover:border-slate-300 active:scale-[0.98] disabled:opacity-35 disabled:cursor-not-allowed transition duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none cursor-pointer"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              aria-label="Weiter"
+              onClick={() => sliderRef.current?.next()}
+              className="h-10 w-10 rounded-full border border-slate-300 flex items-center justify-center bg-white/80 backdrop-blur hover:bg-white hover:shadow-md hover:border-slate-300 active:scale-[0.98] disabled:opacity-35 disabled:cursor-not-allowed transition duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none cursor-pointer"
+            >
+              <ChevronRight className="h-5 w-5" />
+            </button>
           </div>
         </div>
       </div>

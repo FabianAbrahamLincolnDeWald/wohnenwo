@@ -1,22 +1,18 @@
 "use client";
 
 import * as React from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export type SliderHandle = { next: () => void; prev: () => void };
 
 type SliderProps = {
   children: React.ReactNode[] | React.ReactNode;
-  /** linker/rechter Innenabstand der Scroller-Padding-Zone (px) */
-  scrollerPaddingX?: number; // default 16
-  /** vertikale Lücke über/unter dem Slider (CSS var --y-gap) */
-  yGapPx?: number; // default 16 (mobil), 24 (md)
-  className?: string;
+  /** horizontaler Innenabstand (px) der Scroller-Edges, Default 16 */
+  scrollerPaddingX?: number;
 };
 
 const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
   function MobileFullBleedSnapSlider(
-    { children, scrollerPaddingX = 16, yGapPx = 16, className },
+    { children, scrollerPaddingX = 16 },
     ref
   ) {
     const items = React.Children.toArray(children) as React.ReactNode[];
@@ -25,7 +21,7 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
     const isProgrammaticRef = React.useRef(false);
     const animTimerRef = React.useRef<number | null>(null);
 
-    const getPadLeft = React.useCallback(() => {
+    const getPadLeft = React.useCallback((): number => {
       const el = scrollerRef.current;
       if (!el) return 0;
       const cs = getComputedStyle(el);
@@ -33,22 +29,28 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
       return Number.isFinite(pad) ? pad : 0;
     }, []);
 
+    // Scroll -> aktiven Index bestimmen (strict-safe)
     React.useEffect(() => {
       const el = scrollerRef.current;
       if (!el) return;
 
       const onScroll = () => {
         if (isProgrammaticRef.current) return;
-        const sc = scrollerRef.current;
-        if (!sc) return;
+        const el2 = scrollerRef.current;
+        if (!el2) return;
+
         const padL = getPadLeft();
-        const kids = Array.from(sc.children) as HTMLElement[];
+        const kids = Array.from(el2.children) as HTMLElement[];
         if (!kids.length) return;
-        const sl = sc.scrollLeft;
+
+        const sl = el2.scrollLeft;
         let nearest = 0;
         let min = Infinity;
+
         for (let i = 0; i < kids.length; i++) {
-          const target = Math.max(0, kids[i].offsetLeft - padL);
+          const li = kids[i];
+          if (!li) continue; // TS strict guard
+          const target = Math.max(0, li.offsetLeft - padL);
           const d = Math.abs(target - sl);
           if (d < min) {
             min = d;
@@ -59,10 +61,13 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
       };
 
       el.addEventListener("scroll", onScroll, { passive: true });
+      // initial bestimmen
       onScroll();
+
       return () => el.removeEventListener("scroll", onScroll);
     }, [getPadLeft]);
 
+    // Timer aufräumen
     React.useEffect(
       () => () => {
         if (animTimerRef.current) window.clearTimeout(animTimerRef.current);
@@ -73,14 +78,18 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
     const scrollToIndex = (i: number) => {
       const el = scrollerRef.current;
       if (!el) return;
+
       const li = el.children[i] as HTMLElement | undefined;
       if (!li) return;
+
       const padL = getPadLeft();
       const left = Math.max(0, li.offsetLeft - padL);
+
       if (animTimerRef.current) {
         window.clearTimeout(animTimerRef.current);
         animTimerRef.current = null;
       }
+
       isProgrammaticRef.current = true;
       el.scrollTo({ left, behavior: "smooth" });
       animTimerRef.current = window.setTimeout(() => {
@@ -99,17 +108,10 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
       setIndex(i);
     };
 
-    React.useImperativeHandle(ref, () => ({ next, prev }), [index]);
+    React.useImperativeHandle(ref, () => ({ next, prev }), [index, items.length, getPadLeft]);
 
     return (
-      <section
-        className={["w-full", className].filter(Boolean).join(" ")}
-        style={
-          {
-            ["--y-gap" as any]: `${yGapPx}px`,
-          } as React.CSSProperties
-        }
-      >
+      <section className="w-full">
         <div className="relative w-full">
           <ul
             ref={scrollerRef}
@@ -117,39 +119,22 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
             className="flex flex-nowrap snap-x snap-mandatory overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden pb-6 py-[2px] mt-[var(--y-gap)] [--gap:16px] md:[--gap:24px] pl-[calc((100vw-min(100vw,72rem))/2+16px)] pr-[calc((100vw-min(100vw,72rem))/2+16px)]"
             style={
               {
-                gap: `var(--gap)`,
+                gap: "var(--gap)",
                 scrollPaddingLeft: `calc((100vw - min(100vw, 72rem))/2 + ${scrollerPaddingX}px)`,
                 scrollPaddingRight: `calc((100vw - min(100vw, 72rem))/2 + ${scrollerPaddingX}px)`,
               } as React.CSSProperties
             }
           >
             {items.map((child, i) => (
-              <li key={i} className="snap-start shrink-0" style={{ width: "max-content" }}>
+              <li
+                key={i}
+                className="snap-start shrink-0"
+                style={{ width: "max-content" }}
+              >
                 {child}
               </li>
             ))}
           </ul>
-        </div>
-
-        <div className="max-w-6xl mx-auto px-4 md:px-24 flex items-center gap-2 justify-end mt-[var(--y-gap)] pb-2">
-          <button
-            type="button"
-            aria-label="Zurück"
-            onClick={prev}
-            className="h-10 w-10 rounded-full border border-slate-300 flex items-center justify-center bg-white/80 backdrop-blur hover:bg-white hover:shadow-md hover:border-slate-300 active:scale-[0.98] disabled:opacity-35 disabled:cursor-not-allowed transition duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none cursor-pointer"
-            disabled={index === 0}
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Weiter"
-            onClick={next}
-            className="h-10 w-10 rounded-full border border-slate-300 flex items-center justify-center bg-white/80 backdrop-blur hover:bg-white hover:shadow-md hover:border-slate-300 active:scale-[0.98] disabled:opacity-35 disabled:cursor-not-allowed transition duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none cursor-pointer"
-            disabled={index === items.length - 1}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
         </div>
       </section>
     );

@@ -2,17 +2,20 @@
 
 import * as React from "react";
 import { createPortal } from "react-dom";
-import CloseDock from "./CloseDock";
+import CloseDock from "@/components/overlay/CloseDock";
 
-type OverlayModalProps = {
+export type OverlayModalProps = {
   open: boolean;
   onClose: () => void;
   ariaLabel?: string;
   title?: string;
   headline?: string;
   children?: React.ReactNode;
+  /** Animationsdauer (nur als CSS-Var genutzt) */
   durationMs?: number;
+  /** Abstand oben (mobil) bis Sheet-Beginn */
   topGapMobile?: number;
+  /** Abstand oben (sm) bis Sheet-Beginn */
   topGapMobileSm?: number;
 };
 
@@ -27,78 +30,127 @@ export default function OverlayModal({
   topGapMobile = 16,
   topGapMobileSm = 24,
 }: OverlayModalProps) {
-  const overlayRef = React.useRef<HTMLDivElement | null>(null);
-  const contentRef = React.useRef<HTMLDivElement | null>(null);
+  const overlayRef = React.useRef<HTMLDivElement | null>(null); // äußerer Scroller (Backdrop)
+  const contentRef = React.useRef<HTMLDivElement | null>(null); // Sheet/Content
   const [mounted, setMounted] = React.useState(false);
   const previouslyFocused = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => setMounted(true), []);
 
+  // Body-Scroll sperren & Fokus merken/wiederherstellen
   React.useEffect(() => {
     if (!open) return;
+
     previouslyFocused.current = document.activeElement as HTMLElement | null;
+
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
+    // Sanftes Autofocus: erst data-autofocus, sonst erstes Fokus-Element, sonst der Dialog selbst
     const focusTarget =
       contentRef.current?.querySelector<HTMLElement>("[data-autofocus]") ??
-      contentRef.current?.querySelector<HTMLElement>("button,[href],input,select,textarea,[tabindex]:not([tabindex='-1'])") ??
-      contentRef.current ?? undefined;
-    focusTarget?.focus();
+      contentRef.current?.querySelector<HTMLElement>(
+        'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
+      ) ??
+      contentRef.current ??
+      undefined;
+
+    // try/catch schützt vor Shadow-DOM/iframes Edgecases
+    try {
+      focusTarget?.focus();
+    } catch {}
 
     return () => {
       document.body.style.overflow = original;
-      previouslyFocused.current?.focus?.();
+      // Vorherigen Fokus wiederherstellen (best effort)
+      try {
+        previouslyFocused.current?.focus?.();
+      } catch {}
     };
   }, [open]);
 
+  // ESC schließt Overlay
   React.useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); onClose(); } };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
+  // Klick auf Backdrop schließt (nur wenn exakt auf den Backdrop geklickt)
   const onOverlayMouseDown = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) onClose();
   };
 
+  // Fokus-Trap (TS-safe mit Guards)
   const onKeyDownTrap = (e: React.KeyboardEvent) => {
     if (e.key !== "Tab") return;
+
     const root = contentRef.current;
     if (!root) return;
-    const focusables = Array.from(root.querySelectorAll<HTMLElement>("button,[href],input,select,textarea,[tabindex]:not([tabindex='-1'])"))
-      .filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
-    if (!focusables.length) return;
-    const first = focusables[0];
-    const last = focusables[focusables.length - 1];
-    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+
+    const focusables = Array.from(
+      root.querySelectorAll<HTMLElement>(
+        'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
+      )
+    ).filter(
+      (el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden")
+    );
+
+    // 0 → nichts zu tun, 1 → kein Wrap-Around nötig
+    if (focusables.length < 2) return;
+
+    const first = focusables[0] as HTMLElement;
+    const last = focusables[focusables.length - 1] as HTMLElement;
+
+    if (e.shiftKey) {
+      // Shift+Tab auf dem ersten Element → zum letzten springen
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else {
+      // Tab auf dem letzten Element → zum ersten springen
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
   };
 
-  // sanfte CSS-Variablen
-  const portalStyle = { ["--modal-open-timeout" as any]: `${durationMs}ms` } as React.CSSProperties;
-  const overlayVars = {
-    ["--overlay-top-gap" as any]: `${topGapMobile}px`,
-    ["--overlay-top-gap-sm" as any]: `${topGapMobileSm}px`,
-  } as React.CSSProperties;
-
-  // Scroll-Reset bei Öffnen/Schließen
+  // Scroll-Reset bei Öffnen/Schließen (zweifach rAF gegen Transition/paint-Rennen)
   React.useEffect(() => {
     const overlay = overlayRef.current;
-    const dialog = contentRef.current;
+    const dialog = contentRef.current as unknown as { scrollTop?: number } | null;
+
     const reset = () => {
       requestAnimationFrame(() => {
         if (overlay) overlay.scrollTop = 0;
-        if (dialog && typeof (dialog as any).scrollTop === "number") (dialog as any).scrollTop = 0;
+        if (dialog && typeof dialog.scrollTop === "number") dialog.scrollTop = 0;
         requestAnimationFrame(() => {
           if (overlay) overlay.scrollTop = 0;
-          if (dialog && typeof (dialog as any).scrollTop === "number") (dialog as any).scrollTop = 0;
+          if (dialog && typeof dialog.scrollTop === "number") dialog.scrollTop = 0;
         });
       });
     };
+
+    // Immer zurücksetzen – beim Close für den nächsten Start oben, beim Open direkt nach Mount
     reset();
   }, [open]);
+
+  // CSS-Variablen
+  const portalStyle: React.CSSProperties & Record<string, string> = {
+    "--modal-open-timeout": `${durationMs}ms`,
+  } as any;
+  const overlayVars: React.CSSProperties & Record<string, string> = {
+    "--overlay-top-gap": `${topGapMobile}px`,
+    "--overlay-top-gap-sm": `${topGapMobileSm}px`,
+  } as any;
 
   if (!mounted) return null;
 
@@ -142,15 +194,39 @@ export default function OverlayModal({
                      overflow-visible md:overflow-visible
                      transition-transform transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
         >
-          <CloseDock sheetRef={contentRef as unknown as React.RefObject<HTMLElement>} active={open} onClose={onClose} />
-          <div className="px-6 sm:px-8 md:px-[66px] py-[66px] md:py-[99px]">
+          <CloseDock
+            sheetRef={contentRef as unknown as React.RefObject<HTMLElement>}
+            active={open}
+            onClose={onClose}
+          />
+
+          <div className="px-6 sm:px-8 md:px-[66px] py-[66px] md:py-[99px] antialiased">
             {(title || headline) && (
               <h3 className="space-y-2">
-                {title && <span id="om-title" className="block font-semibold text-slate-700 leading-[1.1] text-[17px] md:text-[18px]">{title}</span>}
-                {headline && <span id="om-headline" className="block font-semibold tracking-tight text-slate-900 leading-[1.05] text-[33px] md:text-[56px]">{headline}</span>}
+                {title && (
+                  <span
+                    id="om-title"
+                    className="block font-semibold text-slate-700 leading-[1.1] text-[17px] md:text-[18px]"
+                  >
+                    {title}
+                  </span>
+                )}
+                {headline && (
+                  <span
+                    id="om-headline"
+                    className="block font-semibold tracking-tight text-slate-900 leading-[1.05] text-[33px] md:text-[56px]"
+                  >
+                    {headline}
+                  </span>
+                )}
               </h3>
             )}
-            {children && <div className="mt-4 antialiased text-[17px] md:text-[18px] leading-[1.3] md:leading-[1.35] text-slate-700">{children}</div>}
+
+            {children && (
+              <div className="mt-4 text-[17px] md:text-[18px] leading-[1.3] md:leading-[1.35] text-slate-700">
+                {children}
+              </div>
+            )}
           </div>
         </div>
       </div>

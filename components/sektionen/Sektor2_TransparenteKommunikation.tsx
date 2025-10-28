@@ -41,9 +41,12 @@ function splitLead(text: string): { lead: string; rest: string } {
 }
 
 /* =========================================================================================
-   Icons registry
+   Icons registry (React.ReactElement statt JSX.Element)
    ========================================================================================= */
-const ICONS: Record<NonNullable<KommunikationCard["icon"]>, JSX.Element> = {
+const ICONS: Record<
+  NonNullable<KommunikationCard["icon"]>,
+  React.ReactElement
+> = {
   Users: <Users className="h-7 w-7 text-slate-700" />,
   UserSearch: <UserSearch className="h-7 w-7 text-slate-700" />,
   UserStar: <UserStar className="h-7 w-7 text-slate-700" />,
@@ -61,7 +64,7 @@ const ICONS: Record<NonNullable<KommunikationCard["icon"]>, JSX.Element> = {
 
 const SUB_ICONS: Record<
   NonNullable<KommunikationCard["subtitleIcon"]>,
-  JSX.Element
+  React.ReactElement
 > = {
   Users: <Users className="h-7 w-7" />,
   ScanEye: <ScanEye className="h-8 w-8" />,
@@ -93,7 +96,6 @@ function CloseDock({
     const el = sheetRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    // Abstand vom Viewport-Rechts bis zur SHEET-Rechtskante + 16px Innenabstand
     const ro = Math.max(16, window.innerWidth - rect.right + 16);
     setRightOffset(ro);
   }, [sheetRef]);
@@ -106,7 +108,7 @@ function CloseDock({
     const io = new IntersectionObserver(
       (entries: IntersectionObserverEntry[]) => {
         const entry = entries[0];
-        if (!entry) return; // TS guard
+        if (!entry) return;
         const shouldDock = !entry.isIntersecting;
         if (shouldDock) measure();
         setDocked(shouldDock);
@@ -308,7 +310,6 @@ function OverlayModal({
     "--overlay-top-gap-sm": `${topGapMobileSm}px`,
   } as any;
 
-  // Scroll-Reset bei Öffnen/Schließen
   React.useEffect(() => {
     const overlay = overlayRef.current;
     const dialog = contentRef.current;
@@ -421,8 +422,8 @@ function OverlayBody({
   paras: Array<string | React.ReactNode>;
   card?: {
     variant: "clickable" | "static";
-    text?: string; // optionaler Leittext (ein Satz)
-    paras?: Array<string | React.ReactNode>; // weitere Absätze
+    text?: string;
+    paras?: Array<string | React.ReactNode>;
     img?: { src: string; alt: string; imgClassName?: string };
     href?: string;
   };
@@ -457,15 +458,18 @@ function OverlayBody({
             className="group mt-6 block focus:outline-none"
           >
             <div className="rounded-3xl bg-slate-200/90 ring-1 ring-black/10 p-5 md:p-6 pb-0 transition-all duration-200 hover:ring-black/20 hover:bg-slate-200 focus-visible:ring-2 focus-visible:ring-slate-400">
-              {card.text && (() => {
-                const { lead, rest } = splitLead(card.text!);
-                return (
-                  <p className="text-[17px] md:text-[18px] leading-[1.35] text-slate-800">
-                    <span className="font-semibold text-slate-900">{lead}</span>{" "}
-                    {rest}
-                  </p>
-                );
-              })()}
+              {card.text &&
+                (() => {
+                  const { lead, rest } = splitLead(card.text!);
+                  return (
+                    <p className="text-[17px] md:text-[18px] leading-[1.35] text-slate-800">
+                      <span className="font-semibold text-slate-900">
+                        {lead}
+                      </span>{" "}
+                      {rest}
+                    </p>
+                  );
+                })()}
               {card.paras?.map((tp, i) => (
                 <p key={i} className="mt-4 text-slate-800">
                   {tp}
@@ -487,15 +491,18 @@ function OverlayBody({
           </a>
         ) : (
           <div className="mt-6 rounded-3xl bg-slate-200/90 ring-1 ring-black/10 p-5 md:p-6 pb-0">
-            {card.text && (() => {
-              const { lead, rest } = splitLead(card.text!);
-              return (
-                <p className="text-[17px] md:text-[18px] leading-[1.35] text-slate-800">
-                  <span className="font-semibold text-slate-900">{lead}</span>{" "}
-                  {rest}
-                </p>
-              );
-            })()}
+            {card.text &&
+              (() => {
+                const { lead, rest } = splitLead(card.text!);
+                return (
+                  <p className="text-[17px] md:text-[18px] leading-[1.35] text-slate-800">
+                    <span className="font-semibold text-slate-900">
+                      {lead}
+                    </span>{" "}
+                    {rest}
+                  </p>
+                );
+              })()}
             {card.paras?.map((tp, i) => (
               <p key={i} className="mt-4 text-slate-800">
                 {tp}
@@ -669,7 +676,9 @@ export default function Sektor2_TransparenteKommunikation() {
                   subtitle={c.subtitle}
                   titleClassName={c.titleClassName}
                   subtitleClassName={c.subtitleClassName}
-                  subtitleIcon={c.subtitleIcon ? SUB_ICONS[c.subtitleIcon] : undefined}
+                  subtitleIcon={
+                    c.subtitleIcon ? SUB_ICONS[c.subtitleIcon] : undefined
+                  }
                   overlayTitle={c.overlayTitle}
                   overlayHeadline={c.overlayHeadline}
                   overlayBody={

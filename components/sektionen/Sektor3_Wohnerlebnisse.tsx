@@ -158,7 +158,7 @@ export default function Sektor3_Wohnerlebnisse({ bgSrc }: OriginalsSectionProps)
                   </span>,
                 ],
                 img: {
-                  src: "/images/unsplash/show-cooking-vitor-monthay.jpg",
+                  src: "images/unsplash/erlebnis-paar-jason-briscoe.jpg",
                   alt: "Service – Show_Cooking_Erlebnis",
                 },
               }}

@@ -158,7 +158,7 @@ export default function Sektor3_Wohnerlebnisse({ bgSrc }: OriginalsSectionProps)
                   </span>,
                 ],
                 img: {
-                  src: "images/unsplash/erlebnis-paar-jason-briscoe.jpg",
+                  src: "/images/unsplash/preb-food-kaptured-by-kasia.jpg",
                   alt: "Service – Show_Cooking_Erlebnis",
                 },
               }}

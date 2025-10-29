@@ -93,8 +93,8 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
         "In Zukunft wird er zum Kommunikationstool, das dich direkt mit dem passenden Dienstleister verbindet.",
       ],
       img: {
-        src: "/media/overlay-teaser.jpg",
-        alt: "Vorschau – Erlebe, wie Wirtschaft neu gedacht wird",
+        src: "/images/dienst-wirkung/cards/mockup-erlebe-wie-wirtschaft.png",
+        alt: "Mockup – Erlebe, wie Wirtschaft neu gedacht wird",
         imgClassName: "rounded-3xl",
       },
       href: "#erlebe-wirtschaft-neu-gedacht",
@@ -165,8 +165,8 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
         </span>,
       ],
       img: {
-        src: "/media/overlay-gerecht-teaser.jpg",
-        alt: "Vorschau – Faire Verteilung und Stabilität",
+        src: "/images/dienst-wirkung/cards/mockup-transparenz-rechner.png",
+        alt: "Mockup – Tranzparenz-Rechner",
         imgClassName: "rounded-3xl",
       },
       href: "#erlebe-wirtschaft-neu-gedacht",

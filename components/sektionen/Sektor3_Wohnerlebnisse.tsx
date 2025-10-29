@@ -132,7 +132,7 @@ export default function Sektor3_Wohnerlebnisse({ bgSrc }: OriginalsSectionProps)
                   </span>,
                 ],
                 img: {
-                  src: "/images/unsplash/faune-magazine.jpg",
+                  src: "/images/dienst-wirkung/cards/magazin-masterpiece-furniture-mockup.jpg",
                   alt: "Mockup – Masterpiece_Funiture",
                 },
                 href: "#mehr-entdecken",

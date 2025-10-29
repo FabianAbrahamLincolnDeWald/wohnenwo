@@ -30,7 +30,7 @@ export default function Sektor3_Wohnerlebnisse({ bgSrc }: OriginalsSectionProps)
       <section className="relative isolate overflow-hidden bg-black text-white font-sans h-[500px] md:h-[666.66px] md:max-h-[666.66px] transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]">
         <div className="absolute inset-0 overflow-hidden">
           <img
-            src={bgSrc || "/images/dienst-wirkung/hero/wohnwelten-hero.jpg"}
+            src={bgSrc || "/images/unsplash/kitchen-fabian-kuhne.jpg"}
             alt="Innenarchitektur – große Küche mit Mittelinsel und Hockern, warmes Licht"
             className="h-full w-full object-cover"
           />

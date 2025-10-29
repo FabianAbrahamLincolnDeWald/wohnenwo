@@ -133,8 +133,8 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
         </>,
       ],
       img: {
-        src: "/media/overlay-qualitaet-teaser.jpg",
-        alt: "Vorschau – Offene Prozesse & gelebte Qualität",
+        src: "/images/dienst-wirkung/cards/mockup-invoice.jpg",
+        alt: "'Mockup Rechnung' – Offene Prozesse & gelebte Qualität",
         imgClassName: "rounded-3xl",
       },
     },

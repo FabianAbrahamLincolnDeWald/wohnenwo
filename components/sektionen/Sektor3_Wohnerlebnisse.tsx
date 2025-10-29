@@ -47,7 +47,7 @@ export default function Sektor3_Wohnerlebnisse({ bgSrc }: OriginalsSectionProps)
                   <img
                     src="/images/brand/logos/ww-badge-white.svg"
                     alt="WohnenWo – Logo"
-                    className="max-h-[18px] max-w-[18px]"
+                    className="max-h-[16px] max-w-[16px]"
                   />
                 </div>
                 <span className="text-[17px] leading-[17px] font-semibold tracking-tight text-white">WohnenWo</span>
@@ -132,8 +132,8 @@ export default function Sektor3_Wohnerlebnisse({ bgSrc }: OriginalsSectionProps)
                   </span>,
                 ],
                 img: {
-                  src: "/images/dienst-wirkung/overlays/teaser-1.jpg",
-                  alt: "Vorschau – Transparente Einblicke",
+                  src: "/images/unsplash/faune-magazine.jpg",
+                  alt: "Mockup – Masterpiece_Funiture",
                 },
                 href: "#mehr-entdecken",
               }}
@@ -158,8 +158,8 @@ export default function Sektor3_Wohnerlebnisse({ bgSrc }: OriginalsSectionProps)
                   </span>,
                 ],
                 img: {
-                  src: "/images/dienst-wirkung/overlays/teaser-2.jpg",
-                  alt: "Zweiter Teaser – Gestaltung im Fokus",
+                  src: "/images/unsplash/show-cooking-vitor-monthay.jpg",
+                  alt: "Service – Show_Cooking_Erlebnis",
                 },
               }}
               imgRadius="1.5rem"
@@ -179,8 +179,8 @@ export default function Sektor3_Wohnerlebnisse({ bgSrc }: OriginalsSectionProps)
                 "Vom Erleben zur eigenen Form. Gemeinsam zeigen wir dir, wie wir Werte in Gestaltung übersetzen: von der ersten Idee bis zur präzisen Umsetzung.",
               ],
               img: {
-                src: "/images/dienst-wirkung/overlays/zu-hause.jpg",
-                alt: "Vorschau – Zuhause erleben",
+                src: "/images/unsplash/living-kitchen-amir-hossein.jpg",
+                alt: "Innenarchitektur – Zuhause erleben",
               },
               paras: [
                 "Jeder Schritt bleibt nachvollziehbar – vom Design über Material bis zur fairen Kostenaufteilung.",

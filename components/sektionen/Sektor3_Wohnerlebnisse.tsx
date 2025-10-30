@@ -24,30 +24,33 @@ export default function Sektor3_Wohnerlebnisse({ bgSrc }: OriginalsSectionProps)
     return () => clearInterval(t);
   }, []);
 
+  const bgUrl = bgSrc || "/images/unsplash/kitchen-fabian-kuhne.jpg";
+
   return (
     <>
       {/* Hero-Bild */}
-      <section className="relative isolate overflow-hidden bg-black text-white font-sans h-[500px] md:h-[666.66px] md:max-h-[666.66px] transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]">
-        <div className="absolute inset-0 overflow-hidden">
-          <img
-            src={bgSrc || "/images/unsplash/kitchen-fabian-kuhne.jpg"}
-            alt="Innenarchitektur – große Küche mit Mittelinsel und Hockern, warmes Licht"
-            className="h-full w-full object-cover"
+      <section className="relative isolate overflow-hidden bg-black text-white font-sans h-[555.55px] md:h-[777.77px] md:max-h-[777.77px] transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]">
+        {/* Hintergrund als Background-Image: füllt IMMER die komplette Fläche, Crop aus der Mitte */}
+        <div className="absolute inset-0">
+          <div
+            className="absolute inset-0 bg-center bg-cover will-change-transform"
+            style={{ backgroundImage: `url(${bgUrl})` }}
+            aria-hidden
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/5 via-black/25 to-black/60" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/10 via-black/25 to-black/45" />
         </div>
 
         {/* Inhalt */}
-        <div className="relative mx-auto flex h-full max-w-6xl flex-col justify-end px-[clamp(16px,4vw,44px)] pb-[clamp(16px,4vw,44px)] transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]">
+        <div className="relative mx-auto flex h-full max-w-6xl flex-col justify-end px-4 pb-[clamp(16px,4vw,44px)] transition-all duration-500 ease-[cubic-bezier(.4,0,.2,1)]">
           <div className="flex flex-col items-start gap-3 leading-tight">
             {/* Badges */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <div className="inline-flex items-center gap-2">
-                <div className="flex h-[28px] w-[28px] items-center justify-center rounded-[8px] bg-white/10 text-white ring-1 ring-white/30 shadow-sm backdrop-blur-sm">
+                <div className="flex h-7 w-7 items-center justify-center rounded-[8px] bg-white/10 text-white ring-1 ring-white/30 shadow-sm backdrop-blur-sm">
                   <img
                     src="/images/brand/logos/ww-badge-white.svg"
                     alt="WohnenWo – Logo"
-                    className="max-h-[16px] max-w-[16px]"
+                    className="max-h-4 max-w-4"
                   />
                 </div>
                 <span className="text-[17px] leading-[17px] font-semibold tracking-tight text-white">WohnenWo</span>

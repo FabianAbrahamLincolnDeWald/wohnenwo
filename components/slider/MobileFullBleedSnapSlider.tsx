@@ -9,6 +9,8 @@ type SliderProps = {
   children: React.ReactNode[];
   /** Innen-Padding links/rechts im Scroller, damit die erste Karte exakt unter dem Titel startet */
   scrollerPaddingX?: number; // default 16
+  /** Maximalbreite deines Containerlayouts (px), z.B. 72rem = 1152px (max-w-6xl) */
+  containerMaxPx?: number; // default 1152
 };
 
 const BTN_CLS =
@@ -18,14 +20,18 @@ const BTN_CLS =
   "transition duration-200 ease-[cubic-bezier(.2,.8,.2,1)] cursor-pointer";
 
 const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
-  function MobileFullBleedSnapSlider({ children, scrollerPaddingX = 16 }, ref) {
+  function MobileFullBleedSnapSlider(
+    { children, scrollerPaddingX = 16, containerMaxPx = 1152 },
+    ref
+  ) {
     const items = React.Children.toArray(children);
     const scrollerRef = React.useRef<HTMLDivElement | null>(null);
     const [index, setIndex] = React.useState(0);
     const isProgrammaticRef = React.useRef(false);
     const animTimerRef = React.useRef<number | null>(null);
 
-    const sidePad = `calc((100vw - min(100vw, 72rem)) / 2 + ${scrollerPaddingX}px)`;
+    // Full-bleed, aber auf Containerbreite einschnappen:
+    const sidePad = `calc((100vw - min(100vw, ${containerMaxPx}px)) / 2 + ${scrollerPaddingX}px)`;
 
     const getPadLeft = React.useCallback(() => {
       const s = scrollerRef.current;
@@ -35,22 +41,28 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
       return Number.isFinite(pad) ? pad : 0;
     }, []);
 
+    // Index-Erkennung beim nativen Scrollen
     React.useEffect(() => {
       const s = scrollerRef.current;
       if (!s) return;
 
       const onScroll = () => {
         if (isProgrammaticRef.current) return;
-        const kids = Array.from(s.children) as HTMLElement[];
+        const kids = Array.from(s.children) as (HTMLElement | undefined)[];
         if (!kids.length) return;
         const padL = getPadLeft();
         const sl = s.scrollLeft;
         let nearest = 0;
         let min = Infinity;
         for (let i = 0; i < kids.length; i++) {
-          const target = Math.max(0, kids[i].offsetLeft - padL);
+          const child = kids[i];
+          if (!child) continue; // ✅ TS-safe Guard
+          const target = Math.max(0, child.offsetLeft - padL);
           const d = Math.abs(target - sl);
-          if (d < min) { min = d; nearest = i; }
+          if (d < min) {
+            min = d;
+            nearest = i;
+          }
         }
         setIndex(nearest);
       };
@@ -60,14 +72,18 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
       return () => s.removeEventListener("scroll", onScroll);
     }, [getPadLeft]);
 
-    React.useEffect(() => () => {
-      if (animTimerRef.current) window.clearTimeout(animTimerRef.current);
-    }, []);
+    React.useEffect(
+      () => () => {
+        if (animTimerRef.current) window.clearTimeout(animTimerRef.current);
+      },
+      []
+    );
 
+    // Programmatisches Scrollen (Padding berücksichtigen)
     const scrollToIndex = (i: number) => {
       const s = scrollerRef.current;
       if (!s) return;
-      const kids = Array.from(s.children) as HTMLElement[];
+      const kids = Array.from(s.children) as (HTMLElement | undefined)[];
       const k = kids[i];
       if (!k) return;
       const padL = getPadLeft();
@@ -98,16 +114,15 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
     React.useImperativeHandle(ref, () => ({ next, prev }), [index, items.length]);
 
     return (
-      <section className="relative w-full overflow-visible" suppressHydrationWarning>
+      <section className="relative w-full overflow-visible">
         {/* Full-bleed Wrapper */}
         <div
           className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-visible
                      [--slider-gap:16px] md:[--slider-gap:24px]
                      [--y-gap:16px] [--lift:44px]"
           style={{ paddingLeft: 0, paddingRight: 0 } as React.CSSProperties}
-          suppressHydrationWarning
         >
-          {/* Scroller */}
+          {/* Scroll-Container: overflow & Snap */}
           <div
             ref={scrollerRef}
             className="flex flex-nowrap snap-x snap-mandatory overflow-x-auto overflow-y-visible
@@ -121,9 +136,7 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
               scrollPaddingLeft: sidePad,
               scrollPaddingRight: sidePad,
               WebkitOverflowScrolling: "touch",
-              touchAction: "pan-x",
             } as React.CSSProperties}
-            suppressHydrationWarning
           >
             {items.map((child, i) => (
               <div
@@ -137,12 +150,24 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="max-w-6xl mx-auto px-4 md:px-24 flex items-center gap-2 justify-end mt-[var(--y-gap)] pb-[var(--y-gap)]" suppressHydrationWarning>
-          <button type="button" aria-label="Zurück" onClick={prev} disabled={index === 0} className={BTN_CLS}>
+        {/* Navigation (fester Abstand 44px über/unter) */}
+        <div className="max-w-6xl mx-auto px-4 md:px-24 flex items-center gap-2 justify-end mt-[44px] pb-[44px]">
+          <button
+            type="button"
+            aria-label="Zurück"
+            onClick={prev}
+            disabled={index === 0}
+            className={BTN_CLS}
+          >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <button type="button" aria-label="Weiter" onClick={next} disabled={index === items.length - 1} className={BTN_CLS}>
+          <button
+            type="button"
+            aria-label="Weiter"
+            onClick={next}
+            disabled={index === items.length - 1}
+            className={BTN_CLS}
+          >
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>

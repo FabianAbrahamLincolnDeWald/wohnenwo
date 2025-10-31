@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   Users, UserSearch, UserStar, Gem, Scale, HeartHandshake, Earth, Trophy, RefreshCw,
-  ScanEye, FolderOpen, HandCoins, WandSparkles, Sparkles, Plus,
+  ScanEye, FolderOpen, HandCoins, WandSparkles, Sparkles, Plus, BrickWallShield, HandHeart,
 } from "lucide-react";
 
 import MobileFullBleedSnapSlider, { type SliderHandle } from "@/components/slider/MobileFullBleedSnapSlider";
@@ -32,6 +32,8 @@ const ICONS: Record<NonNullable<KommunikationCard["icon"]>, React.ReactElement> 
   WandSparkles: <WandSparkles className="h-7 w-7 text-slate-700" />,
   Sparkles: <Sparkles className="h-7 w-7 text-slate-700" />,
   HandCoins: <HandCoins className="h-7 w-7 text-slate-700" />,
+  HandHeart: <HandHeart className="h-7 w-7 text-slate-700" />,
+  BrickWallShield: <BrickWallShield className="h-7 w-7 text-slate-700" />,
 };
 
 const SUB_ICONS: Record<NonNullable<KommunikationCard["subtitleIcon"]>, React.ReactElement> = {
@@ -39,8 +41,8 @@ const SUB_ICONS: Record<NonNullable<KommunikationCard["subtitleIcon"]>, React.Re
   ScanEye: <ScanEye className="h-8 w-8" />,
   FolderOpen: <FolderOpen className="h-7 w-7" />,
   HandCoins: <HandCoins className="h-8 w-8" />,
-  BrickWallShield: <HeartHandshake className="h-7 w-7" />,
-  HandHeart: <HeartHandshake className="h-8 w-8" />,
+  BrickWallShield: <BrickWallShield className="h-7 w-7" />,
+  HandHeart: <HandHeart className="h-8 w-8" />,
   WandSparkles: <WandSparkles className="h-6 w-6" />,
   Sparkles: <Sparkles className="h-7 w-7" />,
 };

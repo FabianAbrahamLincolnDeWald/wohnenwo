@@ -11,12 +11,19 @@ export type OverlayModalProps = {
   title?: string;
   headline?: string;
   children?: React.ReactNode;
+
   /** Animationsdauer (nur als CSS-Var genutzt) */
   durationMs?: number;
+
   /** Abstand oben (mobil) bis Sheet-Beginn */
   topGapMobile?: number;
+
   /** Abstand oben (sm) bis Sheet-Beginn */
   topGapMobileSm?: number;
+
+  /** Weiterleitung an CloseDock: IntersectionObserver-Hysterese */
+  dockRootMargin?: string;   // z.B. "-2px 0px 0px 0px"
+  dockThreshold?: number;    // z.B. 0
 };
 
 export default function OverlayModal({
@@ -29,24 +36,36 @@ export default function OverlayModal({
   durationMs = 400,
   topGapMobile = 16,
   topGapMobileSm = 24,
+  dockRootMargin,
+  dockThreshold,
 }: OverlayModalProps) {
   const overlayRef = React.useRef<HTMLDivElement | null>(null); // äußerer Scroller (Backdrop)
   const contentRef = React.useRef<HTMLDivElement | null>(null); // Sheet/Content
   const [mounted, setMounted] = React.useState(false);
   const previouslyFocused = React.useRef<HTMLElement | null>(null);
 
+  // Mount-Flag gegen Hydration-Diffs
   React.useEffect(() => setMounted(true), []);
 
-  // Body-Scroll sperren & Fokus merken/wiederherstellen
+  // Sehr konservative Safari-Erkennung (WebKit ohne Chrome/Edge)
+  const isSafari = React.useMemo(() => {
+    if (typeof navigator === "undefined") return false;
+    const ua = navigator.userAgent;
+    const isAppleWebKit = /AppleWebKit/.test(ua);
+    const isChrome = /Chrome\//.test(ua) || /CriOS\//.test(ua);
+    const isEdge = /Edg\//.test(ua);
+    return isAppleWebKit && !isChrome && !isEdge;
+  }, []);
+
+  // Body-Scroll sperren & Fokus wiederherstellen
   React.useEffect(() => {
     if (!open) return;
-
     previouslyFocused.current = document.activeElement as HTMLElement | null;
 
-    const original = document.body.style.overflow;
+    const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    // Sanftes Autofocus: erst data-autofocus, sonst erstes Fokus-Element, sonst der Dialog selbst
+    // sanfter Autofokus
     const focusTarget =
       contentRef.current?.querySelector<HTMLElement>("[data-autofocus]") ??
       contentRef.current?.querySelector<HTMLElement>(
@@ -55,75 +74,69 @@ export default function OverlayModal({
       contentRef.current ??
       undefined;
 
-    // try/catch schützt vor Shadow-DOM/iframes Edgecases
-    try {
-      focusTarget?.focus();
-    } catch {}
+    try { focusTarget?.focus(); } catch {}
 
     return () => {
-      document.body.style.overflow = original;
-      // Vorherigen Fokus wiederherstellen (best effort)
-      try {
-        previouslyFocused.current?.focus?.();
-      } catch {}
+      document.body.style.overflow = originalOverflow;
+      try { previouslyFocused.current?.focus?.(); } catch {}
     };
   }, [open]);
 
-  // ESC schließt Overlay
+  // ESC schließt
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        onClose();
-      }
+      if (e.key === "Escape") { e.preventDefault(); onClose(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  // Klick auf Backdrop schließt (nur wenn exakt auf den Backdrop geklickt)
+  // Klick auf Backdrop schließt (nur wenn exakt Backdrop getroffen)
   const onOverlayMouseDown = (e: React.MouseEvent) => {
     if (e.target === overlayRef.current) onClose();
   };
 
-  // Fokus-Trap (TS-safe mit Guards)
+  // Fokus-Trap
   const onKeyDownTrap = (e: React.KeyboardEvent) => {
     if (e.key !== "Tab") return;
-
-    const root = contentRef.current;
-    if (!root) return;
-
+    const root = contentRef.current; if (!root) return;
     const focusables = Array.from(
       root.querySelectorAll<HTMLElement>(
         'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
       )
-    ).filter(
-      (el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden")
-    );
-
-    // 0 → nichts zu tun, 1 → kein Wrap-Around nötig
+    ).filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
     if (focusables.length < 2) return;
 
-    const first = focusables[0] as HTMLElement;
-    const last = focusables[focusables.length - 1] as HTMLElement;
+    const first = focusables[0]!;
+    const last = focusables[focusables.length - 1]!;
 
     if (e.shiftKey) {
-      // Shift+Tab auf dem ersten Element → zum letzten springen
-      if (document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      }
+      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
     } else {
-      // Tab auf dem letzten Element → zum ersten springen
-      if (document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
+      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
   };
 
-  // Scroll-Reset bei Öffnen/Schließen (zweifach rAF gegen Transition/paint-Rennen)
+  // Safari-only Wheel-Routing (Chrome/Edge/Firefox → nativ & butterweich)
+  React.useEffect(() => {
+    if (!open || !isSafari) return;
+    const el = overlayRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      // verhindert "Durchscrollen" der Seite hinter dem Overlay
+      e.preventDefault();
+      e.stopPropagation();
+      el.scrollBy({ top: e.deltaY, behavior: "auto" });
+    };
+
+    // non-passive nötig für preventDefault
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel as any);
+  }, [open, isSafari]);
+
+  // Scroll-Reset bei Open (zweifach rAF)
   React.useEffect(() => {
     const overlay = overlayRef.current;
     const dialog = contentRef.current as unknown as { scrollTop?: number } | null;
@@ -139,7 +152,6 @@ export default function OverlayModal({
       });
     };
 
-    // Immer zurücksetzen – beim Close für den nächsten Start oben, beim Open direkt nach Mount
     reset();
   }, [open]);
 
@@ -150,6 +162,7 @@ export default function OverlayModal({
   const overlayVars: React.CSSProperties & Record<string, string> = {
     "--overlay-top-gap": `${topGapMobile}px`,
     "--overlay-top-gap-sm": `${topGapMobileSm}px`,
+    WebkitOverflowScrolling: "touch",
   } as any;
 
   if (!mounted) return null;
@@ -160,20 +173,25 @@ export default function OverlayModal({
     <div
       className={[
         "fixed inset-0 z-[1000] transition-[opacity] ease-out",
-        open ? "opacity-100 duration-0" : "opacity-0 pointer-events-none duration-0 md:duration-[var(--modal-open-timeout)]",
+        open
+          ? "opacity-100 duration-0"
+          : "opacity-0 pointer-events-none duration-0 md:duration-[var(--modal-open-timeout)]",
       ].join(" ")}
       style={portalStyle}
       aria-hidden={!open}
     >
       <div
         ref={overlayRef}
-        className="absolute inset-0 bg-black/45 backdrop-blur-md backdrop-saturate-150
-                   flex items-start md:items-start justify-center
-                   overflow-y-auto
-                   p-0 pt-[var(--overlay-top-gap,16px)] sm:pt-[var(--overlay-top-gap-sm,24px)] md:py-12
-                   transition-opacity duration-200 ease-out motion-reduce:transition-none"
-        style={overlayVars}
         onMouseDown={onOverlayMouseDown}
+        className={[
+          "absolute inset-0 bg-black/40",
+          "supports-[backdrop-filter]:backdrop-blur-[2px] md:supports-[backdrop-filter]:backdrop-blur-md",
+          "backdrop-saturate-150 flex items-start md:items-start justify-center",
+          "overflow-y-auto p-0 pt-[var(--overlay-top-gap,16px)] sm:pt-[var(--overlay-top-gap-sm,24px)] md:py-12",
+          "transition-opacity duration-200 ease-out motion-reduce:transition-none",
+          "touch-pan-y overscroll-contain transform-gpu will-change-transform",
+        ].join(" ")}
+        style={overlayVars}
       >
         <div
           role="dialog"
@@ -184,20 +202,28 @@ export default function OverlayModal({
           tabIndex={-1}
           onKeyDown={onKeyDownTrap}
           ref={contentRef}
-          className="relative mx-0 my-0
-                     w-screen md:w-[min(96vw,680px)]
-                     rounded-t-3xl rounded-b-none md:rounded-3xl
-                     bg-white/95 shadow-xl ring-1 ring-black/5 md:bg-white md:shadow-2xl
-                     min-h-[calc(100vh-var(--overlay-top-gap,16px))]
-                     sm:min-h-[calc(100vh-var(--overlay-top-gap-sm,24px))]
-                     pb-[env(safe-area-inset-bottom)]
-                     overflow-visible md:overflow-visible
-                     transition-transform transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
+          className={[
+            "relative mx-0 my-0 w-screen md:w-[min(96vw,680px)]",
+            "rounded-t-3xl rounded-b-none md:rounded-3xl",
+            "bg-white/95 shadow-xl ring-1 ring-black/5 md:bg-white md:shadow-2xl",
+            "min-h-[calc(100vh-var(--overlay-top-gap,16px))] sm:min-h-[calc(100vh-var(--overlay-top-gap-sm,24px))]",
+            "pb-[env(safe-area-inset-bottom)]",
+            // Wichtig für dein aktuelles Fix: unten sichtbar lassen (mobil),
+            // aber auf Desktop das Card-"Überstehen" verhindern:
+            "overflow-visible md:overflow-hidden",
+            "transition-transform transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none",
+            "transform-gpu will-change-transform",
+          ].join(" ")}
         >
+          {/* CloseDock mit Hysterese-Props durchgereicht */}
           <CloseDock
             sheetRef={contentRef as unknown as React.RefObject<HTMLElement>}
             active={open}
             onClose={onClose}
+            // Diese Props werden nur angewendet, falls deine CloseDock-Version sie unterstützt;
+            // andernfalls werden sie ignoriert (kein Fehler).
+            rootMargin={dockRootMargin}
+            threshold={dockThreshold}
           />
 
           <div className="px-6 sm:px-8 md:px-[66px] py-[66px] md:py-[99px] antialiased">
@@ -223,7 +249,7 @@ export default function OverlayModal({
             )}
 
             {children && (
-              <div className="mt-4 text-[17px] md:text-[18px] leading-[1.3] md:leading-[1.35] text-slate-700">
+              <div className="mt-4 antialiased text-[17px] md:text-[18px] leading-[1.3] md:leading-[1.35] text-slate-700">
                 {children}
               </div>
             )}

@@ -9,8 +9,6 @@ type SliderProps = {
   children: React.ReactNode[];
   /** Innen-Padding links/rechts im Scroller, damit die erste Karte exakt unter dem Titel startet */
   scrollerPaddingX?: number; // default 16
-  /** Maximalbreite deines Containerlayouts (px), z.B. 72rem = 1152px (max-w-6xl) */
-  containerMaxPx?: number; // default 1152
 };
 
 const BTN_CLS =
@@ -20,18 +18,41 @@ const BTN_CLS =
   "transition duration-200 ease-[cubic-bezier(.2,.8,.2,1)] cursor-pointer";
 
 const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
-  function MobileFullBleedSnapSlider(
-    { children, scrollerPaddingX = 16, containerMaxPx = 1152 },
-    ref
-  ) {
+  function MobileFullBleedSnapSlider({ children, scrollerPaddingX = 16 }, ref) {
     const items = React.Children.toArray(children);
+    const wrapperRef = React.useRef<HTMLDivElement | null>(null);
     const scrollerRef = React.useRef<HTMLDivElement | null>(null);
     const [index, setIndex] = React.useState(0);
     const isProgrammaticRef = React.useRef(false);
     const animTimerRef = React.useRef<number | null>(null);
 
-    // Full-bleed, aber auf Containerbreite einschnappen:
-    const sidePad = `calc((100vw - min(100vw, ${containerMaxPx}px)) / 2 + ${scrollerPaddingX}px)`;
+    // SSR-stabile Initialwerte per CSS-Var; echte calc(...) erst NACH Mount setzen
+    React.useEffect(() => {
+      const el = wrapperRef.current;
+      if (!el) return;
+
+      const applySidePad = () => {
+        // echte Full-bleed Berechnung erst im Browser
+        const calcExpr = `calc((100vw - min(100vw, 72rem)) / 2 + ${scrollerPaddingX}px)`;
+        el.style.setProperty("--side-pad", calcExpr);
+      };
+
+      // initial setzen
+      applySidePad();
+
+      // bei Resize aktualisieren (rAF entlastet Layout)
+      let raf = 0;
+      const onResize = () => {
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(applySidePad);
+      };
+      window.addEventListener("resize", onResize);
+
+      return () => {
+        window.removeEventListener("resize", onResize);
+        cancelAnimationFrame(raf);
+      };
+    }, [scrollerPaddingX]);
 
     const getPadLeft = React.useCallback(() => {
       const s = scrollerRef.current;
@@ -48,16 +69,16 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
 
       const onScroll = () => {
         if (isProgrammaticRef.current) return;
-        const kids = Array.from(s.children) as (HTMLElement | undefined)[];
+        const kids = Array.from(s.children) as HTMLElement[];
         if (!kids.length) return;
         const padL = getPadLeft();
         const sl = s.scrollLeft;
         let nearest = 0;
         let min = Infinity;
         for (let i = 0; i < kids.length; i++) {
-          const child = kids[i];
-          if (!child) continue; // ✅ TS-safe Guard
-          const target = Math.max(0, child.offsetLeft - padL);
+          const k = kids[i];
+          // TS-sicher
+          const target = Math.max(0, (k?.offsetLeft ?? 0) - padL);
           const d = Math.abs(target - sl);
           if (d < min) {
             min = d;
@@ -72,22 +93,19 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
       return () => s.removeEventListener("scroll", onScroll);
     }, [getPadLeft]);
 
-    React.useEffect(
-      () => () => {
-        if (animTimerRef.current) window.clearTimeout(animTimerRef.current);
-      },
-      []
-    );
+    React.useEffect(() => () => {
+      if (animTimerRef.current) window.clearTimeout(animTimerRef.current);
+    }, []);
 
-    // Programmatisches Scrollen (Padding berücksichtigen)
+    // Programmatisches Scrollen (Padding berücksichtigen) – verhindert "Skippen"
     const scrollToIndex = (i: number) => {
       const s = scrollerRef.current;
       if (!s) return;
-      const kids = Array.from(s.children) as (HTMLElement | undefined)[];
+      const kids = Array.from(s.children) as HTMLElement[];
       const k = kids[i];
       if (!k) return;
       const padL = getPadLeft();
-      const left = Math.max(0, k.offsetLeft - padL);
+      const left = Math.max(0, (k?.offsetLeft ?? 0) - padL);
 
       if (animTimerRef.current) {
         window.clearTimeout(animTimerRef.current);
@@ -115,28 +133,34 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
 
     return (
       <section className="relative w-full overflow-visible">
-        {/* Full-bleed Wrapper */}
+        {/* Full-bleed Wrapper (setzt SSR-stabile Var + wird nach Mount aktualisiert) */}
         <div
+          ref={wrapperRef}
           className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-visible
                      [--slider-gap:16px] md:[--slider-gap:24px]
                      [--y-gap:16px] [--lift:44px]"
-          style={{ paddingLeft: 0, paddingRight: 0 } as React.CSSProperties}
+          // SSR-neutraler Startwert – exakt gleich auf Server & Client → keine Hydration-Diffs
+          style={{ ["--side-pad" as any]: `${scrollerPaddingX}px` } as React.CSSProperties}
         >
-          {/* Scroll-Container: overflow & Snap */}
+          {/* Scroll-Container: overflow, Snap & Padding */}
           <div
             ref={scrollerRef}
             className="flex flex-nowrap snap-x snap-mandatory overflow-x-auto overflow-y-visible
                        [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
                        py-[var(--y-gap)] mt-[var(--y-gap)]
                        pb-[var(--lift)] -mb-[var(--lift)] pt-[var(--lift)] -mt-[var(--lift)]"
-            style={{
-              gap: "var(--slider-gap)",
-              paddingLeft: sidePad,
-              paddingRight: sidePad,
-              scrollPaddingLeft: sidePad,
-              scrollPaddingRight: sidePad,
-              WebkitOverflowScrolling: "touch",
-            } as React.CSSProperties}
+            style={
+              {
+                gap: "var(--slider-gap)",
+                // Nutzen überall dieselbe CSS-Var (Server & Client identisch),
+                // der echte calc(...) wird NACH Mount in --side-pad geschrieben.
+                paddingLeft: "var(--side-pad)",
+                paddingRight: "var(--side-pad)",
+                scrollPaddingLeft: "var(--side-pad)",
+                scrollPaddingRight: "var(--side-pad)",
+                WebkitOverflowScrolling: "touch",
+              } as React.CSSProperties
+            }
           >
             {items.map((child, i) => (
               <div
@@ -150,15 +174,9 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
           </div>
         </div>
 
-        {/* Navigation (fester Abstand 44px über/unter) */}
+        {/* Navigation */}
         <div className="max-w-6xl mx-auto px-4 md:px-24 flex items-center gap-2 justify-end mt-[44px] pb-[44px]">
-          <button
-            type="button"
-            aria-label="Zurück"
-            onClick={prev}
-            disabled={index === 0}
-            className={BTN_CLS}
-          >
+          <button type="button" aria-label="Zurück" onClick={prev} disabled={index === 0} className={BTN_CLS}>
             <ChevronLeft className="h-5 w-5" />
           </button>
           <button

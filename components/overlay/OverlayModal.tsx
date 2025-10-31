@@ -208,22 +208,19 @@ export default function OverlayModal({
             "bg-white/95 shadow-xl ring-1 ring-black/5 md:bg-white md:shadow-2xl",
             "min-h-[calc(100vh-var(--overlay-top-gap,16px))] sm:min-h-[calc(100vh-var(--overlay-top-gap-sm,24px))]",
             "pb-[env(safe-area-inset-bottom)]",
-            // Wichtig für dein aktuelles Fix: unten sichtbar lassen (mobil),
-            // aber auf Desktop das Card-"Überstehen" verhindern:
+            // mobil sichtbar, Desktop begrenzen
             "overflow-visible md:overflow-hidden",
             "transition-transform transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none",
             "transform-gpu will-change-transform",
           ].join(" ")}
         >
-          {/* CloseDock mit Hysterese-Props durchgereicht */}
+          {/* CloseDock mit passenden Prop-Namen */}
           <CloseDock
             sheetRef={contentRef as unknown as React.RefObject<HTMLElement>}
             active={open}
             onClose={onClose}
-            // Diese Props werden nur angewendet, falls deine CloseDock-Version sie unterstützt;
-            // andernfalls werden sie ignoriert (kein Fehler).
-            rootMargin={dockRootMargin}
-            threshold={dockThreshold}
+            dockRootMargin={dockRootMargin}
+            dockThreshold={dockThreshold}
           />
 
           <div className="px-6 sm:px-8 md:px-[66px] py-[66px] md:py-[99px] antialiased">

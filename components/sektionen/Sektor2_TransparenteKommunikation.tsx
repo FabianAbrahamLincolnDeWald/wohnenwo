@@ -110,13 +110,11 @@ function SetupCard({
 }) {
   const [open, setOpen] = React.useState(false);
 
-  // Mobile (260x314): exakt 25.5px / 16.5px; Subtext-Leading 22.6233px
-  // Desktopwerte (md:) bleiben aus den Klassen/Props erhalten.
   const titleSize =
-    `${titleClassName ?? "md:text-[30px] md:leading-[1.04]"} text-[25.5px] leading-[1.06]`;
+    `${titleClassName ?? "md:text-[30px] md:leading-[1.04]"} text-[24px] leading-[1.08]`;
 
   const subtitleSize =
-    `${subtitleClassName ?? "md:text-[19px] md:leading-6"} text-[16.5px] leading-[22.6233px]`;
+    `${subtitleClassName ?? "md:text-[19px] md:leading-6"} text-[15.75px] leading-[22,22px]`;
 
   const subIcon = React.isValidElement(subtitleIcon)
     ? React.cloneElement(subtitleIcon as any, {

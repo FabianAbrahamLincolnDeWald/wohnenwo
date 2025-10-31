@@ -26,7 +26,9 @@ export type KommunikationCard = {
     | "FolderOpen"
     | "WandSparkles"
     | "Sparkles"
-    | "HandCoins";
+    | "HandCoins"
+    | "BrickWallShield"
+    | "HandHeart";
   subtitle: ReactNode;
   titleClassName?: string;
   subtitleClassName?: string;

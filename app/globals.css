@@ -35,3 +35,9 @@ img {
 .cursor-pointer, [role="button"], a, button {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Verhindert Safari & iOS Dynamic Type Scaling */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}

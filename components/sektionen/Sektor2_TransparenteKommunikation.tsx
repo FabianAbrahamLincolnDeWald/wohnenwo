@@ -128,7 +128,7 @@ function SetupCard({
     <>
       <div
         className="w-[260px] h-[314px] sm:w-[448px] sm:h-[282px]"
-        style={{ ["--intent-top" as any]: "152px", ["--intent-top-mobile" as any]: "176px" } as React.CSSProperties}
+        style={{ ["--intent-top" as any]: "152px", ["--intent-top-mobile" as any]: "166px" } as React.CSSProperties}
       >
         <div
           role="button"

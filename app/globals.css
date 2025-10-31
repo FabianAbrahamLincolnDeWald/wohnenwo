@@ -41,3 +41,12 @@ html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
+/* iOS-spezifische Absicherung */
+@supports (-webkit-touch-callout: none) {
+  html { -webkit-text-size-adjust: 100%; }
+}
+
+/* Falls du absolut jede Auto-Anpassung killen willst, nur für iOS (optional)*/
+@supports (-webkit-touch-callout: none) {
+  html { -webkit-text-size-adjust: none; }
+}

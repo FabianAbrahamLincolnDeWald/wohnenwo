@@ -114,7 +114,7 @@ function SetupCard({
     `${titleClassName ?? "md:text-[30px] md:leading-[1.04]"} text-[24px] leading-[1.08]`;
 
   const subtitleSize =
-    `${subtitleClassName ?? "md:text-[19px] md:leading-6"} text-[15.75px] leading-[22,22px]`;
+    `${subtitleClassName ?? "md:text-[19px] md:leading-6"} text-[15.75px] leading-[22.22px]`;
 
   const subIcon = React.isValidElement(subtitleIcon)
     ? React.cloneElement(subtitleIcon as any, {

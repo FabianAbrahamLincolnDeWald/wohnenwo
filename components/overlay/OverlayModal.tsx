@@ -21,9 +21,10 @@ export type OverlayModalProps = {
   /** Abstand oben (sm) bis Sheet-Beginn */
   topGapMobileSm?: number;
 
-  /** Weiterleitung an CloseDock: IntersectionObserver-Hysterese */
-  dockRootMargin?: string;   // z.B. "-2px 0px 0px 0px"
-  dockThreshold?: number;    // z.B. 0
+  /** Optional: Hysterese-Werte nur als API nach außen (werden hier NICHT weitergereicht,
+   * um TS-Fehler mit älteren CloseDock-Versionen zu vermeiden) */
+  dockRootMargin?: string;
+  dockThreshold?: number;
 };
 
 export default function OverlayModal({
@@ -36,18 +37,29 @@ export default function OverlayModal({
   durationMs = 400,
   topGapMobile = 16,
   topGapMobileSm = 24,
-  dockRootMargin,
-  dockThreshold,
 }: OverlayModalProps) {
   const overlayRef = React.useRef<HTMLDivElement | null>(null); // äußerer Scroller (Backdrop)
   const contentRef = React.useRef<HTMLDivElement | null>(null); // Sheet/Content
+
+  // 1) Mount-/Hydration-Flags
   const [mounted, setMounted] = React.useState(false);
+  const [hydrationReady, setHydrationReady] = React.useState(false);
   const previouslyFocused = React.useRef<HTMLElement | null>(null);
 
-  // Mount-Flag gegen Hydration-Diffs
-  React.useEffect(() => setMounted(true), []);
+  React.useEffect(() => {
+    setMounted(true);
+    // 2× rAF → Browser lässt erste Styles/Fonts „setzen“, dann weich einblenden
+    let raf1 = 0, raf2 = 0;
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setHydrationReady(true));
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
+  }, []);
 
-  // Sehr konservative Safari-Erkennung (WebKit ohne Chrome/Edge)
+  // Konservative Safari-Erkennung (WebKit ohne Chrome/Edge)
   const isSafari = React.useMemo(() => {
     if (typeof navigator === "undefined") return false;
     const ua = navigator.userAgent;
@@ -169,11 +181,14 @@ export default function OverlayModal({
 
   const computedAriaLabel = ariaLabel || headline || title || "Overlay";
 
+  // Sichtbarkeit: während der allerersten Hydration kurz „versteckt“, danach weich eingeblendet
+  const visibleNow = open && hydrationReady;
+
   return createPortal(
     <div
       className={[
         "fixed inset-0 z-[1000] transition-[opacity] ease-out",
-        open
+        visibleNow
           ? "opacity-100 duration-0"
           : "opacity-0 pointer-events-none duration-0 md:duration-[var(--modal-open-timeout)]",
       ].join(" ")}
@@ -205,22 +220,23 @@ export default function OverlayModal({
           className={[
             "relative mx-0 my-0 w-screen md:w-[min(96vw,680px)]",
             "rounded-t-3xl rounded-b-none md:rounded-3xl",
-            "bg-white/95 shadow-xl ring-1 ring-black/5 md:bg-white md:shadow-2xl",
+            // 3) Immer blickdicht: KEIN bg-white/95 mehr.
+            "bg-white shadow-xl ring-1 ring-black/5 md:bg-white md:shadow-2xl",
             "min-h-[calc(100vh-var(--overlay-top-gap,16px))] sm:min-h-[calc(100vh-var(--overlay-top-gap-sm,24px))]",
             "pb-[env(safe-area-inset-bottom)]",
-            // mobil sichtbar, Desktop begrenzen
+            // Mobil darf Content überstehen (Hover-Shadows etc.), Desktop hält sauber im Sheet:
             "overflow-visible md:overflow-hidden",
             "transition-transform transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none",
             "transform-gpu will-change-transform",
           ].join(" ")}
         >
-          {/* CloseDock mit passenden Prop-Namen */}
           <CloseDock
             sheetRef={contentRef as unknown as React.RefObject<HTMLElement>}
             active={open}
             onClose={onClose}
-            dockRootMargin={dockRootMargin}
-            dockThreshold={dockThreshold}
+            /* WICHTIG:
+               Wir reichen KEINE zusätzlichen Props weiter, um TS-Fehler mit älteren CloseDock-Versionen zu vermeiden.
+               Passe rootMargin/threshold direkt in deiner CloseDock.tsx an, falls benötigt. */
           />
 
           <div className="px-6 sm:px-8 md:px-[66px] py-[66px] md:py-[99px] antialiased">

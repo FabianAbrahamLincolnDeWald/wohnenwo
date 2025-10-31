@@ -65,7 +65,7 @@ function OverlayBody({
         </div>
       )}
       {card && (card.variant === "clickable" ? (
-        <a href={card.href} aria-label="Mehr erfahren" className="group mt-6 block focus:outline-none">
+        <a href={card.href} aria-label="Mehr erfahren" className="group mt-6 block focus:outline-none cursor-pointer">
           <div className="rounded-3xl bg-slate-200/90 ring-1 ring-black/10 p-5 md:p-6 pb-0 transition-all duration-200 hover:ring-black/20 hover:bg-slate-200 focus-visible:ring-2 focus-visible:ring-slate-400">
             {card.text && (() => { const { lead, rest } = splitLead(card.text!); return (
               <p className="text-[17px] md:text-[18px] leading-[1.35] text-slate-800">

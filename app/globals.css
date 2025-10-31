@@ -25,3 +25,13 @@ p {
 img {
   @apply block max-w-full h-auto;
 }
+
+/* Erzwinge sofort den Hand-Cursor auf allen interaktiven Elementen */
+[role="button"], button, a {
+  cursor: pointer;
+}
+
+/* iOS/Safari: verhindert Tap-Highlight und hilft bei transformierten Eltern */
+.cursor-pointer, [role="button"], a, button {
+  -webkit-tap-highlight-color: transparent;
+}

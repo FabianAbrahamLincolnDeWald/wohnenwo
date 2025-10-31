@@ -61,8 +61,8 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
     icon: "UserSearch",
     subtitle: "Wir führen dich zu dem, was dich wirklich anspricht.",
     titleClassName:
-      "text-[clamp(22px,6.4vw,28px)] md:text-[30px] leading-[1.06] md:leading-[1.04]",
-    subtitleClassName: "text-[clamp(14px,4.2vw,17px)] md:text-[19px]",
+      "",
+    subtitleClassName: "",
     subtitleIcon: "Users",
     overlayTitle: "Ehrliche Begegnungen",
     overlayHeadline: "Wir zeigen ehrlich, wer wir sind.",
@@ -77,8 +77,8 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
     icon: "UserStar",
     subtitle: "Du darfst hinter die Kulissen schauen.",
     titleClassName:
-      "text-[clamp(22px,6.4vw,28px)] md:text-[30px] leading-[1.06] md:leading-[1.04]",
-    subtitleClassName: "text-[clamp(14px,4.2vw,17px)] md:text-[19px]",
+      "",
+    subtitleClassName: "",
     subtitleIcon: "ScanEye",
     overlayTitle: "Transparenz & bewusste Investition",
     overlayHeadline: "Während der ersten Begegnung erhältst du vollen Einblick.",
@@ -92,7 +92,7 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
         "Sieh selbst, wie Klarheit aussieht. Der Transparenz-Rechner öffnet dir den Blick hinter die Zahlen – ehrlich, nachvollziehbar und einfach erklärt.",
       paras: [
         "Er zeigt, wie aus jedem Euro sichtbare Qualität, echter Nutzen und gesellschaftliche Wirkung entstehen.",
-        "In Zukunft wird er zum Kommunikationstool, das dich direkt mit dem passenden Dienstleister verbindet.",
+        <strong>In Zukunft wird er zum Kommunikationstool, das dich direkt mit dem passenden Dienstleister verbindet.</strong>,
       ],
       img: {
         src: "/images/dienst-wirkung/cards/mockup-erlebe-wie-wirtschaft.png",
@@ -112,8 +112,8 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
       </>
     ),
     titleClassName:
-      "text-[clamp(22px,6.4vw,28px)] md:text-[30px] leading-[1.06] md:leading-[1.04]",
-    subtitleClassName: "text-[clamp(14px,4.2vw,17px)] md:text-[19px]",
+      "",
+    subtitleClassName: "",
     subtitleIcon: "FolderOpen",
     overlayTitle: "Offene Prozesse & gelebte Qualität",
     overlayHeadline: "Wir zeigen, wie echte Qualität entsteht.",
@@ -127,12 +127,10 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
         "Qualität, die man sieht und versteht. In deiner Rechnung findest du mehr als nur Zahlen – du erkennst, wo Werte entstehen, wie Preise sich zusammensetzen und welche Menschen, Materialien und Ideen dahinterstehen.",
       paras: [
         "Einkauf, Herstellung, Verantwortung und Gewinn werden offen dargestellt – klar, nachvollziehbar und leicht zu verstehen.",
-        <>
-          So wird Qualität nicht nur versprochen, sondern dokumentiert:{" "}
-          <span className="text-slate-900 font-medium italic underline decoration-current decoration-2 underline-offset-4 [text-decoration-skip-ink:auto]">
-            Das Wie, das Woher und das Warum stehen direkt vor dir.
-          </span>
-        </>,
+        "So wird Qualität nicht nur versprochen, sondern dokumentiert:",
+        <span className="text-slate-900 font-medium italic underline decoration-current decoration-2 underline-offset-4 [text-decoration-skip-ink:auto]">
+          Das Wie, das Woher und das Warum stehen direkt vor dir.
+        </span>,
       ],
       img: {
         src: "/images/dienst-wirkung/cards/mockup-invoice.jpg",
@@ -146,8 +144,8 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
     icon: "Scale",
     subtitle: "Der gerechte Ausgleich entsteht.",
     titleClassName:
-      "text-[clamp(22px,6.4vw,28px)] md:text-[30px] leading-[1.06] md:leading-[1.04]",
-    subtitleClassName: "text-[clamp(14px,4.2vw,17px)] md:text-[19px]",
+      "",
+    subtitleClassName: "",
     subtitleIcon: "HandCoins",
     overlayTitle: "Faire & gerechte Verteilung",
     overlayHeadline: "Wir verbinden Transparenz mit Gerechtigkeit.",
@@ -179,20 +177,15 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
     icon: "HeartHandshake",
     subtitle: "Das System wird tragfähig und fasziniert.",
     titleClassName:
-      "text-[clamp(22px,6.4vw,28px)] md:text-[30px] leading-[1.06] md:leading-[1.04]",
-    subtitleClassName: "text-[clamp(14px,4.2vw,17px)] md:text-[19px]",
+      "",
+    subtitleClassName: "",
     subtitleIcon: "BrickWallShield",
     overlayTitle: "Verlässliche Partnerschaften",
     overlayHeadline: "Aus Gerechtigkeit wächst Stabilität und neue Attraktivität.",
     overlayParas: [
       "Gemeinsam schaffen wir Vertrauen, das trägt. Wenn alle ihren gerechten Anteil kennen und Verantwortung übernehmen, entsteht Sicherheit – für alle Beteiligten.",
       "Ehrliche Absprachen, klare Zuständigkeiten und offene Kommunikation halten die Zusammenarbeit stabil.",
-      <>
-        Durch Fairness und gegenseitige Achtung entsteht ein Umfeld, das anzieht –{" "}
-        <span className="text-slate-900 font-medium italic">
-          für Fachkräfte, die Sinn suchen, und für Kunden, die Qualität und Haltung schätzen.
-        </span>
-      </>,
+      "Durch Fairness und gegenseitige Achtung entsteht ein Umfeld, das anzieht – für Fachkräfte, die Sinn suchen, und für Kunden, die Qualität und Haltung schätzen.",
       <span className="text-slate-900 font-bold italic">
         So wächst eine Dienstleistungsbranche, die nicht nur funktioniert, sondern inspiriert – beliebt, belebend und zukunftsfähig.
       </span>,
@@ -203,8 +196,8 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
     icon: "Earth",
     subtitle: "Der Wandel von Werten wird spürbar.",
     titleClassName:
-      "text-[clamp(22px,6.4vw,28px)] md:text-[30px] leading-[1.06] md:leading-[1.04]",
-    subtitleClassName: "text-[clamp(14px,4.2vw,17px)] md:text-[19px]",
+      "",
+    subtitleClassName: "",
     subtitleIcon: "HandHeart",
     overlayTitle: "Wertschätzung & Anerkennung",
     overlayHeadline:
@@ -222,20 +215,17 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
     icon: "Trophy",
     subtitle: "Wir verzaubern Wirtschaft mit Bewusstsein und Gefühl.",
     titleClassName:
-      "text-[clamp(22px,6.4vw,28px)] md:text-[30px] leading-[1.06] md:leading-[1.04]",
-    subtitleClassName: "text-[clamp(14px,4.2vw,17px)] md:text-[19px]",
+      "",
+    subtitleClassName: "",
     subtitleIcon: "WandSparkles",
     overlayTitle: "Bewusste Gestaltung",
     overlayHeadline:
       "Arbeit wird zum Erlebnis – mit Sinn und Tiefe, die berührt.",
     overlayParas: [
-      <>
-        Wenn Arbeit mit Bewusstsein geschieht, entstehen Erlebnisse, die bleiben. Jeder Handgriff trägt eine Idee, jedes Material eine Haltung, jeder Raum eine Geschichte.{" "}
-        <span className="text-slate-900 font-bold italic">
-          Was mit Sinn entsteht, bleibt.<br />
-          Es begleitet, inspiriert und erinnert daran, was uns wirklich verbindet.
-        </span>
-      </>,
+      "Wenn Arbeit mit Bewusstsein geschieht, entstehen Erlebnisse, die bleiben. Jeder Handgriff trägt eine Idee, jedes Material eine Haltung, jeder Raum eine Geschichte.",
+      <span className="text-slate-900 font-bold italic">
+        Was mit Sinn entsteht, bleibt. Es begleitet, inspiriert und erinnert daran, was uns wirklich verbindet.
+        </span>,
     ],
   },
   {
@@ -243,8 +233,8 @@ export const KOMMUNIKATION_CARDS: KommunikationCard[] = [
     icon: "RefreshCw",
     subtitle: "Die Vision einer bewussten, fairen Wirtschaft.",
     titleClassName:
-      "text-[clamp(22px,6.4vw,28px)] md:text-[30px] leading-[1.06] md:leading-[1.04]",
-    subtitleClassName: "text-[clamp(14px,4.2vw,17px)] md:text-[19px]",
+      "",
+    subtitleClassName: "",
     subtitleIcon: "Sparkles",
     overlayTitle: "Gemeinsame Ausrichtung",
     overlayHeadline: "Der Abschluss: Alles wirkt zusammen.",

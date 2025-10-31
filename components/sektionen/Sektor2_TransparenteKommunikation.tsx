@@ -111,10 +111,10 @@ function SetupCard({
   const [open, setOpen] = React.useState(false);
 
   const titleSize =
-    `${titleClassName ?? "md:text-[30px] md:leading-[1.04]"} text-[24px] leading-[1.08]`;
+    `${titleClassName ?? "md:text-[30px] md:leading-[1.04]"} text-[25.5px] leading-[1.08]`;
 
   const subtitleSize =
-    `${subtitleClassName ?? "md:text-[19px] md:leading-6"} text-[15.75px] leading-[22.22px]`;
+    `${subtitleClassName ?? "md:text-[19px] md:leading-6"} text-[15.5px] leading-[22.22px]`;
 
   const subIcon = React.isValidElement(subtitleIcon)
     ? React.cloneElement(subtitleIcon as any, {
@@ -128,7 +128,7 @@ function SetupCard({
     <>
       <div
         className="w-[260px] h-[314px] sm:w-[448px] sm:h-[282px]"
-        style={{ ["--intent-top" as any]: "152px", ["--intent-top-mobile" as any]: "166px" } as React.CSSProperties}
+        style={{ ["--intent-top" as any]: "152px", ["--intent-top-mobile" as any]: "168px" } as React.CSSProperties}
       >
         <div
           role="button"

@@ -1,52 +1,21 @@
 @import "tailwindcss";
 
 /* Basiseinstellungen */
-html, body {
-  min-height: 100%;
+html, body { min-height: 100%; }
+
+/* @apply gehört in ein Layer (sonst Purge/Order-Probleme möglich) */
+@layer base {
+  body { @apply antialiased bg-white text-slate-900 font-sans; }
+  p { @apply leading-relaxed; }
+  img { @apply block max-w-full h-auto; }
 }
 
-/* Globale Text- und Hintergrundgestaltung */
-body {
-  @apply antialiased bg-white text-slate-900 font-sans;
-}
-
-/* Listen-Reset (wie im Canvas) */
+/* Listen-Reset (kein @apply nötig) */
 ul[role="list"] {
   list-style: none;
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
 }
 
-/* Optionale Helper für bessere Textdarstellung */
-p {
-  @apply leading-relaxed;
-}
-
-img {
-  @apply block max-w-full h-auto;
-}
-
-/* Erzwinge sofort den Hand-Cursor auf allen interaktiven Elementen */
-[role="button"], button, a {
-  cursor: pointer;
-}
-
-/* iOS/Safari: verhindert Tap-Highlight und hilft bei transformierten Eltern */
-.cursor-pointer, [role="button"], a, button {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Verhindert Safari & iOS Dynamic Type Scaling */
-html {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-/* iOS-spezifische Absicherung */
-@supports (-webkit-touch-callout: none) {
-  html { -webkit-text-size-adjust: 100%; }
-}
-
-/* Falls du absolut jede Auto-Anpassung killen willst, nur für iOS (optional)*/
-@supports (-webkit-touch-callout: none) {
-  html { -webkit-text-size-adjust: none; }
-}
+/* Cursor/Touch (normales CSS, kein @apply) */
+[role="button"], button, a { cursor: pointer; }
+.cursor-pointer, [role="button"], a, button { -webkit-tap-highlight-color: transparent; }

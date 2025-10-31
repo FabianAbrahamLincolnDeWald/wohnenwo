@@ -19,9 +19,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  // maximumScale: 1,       // optional – würde Pinch-Zoom verhindern (nicht immer empfehlenswert)
-};

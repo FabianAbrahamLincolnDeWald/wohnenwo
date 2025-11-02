@@ -3,16 +3,16 @@
 import * as React from "react";
 
 /**
- * ScrollTextStack – Wort-für-Wort Reveal
- * - Kein unsichtbarer Mess-<p> mehr: echte Höhe per ResizeObserver -> kein Leerraum unten
- * - Stabil: rAF-Throttle, reduced-motion-Respekt
- * - Deine Typo (clamp/leading) und Abstände bleiben erhalten
+ * ScrollTextStack – zeilenweiser Reveal (grau → schwarz)
+ * - Mobile Fix: kein „alles schwarz“ (prefers-reduced-motion), kein Flash beim Hydratisieren
+ * - Zeilenweises Verhalten durch inline-Spans (keine inline-blocks)
+ * - Typo/Abstände unverändert
  */
 export default function SektorX_ScrollTextStack() {
   const TEXT =
     "Sei Gastgeber einer Wirtschaft, die Menschen stärkt – nicht nur Märkte. Räume sprechen, wenn wir ihnen zuhören; Werte werden sichtbar, wenn wir sie leben. Wir gestalten so, dass Entscheidungen leichtfallen, Gespräche ehrlicher werden und Arbeit wieder Sinn stiftet. Deine Umgebung ist mehr als Kulisse – sie ist Resonanzboden für Haltung, Mut und Fürsorge. Hier beginnt der Wandel: leise im Detail, deutlich im Ergebnis, spürbar in jedem Tag.";
 
-  // Tuning
+  // Tuning (wie bei dir)
   const MID = 0.8;
   const START_OFFSET_PX = 80;
   const FADE_RANGE_PX = 80;
@@ -40,7 +40,7 @@ export default function SektorX_ScrollTextStack() {
     () => new Array(wordTokenIndices.length).fill(0)
   );
 
-  // reduced-motion respektieren
+  // reduced-motion respektieren (Mobile: NICHT alles schwarz zeichnen)
   const prefersReduced = React.useMemo(() => {
     if (typeof window === "undefined" || typeof matchMedia === "undefined") return false;
     try {
@@ -50,15 +50,22 @@ export default function SektorX_ScrollTextStack() {
     }
   }, []);
 
+  // Verhindert "Flash of Black" bis zur ersten Scroll-Messung
+  const [hydrated, setHydrated] = React.useState(false);
+  React.useEffect(() => {
+    setHydrated(true);
+  }, []);
+
   // Scroll-Reveal
   React.useEffect(() => {
     if (prefersReduced) {
-      setOpacities(new Array(wordTokenIndices.length).fill(1));
+      // Effekt deaktivieren: Text bleibt grau (schwarzer Layer unsichtbar)
+      setOpacities(new Array(wordTokenIndices.length).fill(0));
       return;
     }
 
     let raf = 0;
-    const onScroll = () => {
+    const measure = () => {
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = 0;
@@ -78,18 +85,26 @@ export default function SektorX_ScrollTextStack() {
           if (r.bottom < -200) { next[wi] = 1; continue; }
           const yMid = r.top + r.height / 2;
           const t = (start - yMid) / range;
-          next[wi] = t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t); // smoothstep
+          // smoothstep
+          next[wi] = t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
         }
         setOpacities(next);
       });
     };
 
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    measure();
+    window.addEventListener("scroll", measure, { passive: true });
+    window.addEventListener("resize", measure);
+    // iOS bfcache / Tabs → erneut messen
+    const rerun = () => measure();
+    window.addEventListener("pageshow", rerun);
+    document.addEventListener("visibilitychange", rerun);
+
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("scroll", measure);
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("pageshow", rerun);
+      document.removeEventListener("visibilitychange", rerun);
       if (raf) cancelAnimationFrame(raf);
     };
   }, [wordTokenIndices, prefersReduced, MID, START_OFFSET_PX, FADE_RANGE_PX]);
@@ -98,7 +113,7 @@ export default function SektorX_ScrollTextStack() {
   const txtSize = "text-[clamp(25.5px,calc(25.5px+29.5*(100vw-320px)/960),55px)]";
   const txtStyle = `${txtSize} leading-[1.08] tracking-tight font-medium`;
 
-  // Echte Texthöhe messen (kein unsichtbarer Absatz mehr)
+  // Echte Texthöhe messen (kein unsichtbarer Absatz)
   const [textH, setTextH] = React.useState(0);
   const txtRef = React.useRef<HTMLParagraphElement>(null);
   React.useLayoutEffect(() => {
@@ -116,7 +131,7 @@ export default function SektorX_ScrollTextStack() {
       {/* kleiner Top-Spacer wie bei dir */}
       <div className="h-[2vh]" />
 
-      {/* Reveal-Block (ohne unsichtbaren Absatz) */}
+      {/* Reveal-Block */}
       <section className="relative h-auto">
         <div className="relative mx-auto max-w-6xl px-4 md:px-6">
           {/* Spacer exakt in Text-Höhe → kein Rest-Leading unten */}
@@ -127,16 +142,20 @@ export default function SektorX_ScrollTextStack() {
             {TEXT}
           </p>
 
-          {/* animierter Satz (gleich positioniert), dient auch als Mess-Target */}
+          {/* schwarzer Satz überlagert (zeilenweise Reveal) */}
           <p
             ref={txtRef}
             aria-hidden
             className={`absolute inset-x-0 top-0 px-4 md:px-6 ${txtStyle} text-black`}
+            // verhindert "Flash of Black" bis zur 1. Messung
+            style={{ opacity: hydrated ? undefined : 0 }}
           >
             {tokens.map((tok, tokenIdx) => {
+              // Leerzeichen normal (kein inline-block), damit Umbrüche identisch bleiben
               if (!/\S/.test(tok)) return <span key={tokenIdx}>{tok}</span>;
               const wi = tokenToWordIdx.get(tokenIdx)!;
               const opacity = opacities[wi] ?? 0;
+              // WICHTIG: inline (kein inline-block) → iOS liefert line-box → zeilenweiser Reveal
               return (
                 <span
                   key={tokenIdx}
@@ -144,8 +163,7 @@ export default function SektorX_ScrollTextStack() {
                     if (el) spanRefs.current.set(tokenIdx, el);
                     else spanRefs.current.delete(tokenIdx);
                   }}
-                  className="inline-block align-baseline will-change-[opacity]"
-                  style={{ opacity, transform: "translateZ(0)" }}
+                  style={{ opacity }}
                 >
                   {tok}
                 </span>

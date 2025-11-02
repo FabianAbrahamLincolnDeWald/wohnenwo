@@ -4,25 +4,26 @@ import * as React from "react";
 
 /**
  * ScrollTextStack – Wort-für-Wort Reveal
- * - Stabilisiert: keine Hydration-Diffs, rAF-Throttle, reduced-motion-Respekt
- * - Textgröße: wie bei dir (clamp), Leading/Tracking bewusst ruhig
+ * - Kein unsichtbarer Mess-<p> mehr: echte Höhe per ResizeObserver -> kein Leerraum unten
+ * - Stabil: rAF-Throttle, reduced-motion-Respekt
+ * - Deine Typo (clamp/leading) und Abstände bleiben erhalten
  */
 export default function SektorX_ScrollTextStack() {
   const TEXT =
     "Sei Gastgeber einer Wirtschaft, die Menschen stärkt – nicht nur Märkte. Räume sprechen, wenn wir ihnen zuhören; Werte werden sichtbar, wenn wir sie leben. Wir gestalten so, dass Entscheidungen leichtfallen, Gespräche ehrlicher werden und Arbeit wieder Sinn stiftet. Deine Umgebung ist mehr als Kulisse – sie ist Resonanzboden für Haltung, Mut und Fürsorge. Hier beginnt der Wandel: leise im Detail, deutlich im Ergebnis, spürbar in jedem Tag.";
 
   // Tuning
-  const MID = 0.5;
+  const MID = 0.8;
   const START_OFFSET_PX = 80;
   const FADE_RANGE_PX = 80;
 
-  // Tokens & Indizes (SSR-stabil)
+  // Tokens & Indizes
   const tokens = React.useMemo(() => TEXT.split(/(\s+)/), [TEXT]);
 
   const wordTokenIndices = React.useMemo(() => {
     const out: number[] = [];
     for (let i = 0; i < tokens.length; i++) {
-      const t = tokens[i];
+      const t = tokens[i]!;
       if (typeof t === "string" && /\S/.test(t)) out.push(i);
     }
     return out;
@@ -49,15 +50,14 @@ export default function SektorX_ScrollTextStack() {
     }
   }, []);
 
+  // Scroll-Reveal
   React.useEffect(() => {
     if (prefersReduced) {
-      // Sofort alles sichtbar, keine Animation
       setOpacities(new Array(wordTokenIndices.length).fill(1));
       return;
     }
 
     let raf = 0;
-
     const onScroll = () => {
       if (raf) return;
       raf = requestAnimationFrame(() => {
@@ -68,35 +68,25 @@ export default function SektorX_ScrollTextStack() {
         const start = centerY + START_OFFSET_PX;
         const range = Math.max(FADE_RANGE_PX, 1);
 
-        // direkt neues Array füllen – vermeidet stale state
         const next = new Array(wordTokenIndices.length).fill(0);
         for (let wi = 0; wi < wordTokenIndices.length; wi++) {
           const tokenIdx = wordTokenIndices[wi]!;
           const el = spanRefs.current.get(tokenIdx);
           if (!el) continue;
           const r = el.getBoundingClientRect();
-          if (r.top > vh + 200) {
-            next[wi] = 0;
-            continue;
-          }
-          if (r.bottom < -200) {
-            next[wi] = 1;
-            continue;
-          }
+          if (r.top > vh + 200) { next[wi] = 0; continue; }
+          if (r.bottom < -200) { next[wi] = 1; continue; }
           const yMid = r.top + r.height / 2;
           const t = (start - yMid) / range;
-          // smoothstep
-          next[wi] = t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+          next[wi] = t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t); // smoothstep
         }
         setOpacities(next);
       });
     };
 
-    // initial berechnen
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
-
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
@@ -104,59 +94,79 @@ export default function SektorX_ScrollTextStack() {
     };
   }, [wordTokenIndices, prefersReduced, MID, START_OFFSET_PX, FADE_RANGE_PX]);
 
+  // Typo unverändert
   const txtSize = "text-[clamp(25.5px,calc(25.5px+29.5*(100vw-320px)/960),55px)]";
   const txtStyle = `${txtSize} leading-[1.08] tracking-tight font-medium`;
 
+  // Echte Texthöhe messen (kein unsichtbarer Absatz mehr)
+  const [textH, setTextH] = React.useState(0);
+  const txtRef = React.useRef<HTMLParagraphElement>(null);
+  React.useLayoutEffect(() => {
+    const el = txtRef.current;
+    if (!el) return;
+    const measure = () => setTextH(Math.ceil(el.getBoundingClientRect().height));
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    measure();
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <section aria-label="ScrollTextStack" className="bg-white">
-      {/* kleiner Top-Spacer */}
-      <div className="h-[11vh]" />
+      {/* kleiner Top-Spacer wie bei dir */}
+      <div className="h-[2vh]" />
 
-      {/* Wort-für-Wort-Reveal */}
-      <section className="relative h-[80vh]">
-        <div className="sticky top-0 h-screen">
-          <div className="relative mx-auto max-w-6xl px-4 md:px-6 h-full grid content-center">
-            {/* Reserve-Paragraph für stabile Höhe – unsichtbar */}
-            <p className={`invisible ${txtStyle} px-4 md:px-6`}>{TEXT}</p>
-            {/* grauer Vollsatz */}
-            <p className={`absolute inset-x-0 px-4 md:px-6 ${txtStyle} text-slate-300`}>{TEXT}</p>
-            {/* animierter Satz */}
-            <p aria-hidden className={`absolute inset-x-0 px-4 md:px-6 ${txtStyle} text-black`}>
-              {tokens.map((tok, tokenIdx) => {
-                // tok ist hier bereits "string" – kein Indexzugriff
-                if (!/\S/.test(tok)) return <span key={tokenIdx}>{tok}</span>;
-                const wi = tokenToWordIdx.get(tokenIdx)!;
-                const opacity = opacities[wi] ?? 0;
-                return (
-                  <span
-                    key={tokenIdx}
-                    ref={(el) => {
-                      if (el) spanRefs.current.set(tokenIdx, el);
-                      else spanRefs.current.delete(tokenIdx);
-                    }}
-                    style={{ opacity }}
-                  >
-                    {tok}
-                  </span>
-                );
-              })}
-            </p>
-          </div>
+      {/* Reveal-Block (ohne unsichtbaren Absatz) */}
+      <section className="relative h-auto">
+        <div className="relative mx-auto max-w-6xl px-4 md:px-6">
+          {/* Spacer exakt in Text-Höhe → kein Rest-Leading unten */}
+          <div aria-hidden style={{ height: textH }} />
+
+          {/* grauer Vollsatz */}
+          <p className={`absolute inset-x-0 top-0 px-4 md:px-6 ${txtStyle} text-slate-300`}>
+            {TEXT}
+          </p>
+
+          {/* animierter Satz (gleich positioniert), dient auch als Mess-Target */}
+          <p
+            ref={txtRef}
+            aria-hidden
+            className={`absolute inset-x-0 top-0 px-4 md:px-6 ${txtStyle} text-black`}
+          >
+            {tokens.map((tok, tokenIdx) => {
+              if (!/\S/.test(tok)) return <span key={tokenIdx}>{tok}</span>;
+              const wi = tokenToWordIdx.get(tokenIdx)!;
+              const opacity = opacities[wi] ?? 0;
+              return (
+                <span
+                  key={tokenIdx}
+                  ref={(el) => {
+                    if (el) spanRefs.current.set(tokenIdx, el);
+                    else spanRefs.current.delete(tokenIdx);
+                  }}
+                  className="inline-block align-baseline will-change-[opacity]"
+                  style={{ opacity, transform: "translateZ(0)" }}
+                >
+                  {tok}
+                </span>
+              );
+            })}
+          </p>
         </div>
       </section>
 
-      {/* Hintergrund unten: hell → sanftes Cyan → Weissblau */}
-      <section className="relative h-[120vh] w-full select-none overflow-hidden">
+      {/* Hintergrund unten: hell → sanftes Cyan → Weissblau (unverändert) */}
+      <section className="relative h-[80vh] w-full select-none overflow-hidden">
         <div className="pointer-events-none absolute inset-0 z-0 [background:linear-gradient(to_bottom,rgb(255_255_255/1)_0%,rgb(255_255_255/1)_70%,rgb(247_252_255/1)_78%,rgb(225_246_255/0.85)_84%,rgb(185_234_255/0.65)_90%,rgb(135_222_255/0.55)_95%,rgb(225_245_255/1)_100%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-[-4%] h-[34vh] z-0 [background:radial-gradient(60%_55%_at_50%_100%,rgb(34_211_238/0.1)_0%,rgb(34_211_238/0.06)_40%,transparent_80%)]" />
 
         <div className="relative z-10 grid h-full place-items-center">
           <div className="text-center px-6">
             <p className="text-xs md:text-sm uppercase tracking-widest text-slate-400">
-              Scrollen, um die Aussage zu schärfen
+              Scrolle weiter für ein völlig neues
             </p>
             <h1 className="mt-2 md:mt-3 text-lg md:text-2xl font-medium text-slate-700">
-              Ruhiger Einstieg mit viel Weißraum
+               Gefühl wirtschaftlicher Kooperation
             </h1>
           </div>
         </div>

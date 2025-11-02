@@ -196,7 +196,7 @@ export default function Sektor2_TransparenteKommunikation() {
       <div className="max-w-6xl mx-auto px-4 py-[44px]">
         {/* H2 ohne Unter-Padding */}
         <h2 className="text-[clamp(29px,8vw,55px)] md:text-[55px] font-semibold tracking-tight text-slate-900 leading-[1.05]">
-          Warum wir offen miteinander reden.
+          Wir reden offen miteinander.
         </h2>
 
         {/* fixer Abstand zwischen H2 und Slider */}

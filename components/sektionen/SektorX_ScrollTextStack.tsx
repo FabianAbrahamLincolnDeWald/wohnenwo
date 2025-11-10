@@ -10,11 +10,12 @@ import * as React from "react";
  * - Abstände/Typo identisch zu deiner Version
  */
 export default function SektorX_ScrollTextStack() {
-  // === 3 Absätze statt ein String ===
+  // === 2 Absätze statt ein String ===
   const PARAS = [
     "Werde Teil einer Wirtschaft, die Menschen stärkt und Märkte fördert. Wir gestalten Räume, die mitdenken, entwickeln Prozesse, die Sinn ergeben, und schaffen Begegnungen, die auf Vertrauen bauen.",
     "Hier fallen Entscheidungen leicht, bleiben Absichten klar und Gespräche ehrlich.",
   ];
+  const PARA_GAP = "space-y-6 md:space-y-8 lg:space-y-10";
 
   // Tuning (wie bei dir)
   const MID = 0.8;
@@ -166,7 +167,7 @@ export default function SektorX_ScrollTextStack() {
           <div aria-hidden style={{ height: contentH }} />
 
           {/* GRAU: statisch, 3 Absätze */}
-          <div className="absolute inset-x-0 top-0 space-y-4">
+          <div className={`absolute inset-x-0 top-0 ${PARA_GAP}`}>
             {tokensPerPara.map((tokens, pi) => (
               <div key={`grey-${pi}`}>
                 {renderPara(tokens, false, pi)}
@@ -175,7 +176,7 @@ export default function SektorX_ScrollTextStack() {
           </div>
 
           {/* SCHWARZ: überlagert, 3 Absätze (animiert) */}
-          <div ref={contentRef} className="absolute inset-x-0 top-0 space-y-4" aria-hidden>
+          <div ref={contentRef} className={`absolute inset-x-0 top-0 ${PARA_GAP}`} aria-hidden>
             {tokensPerPara.map((tokens, pi) => (
               <div key={`black-${pi}`}>
                 {renderPara(tokens, true, pi)}

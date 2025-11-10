@@ -36,8 +36,7 @@ export default function Sektor1_EinladungZusammenarbeit() {
           gemeinsam zu handeln und zu wirken – ehrlich, offen, menschlich und
           sinnstiftend. Jeder hat volle Einsicht in Zahlen, Systeme, Absichten
           und Strukturen. Ein wirtschaftlicher Raum, in dem du dich vertraut
-          fühlst – und in dem das, was dir wichtig ist, sichtbar und geschätzt
-          wird.
+          fühlst – und in dem das, was dir wichtig ist, sichtbar wird.
         </p>
       </div>
     </section>

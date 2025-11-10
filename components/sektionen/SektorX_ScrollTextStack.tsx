@@ -10,7 +10,7 @@ import * as React from "react";
  */
 export default function SektorX_ScrollTextStack() {
   const TEXT =
-    "Sei Gastgeber einer Wirtschaft, die Menschen stärkt – nicht nur Märkte. Räume sprechen, wenn wir ihnen zuhören; Werte werden sichtbar, wenn wir sie leben. Wir gestalten so, dass Entscheidungen leichtfallen, Gespräche ehrlicher werden und Arbeit wieder Sinn stiftet. Deine Umgebung ist mehr als Kulisse – sie ist Resonanzboden für Haltung, Mut und Fürsorge. Hier beginnt der Wandel: leise im Detail, deutlich im Ergebnis, spürbar in jedem Tag.";
+    "Werde Teil einer Wirtschaft, die Menschen stärkt und Märkte fördert. Wir gestalten Räume, die mitdenken, entwickeln Prozesse, die Sinn ergeben, und schaffen Begegnungen, die auf Vertrauen bauen. Hier fallen Entscheidungen leicht, bleiben Absichten klar und Gespräche ehrlich.";
 
   // Tuning (wie bei dir)
   const MID = 0.8;

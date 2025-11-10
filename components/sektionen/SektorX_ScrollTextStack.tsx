@@ -3,68 +3,63 @@
 import * as React from "react";
 
 /**
- * ScrollTextStack – zeilenweiser Reveal (grau → schwarz)
- * - Mobile Fix: kein „alles schwarz“ (prefers-reduced-motion), kein Flash beim Hydratisieren
- * - Zeilenweises Verhalten durch inline-Spans (keine inline-blocks)
- * - Typo/Abstände unverändert
+ * ScrollTextStack – zeilenweiser Reveal (grau → schwarz), 3 Absätze
+ * - Drei separate <p>-Absätze (grau + schwarz je Absatz übereinander)
+ * - Mobile Fix: KEIN Abschalten bei prefers-reduced-motion → Animation läuft auch auf iOS/Android
+ * - Kein Flash of Black beim Hydratisieren
+ * - Abstände/Typo identisch zu deiner Version
  */
 export default function SektorX_ScrollTextStack() {
-  const TEXT =
-    "Werde Teil einer Wirtschaft, die Menschen stärkt und Märkte fördert. Wir gestalten Räume, die mitdenken, entwickeln Prozesse, die Sinn ergeben, und schaffen Begegnungen, die auf Vertrauen bauen. Hier fallen Entscheidungen leicht, bleiben Absichten klar und Gespräche ehrlich.";
+  // === 3 Absätze statt ein String ===
+  const PARAS = [
+    "Werde Teil einer Wirtschaft, die Menschen stärkt und Märkte fördert. Wir gestalten Räume, die mitdenken, entwickeln Prozesse, die Sinn ergeben, und schaffen Begegnungen, die auf Vertrauen bauen.",
+    "Hier fallen Entscheidungen leicht, bleiben Absichten klar und Gespräche ehrlich.",
+  ];
 
   // Tuning (wie bei dir)
   const MID = 0.8;
   const START_OFFSET_PX = 80;
   const FADE_RANGE_PX = 80;
 
-  // Tokens & Indizes
-  const tokens = React.useMemo(() => TEXT.split(/(\s+)/), [TEXT]);
+  // Tokenisierung pro Absatz
+  const tokensPerPara = React.useMemo(() => PARAS.map(p => p.split(/(\s+)/)), [PARAS]);
 
-  const wordTokenIndices = React.useMemo(() => {
-    const out: number[] = [];
-    for (let i = 0; i < tokens.length; i++) {
-      const t = tokens[i]!;
-      if (typeof t === "string" && /\S/.test(t)) out.push(i);
-    }
+  // Flache Wortliste über alle Absätze (Index-Mapping)
+  type WordPtr = { paraIdx: number; tokenIdx: number; globalWordIdx: number };
+  const wordPtrs = React.useMemo<WordPtr[]>(() => {
+    const out: WordPtr[] = [];
+    let g = 0;
+    tokensPerPara.forEach((tokens, pi) => {
+      tokens.forEach((t, ti) => {
+        if (/\S/.test(t)) {
+          out.push({ paraIdx: pi, tokenIdx: ti, globalWordIdx: g++ });
+        }
+      });
+    });
     return out;
-  }, [tokens]);
+  }, [tokensPerPara]);
 
-  const tokenToWordIdx = React.useMemo(() => {
-    const m = new Map<number, number>();
-    for (let wi = 0; wi < wordTokenIndices.length; wi++) m.set(wordTokenIndices[wi]!, wi);
+  // Hilfslookup: (para, token) -> globalWordIdx
+  const globalIndexByParaToken = React.useMemo(() => {
+    const m = new Map<string, number>();
+    for (const w of wordPtrs) m.set(`${w.paraIdx}:${w.tokenIdx}`, w.globalWordIdx);
     return m;
-  }, [wordTokenIndices]);
+  }, [wordPtrs]);
 
+  // Refs & Opazitäten
   const spanRefs = React.useRef<Map<number, HTMLSpanElement>>(new Map());
   const [opacities, setOpacities] = React.useState<number[]>(
-    () => new Array(wordTokenIndices.length).fill(0)
+    () => new Array(wordPtrs.length).fill(0)
   );
 
-  // reduced-motion respektieren (Mobile: NICHT alles schwarz zeichnen)
-  const prefersReduced = React.useMemo(() => {
-    if (typeof window === "undefined" || typeof matchMedia === "undefined") return false;
-    try {
-      return matchMedia("(prefers-reduced-motion: reduce)").matches;
-    } catch {
-      return false;
-    }
-  }, []);
-
-  // Verhindert "Flash of Black" bis zur ersten Scroll-Messung
+  // Hydration-Guard: verhindert "Flash of Black"
   const [hydrated, setHydrated] = React.useState(false);
-  React.useEffect(() => {
-    setHydrated(true);
-  }, []);
+  React.useEffect(() => { setHydrated(true); }, []);
 
-  // Scroll-Reveal
+  // Scroll-Reveal (nicht durch prefers-reduced-motion abgebrochen)
   React.useEffect(() => {
-    if (prefersReduced) {
-      // Effekt deaktivieren: Text bleibt grau (schwarzer Layer unsichtbar)
-      setOpacities(new Array(wordTokenIndices.length).fill(0));
-      return;
-    }
-
     let raf = 0;
+
     const measure = () => {
       if (raf) return;
       raf = requestAnimationFrame(() => {
@@ -75,18 +70,18 @@ export default function SektorX_ScrollTextStack() {
         const start = centerY + START_OFFSET_PX;
         const range = Math.max(FADE_RANGE_PX, 1);
 
-        const next = new Array(wordTokenIndices.length).fill(0);
-        for (let wi = 0; wi < wordTokenIndices.length; wi++) {
-          const tokenIdx = wordTokenIndices[wi]!;
-          const el = spanRefs.current.get(tokenIdx);
+        const next = new Array(wordPtrs.length).fill(0);
+        for (let i = 0; i < wordPtrs.length; i++) {
+          const el = spanRefs.current.get(i);
           if (!el) continue;
           const r = el.getBoundingClientRect();
-          if (r.top > vh + 200) { next[wi] = 0; continue; }
-          if (r.bottom < -200) { next[wi] = 1; continue; }
+          // fern/nahe Kappung
+          if (r.top > vh + 200) { next[i] = 0; continue; }
+          if (r.bottom < -200) { next[i] = 1; continue; }
           const yMid = r.top + r.height / 2;
           const t = (start - yMid) / range;
           // smoothstep
-          next[wi] = t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+          next[i] = t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
         }
         setOpacities(next);
       });
@@ -95,7 +90,8 @@ export default function SektorX_ScrollTextStack() {
     measure();
     window.addEventListener("scroll", measure, { passive: true });
     window.addEventListener("resize", measure);
-    // iOS bfcache / Tabs → erneut messen
+    window.addEventListener("orientationchange", measure);
+    // iOS bfcache / Tab-Wechsel
     const rerun = () => measure();
     window.addEventListener("pageshow", rerun);
     document.addEventListener("visibilitychange", rerun);
@@ -103,77 +99,93 @@ export default function SektorX_ScrollTextStack() {
     return () => {
       window.removeEventListener("scroll", measure);
       window.removeEventListener("resize", measure);
+      window.removeEventListener("orientationchange", measure);
       window.removeEventListener("pageshow", rerun);
       document.removeEventListener("visibilitychange", rerun);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [wordTokenIndices, prefersReduced, MID, START_OFFSET_PX, FADE_RANGE_PX]);
+  }, [wordPtrs.length, MID, START_OFFSET_PX, FADE_RANGE_PX]);
 
   // Typo unverändert
   const txtSize = "text-[clamp(25.5px,calc(25.5px+29.5*(100vw-320px)/960),55px)]";
   const txtStyle = `${txtSize} leading-[1.08] tracking-tight font-medium`;
 
-  // Echte Texthöhe messen (kein unsichtbarer Absatz)
-  const [textH, setTextH] = React.useState(0);
-  const txtRef = React.useRef<HTMLParagraphElement>(null);
+  // Höhe messen: Wir messen einen Wrapper, der alle schwarzen Absätze enthält
+  const [contentH, setContentH] = React.useState(0);
+  const contentRef = React.useRef<HTMLDivElement>(null);
   React.useLayoutEffect(() => {
-    const el = txtRef.current;
+    const el = contentRef.current;
     if (!el) return;
-    const measure = () => setTextH(Math.ceil(el.getBoundingClientRect().height));
+    const measure = () => setContentH(Math.ceil(el.getBoundingClientRect().height));
     const ro = new ResizeObserver(measure);
     ro.observe(el);
     measure();
     return () => ro.disconnect();
   }, []);
 
+  // Hilfsrenderer für die Absätze (grau/schwarz)
+  const renderPara = (tokens: string[], isBlack: boolean, paraIdx: number) => {
+    return (
+      <p
+        className={`${txtStyle} ${isBlack ? "text-black" : "text-slate-300"} px-4 md:px-6`}
+        style={isBlack && !hydrated ? { opacity: 0 } : undefined}
+      >
+        {tokens.map((tok, tokenIdx) => {
+          if (!/\S/.test(tok)) return <span key={tokenIdx}>{tok}</span>;
+          const g = globalIndexByParaToken.get(`${paraIdx}:${tokenIdx}`)!;
+          const opacity = isBlack ? (opacities[g] ?? 0) : 1;
+          // inline (nicht inline-block) → zeilenweiser Reveal
+          return (
+            <span
+              key={tokenIdx}
+              ref={(el) => {
+                if (isBlack) {
+                  if (el) spanRefs.current.set(g, el);
+                  else spanRefs.current.delete(g);
+                }
+              }}
+              style={isBlack ? { opacity } : undefined}
+            >
+              {tok}
+            </span>
+          );
+        })}
+      </p>
+    );
+  };
+
   return (
     <section aria-label="ScrollTextStack" className="bg-white">
-      {/* kleiner Top-Spacer wie bei dir */}
+      {/* Top-Spacer (wie bei dir) */}
       <div className="h-[2vh]" />
 
       {/* Reveal-Block */}
       <section className="relative h-auto">
         <div className="relative mx-auto max-w-6xl px-4 md:px-6">
-          {/* Spacer exakt in Text-Höhe → kein Rest-Leading unten */}
-          <div aria-hidden style={{ height: textH }} />
+          {/* Platzhalter exakt in Inhaltshöhe */}
+          <div aria-hidden style={{ height: contentH }} />
 
-          {/* grauer Vollsatz */}
-          <p className={`absolute inset-x-0 top-0 px-4 md:px-6 ${txtStyle} text-slate-300`}>
-            {TEXT}
-          </p>
+          {/* GRAU: statisch, 3 Absätze */}
+          <div className="absolute inset-x-0 top-0 space-y-4">
+            {tokensPerPara.map((tokens, pi) => (
+              <div key={`grey-${pi}`}>
+                {renderPara(tokens, false, pi)}
+              </div>
+            ))}
+          </div>
 
-          {/* schwarzer Satz überlagert (zeilenweise Reveal) */}
-          <p
-            ref={txtRef}
-            aria-hidden
-            className={`absolute inset-x-0 top-0 px-4 md:px-6 ${txtStyle} text-black`}
-            // verhindert "Flash of Black" bis zur 1. Messung
-            style={{ opacity: hydrated ? undefined : 0 }}
-          >
-            {tokens.map((tok, tokenIdx) => {
-              // Leerzeichen normal (kein inline-block), damit Umbrüche identisch bleiben
-              if (!/\S/.test(tok)) return <span key={tokenIdx}>{tok}</span>;
-              const wi = tokenToWordIdx.get(tokenIdx)!;
-              const opacity = opacities[wi] ?? 0;
-              // WICHTIG: inline (kein inline-block) → iOS liefert line-box → zeilenweiser Reveal
-              return (
-                <span
-                  key={tokenIdx}
-                  ref={(el) => {
-                    if (el) spanRefs.current.set(tokenIdx, el);
-                    else spanRefs.current.delete(tokenIdx);
-                  }}
-                  style={{ opacity }}
-                >
-                  {tok}
-                </span>
-              );
-            })}
-          </p>
+          {/* SCHWARZ: überlagert, 3 Absätze (animiert) */}
+          <div ref={contentRef} className="absolute inset-x-0 top-0 space-y-4" aria-hidden>
+            {tokensPerPara.map((tokens, pi) => (
+              <div key={`black-${pi}`}>
+                {renderPara(tokens, true, pi)}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Hintergrund unten: hell → sanftes Cyan → Weissblau (unverändert) */}
+      {/* Hintergrund unten: hell → sanftes Cyan → Weissblau (wie gehabt) */}
       <section className="relative h-[80vh] w-full select-none overflow-hidden">
         <div className="pointer-events-none absolute inset-0 z-0 [background:linear-gradient(to_bottom,rgb(255_255_255/1)_0%,rgb(255_255_255/1)_70%,rgb(247_252_255/1)_78%,rgb(225_246_255/0.85)_84%,rgb(185_234_255/0.65)_90%,rgb(135_222_255/0.55)_95%,rgb(225_245_255/1)_100%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-[-4%] h-[34vh] z-0 [background:radial-gradient(60%_55%_at_50%_100%,rgb(34_211_238/0.1)_0%,rgb(34_211_238/0.06)_40%,transparent_80%)]" />

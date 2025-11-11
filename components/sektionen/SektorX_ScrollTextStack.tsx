@@ -7,7 +7,7 @@ import * as React from "react";
  * - Oberer Block: zeilenweiser Reveal (grau → schwarz) – unverändert.
  * - Unterer Übergang: graue Basis + deckungsgleiches Overlay in statischem Cyan,
  *   Wort-für-Wort-Opacity (ohne Gradients / bg-clip-text).
- * - Cyan-Glow: Inline-CSS Gradients (robust gegen Tailwind-JIT-Filterung).
+ * - Cyan-Glow: responsive Höhe (mobil = 1/2 der Desktop-Höhe).
  */
 export default function SektorX_ScrollTextStack() {
   // --- OBERER SCROLLTEXT ---
@@ -88,7 +88,7 @@ export default function SektorX_ScrollTextStack() {
       document.removeEventListener("visibilitychange", rerun);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [wordPtrs.length, MID, START_OFFSET_PX, FADE_RANGE_PX]);
+  }, [wordPtrs.length]);
 
   const txtSize = "text-[clamp(25.5px,calc(25.5px+29.5*(100vw-320px)/960),55px)]";
   const txtStyle = `${txtSize} leading-[1.08] tracking-tight font-medium`;
@@ -160,15 +160,11 @@ export default function SektorX_ScrollTextStack() {
   );
 }
 
-/** Unterer Übergang (grau → statisches Cyan Overlay; kräftiger Cyan-Glow via inline CSS) */
+/** Unterer Übergang: Cyan-Glow mobil halb so hoch wie Desktop */
 function BridgeSingleParagraph({ txtStyle }: { txtStyle: string }) {
   const LINE = "Gemeinsam gestalten wir ein völlig neues Gefühl wirtschaftlicher Kooperation.";
-  const CYAN_CLASS = "text-cyan-500"; // ggf. text-[#11A9C6] / text-cyan-600
+  const CYAN_CLASS = "text-cyan-500";
 
-  // Debug-Overlay ein-/ausschalten (macht Layer sichtbar)
-  const DEBUG = false;
-
-  // Reveal-Tuning
   const MID = 0.8;
   const START_OFFSET_PX = 72;
   const FADE_RANGE_PX = 120;
@@ -229,13 +225,13 @@ function BridgeSingleParagraph({ txtStyle }: { txtStyle: string }) {
       document.removeEventListener("visibilitychange", rerun);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [wordIdxs.length, MID, START_OFFSET_PX, FADE_RANGE_PX]);
+  }, [wordIdxs.length]);
 
   return (
     <section className="relative w-full">
-      {/* A: Top-Wash (hell → cyanisch) */}
+      {/* A: Top-Wash */}
       <div
-        className={`absolute inset-0 z-0 ${DEBUG ? "ring-1 ring-red-300/50" : ""}`}
+        className="absolute inset-0 z-0"
         style={{
           pointerEvents: "none",
           background:
@@ -243,24 +239,21 @@ function BridgeSingleParagraph({ txtStyle }: { txtStyle: string }) {
         }}
       />
 
-      {/* B: großer Cyan-Glow von unten (hochgezogen) */}
+      {/* B: großer Cyan-Glow von unten – mobil halb so hoch */}
       <div
-        className={`absolute inset-x-0 bottom-0 z-0 ${DEBUG ? "ring-1 ring-green-300/50" : ""}`}
+        className="absolute inset-x-0 bottom-0 z-0 h-[26vh] md:h-[52vh]"
         style={{
           pointerEvents: "none",
-          height: "52vh",
           background:
             "radial-gradient(72% 60% at 50% 100%, rgba(34,211,238,0.42) 0%, rgba(34,211,238,0.28) 45%, rgba(34,211,238,0) 82%)",
         }}
       />
 
-      {/* C: Core-Spot (Punch nahe Text) */}
+      {/* C: Core-Spot – mobil halb so hoch */}
       <div
-        className={`absolute inset-x-0 bottom:0 z-0 ${DEBUG ? "ring-1 ring-blue-300/50" : ""}`}
+        className="absolute inset-x-0 bottom-0 z-0 h-[15vh] md:h-[30vh]"
         style={{
           pointerEvents: "none",
-          bottom: "0",
-          height: "30vh",
           background:
             "radial-gradient(42% 36% at 50% 100%, rgba(14,165,233,0.40) 0%, rgba(14,165,233,0.24) 48%, rgba(14,165,233,0) 80%)",
         }}
@@ -271,11 +264,11 @@ function BridgeSingleParagraph({ txtStyle }: { txtStyle: string }) {
         <div className="h-6 md:h-8" />
 
         <div className="relative">
-          {/* Basis (grau) */}
-          <p className={`${txtStyle} text-slate-300 m-0`}>{LINE}</p>
+          <p className={`${txtStyle} text-slate-300 m-0`}>{
+            LINE
+          }</p>
 
-          {/* Overlay (cyan, statisch) */}
-          <p aria-hidden className={`${txtStyle} m-0 absolute inset-0 top-0 z-10 text-cyan-500`}>
+          <p aria-hidden className={`${txtStyle} m-0 absolute inset-0 top-0 z-10 ${CYAN_CLASS}`}>
             {tokens.map((tok, ti) => {
               if (!/\S/.test(tok)) return <span key={ti}>{tok}</span>;
               const wi = tokenToWord.get(ti)!;
@@ -297,8 +290,8 @@ function BridgeSingleParagraph({ txtStyle }: { txtStyle: string }) {
           </p>
         </div>
 
-        {/* Abstand unten: Glow ragt hinter den Text */}
-        <div className="h-[12vh] md:h-[22vh]" />
+        {/* Abstand unten (passt sich dem kleineren Glow an) */}
+        <div className="h-[15vh] md:h-[30vh]" />
       </div>
     </section>
   );

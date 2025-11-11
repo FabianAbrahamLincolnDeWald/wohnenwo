@@ -4,8 +4,9 @@ import * as React from "react";
 
 export default function HeroTopIsolated() {
   return (
-    <section className="relative bg-black text-white">
-      <div className="max-w-6xl mx-auto px-6 pt-24 pb-16 sm:pt-28 sm:pb-20 md:pt-32 md:pb-24 text-center">
+    <section className="relative bg-black text-white overflow-hidden min-h-[72vh] sm:min-h-[76vh] md:min-h-[82vh] flex items-center">
+      {/* Content: vertikal zentriert */}
+      <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
         <h1 className="font-semibold tracking-tight leading-[1.02] text-[40px] sm:text-[56px] md:text-[80px] lg:text-[96px]">
           <span className="block md:inline">Entdecke,</span>{" "}
           <span className="block md:inline">wie Wirtschaft</span>

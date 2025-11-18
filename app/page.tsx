@@ -1,39 +1,20 @@
 "use client";
 
 import * as React from "react";
-import Sektor1_EinladungZusammenarbeit from "@/components/sektionen/Sektor1_EinladungZusammenarbeit";
-import Sektor2_TransparenteKommunikation from "@/components/sektionen/Sektor2_TransparenteKommunikation";
-import SektorX_ScrollTextStack from "@/components/sektionen/SektorX_ScrollTextStack";
-import HeroTopIsolated from "@/components/sektionen/HeroTopIsolated";
-import OneBannerIsolated from "@/components/sektionen/OneBannerIsolated";
-import Sektor3_Wohnerlebnisse from "@/components/sektionen/Sektor3_Wohnerlebnisse";
+import WohnenWoOrbitNavbar from "@/components/navigation/WohnenWoOrbitNavbar";
+import HeroSection from "@/components/sektionen/HeroSection";
+import PanelImageSection from "@/components/sektionen/PanelImageSection";
+import InterstitialTextSection from "@/components/sektionen/InterstitialTextSection";
+import FundamentKarten from "@/components/sektionen/FundamentKarten";
 
-export default function Startseite() {
+export default function HeroShell() {
   return (
-    <main className="flex flex-col min-h-screen bg-white text-slate-900 antialiased">
-      <section id="einladung">
-        <Sektor1_EinladungZusammenarbeit />
-      </section>
-
-      <section id="kommunikation">
-        <Sektor2_TransparenteKommunikation />
-      </section>
-
-      <section id="scrolltext">
-        <SektorX_ScrollTextStack />
-      </section>
-
-      <section id="hero-top">
-        <HeroTopIsolated />
-      </section>
-
-      <section id="transparenz-banner">
-        <OneBannerIsolated />
-      </section>
-
-      <section id="wohnerlebnisse">
-        <Sektor3_Wohnerlebnisse />
-      </section>
+    <main className="relative min-h-screen bg-white text-slate-900 antialiased">
+      <WohnenWoOrbitNavbar />
+      <HeroSection />
+      <PanelImageSection />
+      <InterstitialTextSection />
+      <FundamentKarten />
     </main>
   );
 }

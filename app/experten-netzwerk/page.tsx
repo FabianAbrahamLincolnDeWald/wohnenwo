@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { Metadata } from "next";
+import WohnenWoNavbar from "@/components/navigation/WohnenWoNavbar";
 import Sektor3_Wohnerlebnisse from "@/components/sektionen/Sektor3_Wohnerlebnisse";
 
 export const metadata: Metadata = {
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
 export default function ExpertenNetzwerkPage() {
   return (
     <main className="flex flex-col min-h-screen bg-white text-slate-900 antialiased">
+      <WohnenWoNavbar />
       {/* Start mit dem bestehenden Sektor 3 */}
       <section id="wohnerlebnisse">
         <Sektor3_Wohnerlebnisse />

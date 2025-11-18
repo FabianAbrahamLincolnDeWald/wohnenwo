@@ -6,8 +6,8 @@ export default function InterstitialTextSection() {
       aria-label="interstitial-text"
       className="relative bg-white mt-10 md:mt-12"
     >
-      {/* Gleicher Container wie in den anderen Sektoren */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* Container: max-w-6xl */}
+      <div className="mx-auto max-w-6xl px-6">
         <div className="grid md:grid-cols-12 gap-6 items-end py-8 md:py-10">
           {/* Links: kleines gestapeltes Label */}
           <div className="md:col-span-2 self-end mb-4 md:mb-0">
@@ -22,8 +22,10 @@ export default function InterstitialTextSection() {
 
           {/* Mitte: Headline */}
           <div className="md:col-span-9 md:col-start-1 relative z-10">
-            <h2 className="font-medium tracking-tight text-slate-900
-                           text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[0.97]">
+            <h2
+              className="font-medium tracking-tight text-slate-900
+                         text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[0.97]"
+            >
               Wir gestalten Räume, die erinnern, wer wir wirklich sind.
             </h2>
           </div>

@@ -11,8 +11,8 @@ export default function PanelImageSection() {
       aria-label="panel-image"
       className="relative z-10 mt-8 md:mt-2 lg:mt-4 bg-white"
     >
-      {/* Gleicher Container wie Hero + FundamentKarten */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* Container: max-w-6xl */}
+      <div className="mx-auto max-w-6xl px-6">
         <div
           className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl
                      aspect-[3/2] sm:aspect-[16/9] lg:aspect-auto lg:h-[var(--panel-h)]"

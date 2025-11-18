@@ -3,16 +3,6 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-/**
- * Fundament Karten – isolierter Karten-Sektor
- *
- * Ersetzt das ursprüngliche Glas-Panel durch fünf Karten
- * unterhalb des Dividers.
- *
- * Desktop (>= lg): 5 Karten im Grid (volle Breite mit gap-4).
- * Tablet/Mobile (< lg): gleicher Inhalt im horizontalen Slider mit Snap.
- */
-
 type FundamentCardData = {
   title: string;
   image: string;
@@ -58,7 +48,6 @@ function CardSlider({ children }: CardSliderProps) {
   const isProgrammaticRef = React.useRef(false);
   const animTimerRef = React.useRef<number | null>(null);
 
-  // Index beim nativen Scrollen mitlesen
   React.useEffect(() => {
     const s = scrollerRef.current;
     if (!s) return;
@@ -176,17 +165,14 @@ function FundamentCard({ card }: { card: FundamentCardData }) {
       cursor-pointer transition-transform duration-300 ease-[cubic-bezier(.2,.8,.2,1)]
       hover:-translate-y-[2px] active:translate-y-0"
     >
-      {/* Hintergrundbild pro Karte */}
       <img
         src={card.image}
         alt={card.title}
         className="absolute inset-0 h-full w-full object-cover -z-10"
       />
 
-      {/* Farbiger Rahmen wie im App-Store-Beispiel */}
       <div className="pointer-events-none absolute inset-0 rounded-xl border-2 border-black" />
 
-      {/* Rahmen-Label oben links – nutzt den Karten-Titel */}
       <div className="absolute left-0 top-0">
         <div className="rounded-tl-lg rounded-br-lg bg-black px-2.5 py-1 text-xs font-semibold tracking-wide text-white uppercase">
           {card.title}
@@ -202,16 +188,16 @@ export default function FundamentKarten() {
       aria-label="fundament-karten"
       className="relative z-10 mt-12 md:mt-16 lg:mt-20"
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* Container: max-w-6xl */}
+      <div className="mx-auto max-w-6xl px-6">
         {/* Divider in Panel-Breite */}
         <div className="h-[2px] w-full bg-black mb-2" />
 
-        {/* kurzer Satz direkt unter dem Divider */}
         <p className="text-sm font-semibold text-slate-900 mb-2">
           Wir stellen vor
         </p>
 
-        {/* Desktop / große Screens: 5 Karten, volle Breite mit gap-4 */}
+        {/* Desktop / große Screens: 5 Karten */}
         <div className="hidden lg:flex gap-4 mt-2">
           {CARD_DATA.map((card) => (
             <div
@@ -224,7 +210,7 @@ export default function FundamentKarten() {
           ))}
         </div>
 
-        {/* Mobile / Tablet: Slider mit Snap-Effekt */}
+        {/* Mobile / Tablet: Slider */}
         <div className="lg:hidden mt-2">
           <CardSlider>
             {CARD_DATA.map((card) => (

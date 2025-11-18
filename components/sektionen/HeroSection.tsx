@@ -11,9 +11,9 @@ export default function HeroSection() {
           </p>
         </div>
         <div className="2xl:hidden">
-          <h1 className="font-semibold tracking-tight text-slate-900 text-[clamp(2.7rem,4.4vw,4.8rem)] leading-[1.1] break-words">
+          <h1 className="font-semibold tracking-tight text-slate-900 text-[clamp(2.7rem,4.4vw,4.8rem)] leading-[1.1]">
             <span className="font-light">Eine Plattform für grenzenlose </span>
-            <span className="font-extrabold italic underline decoration-slate-900/80 decoration-4 underline-offset-[5px]">
+            <span className="font-extrabold italic underline decoration-slate-900/80 decoration-4 underline-offset-[5px] whitespace-nowrap">
               Innovation.
             </span>
           </h1>
@@ -22,7 +22,7 @@ export default function HeroSection() {
         {/* Desktop: zweizeilige Redaktion – links Label/Copy, rechts Headline */}
         <div className="hidden 2xl:block">
           {/* Zeile 1: Titel */}
-          <h1 className="font-light tracking-[0.08em] text-slate-900 text-4xl sm:text-5xl md:text-6xl lg:text-7xl leading-[0.95] uppercase">
+          <h1 className="font-light tracking-[0.08em] text-slate-900 text-4xl sm:text-5xl md:text-6xl lg:text-[68px] leading-[0.95] uppercase">
             EINE PLATTFORM FÜR
           </h1>
 
@@ -37,11 +37,11 @@ export default function HeroSection() {
               </p>
             </div>
             <div className="col-span-12 md:col-span-10">
-              <h1 className="font-extrabold italic tracking-tight text-slate-900 text-[clamp(2.2rem,5vw,4.5rem)] leading-[0.95] uppercase break-words">
+              <h1 className="font-extrabold italic tracking-tight text-slate-900 text-[68px] leading-[0.95] uppercase">
                 <span className="font-light not-italic tracking-[0.08em] uppercase mr-2">
                   GRENZENLOSE
                 </span>
-                <span className="underline decoration-slate-900/80 decoration-6 underline-offset-[6px]">
+                <span className="underline decoration-slate-900/80 decoration-6 underline-offset-[6px] whitespace-nowrap">
                   INNOVATION.
                 </span>
               </h1>

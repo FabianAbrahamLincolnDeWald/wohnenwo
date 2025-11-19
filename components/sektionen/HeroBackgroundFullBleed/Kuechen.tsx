@@ -6,12 +6,12 @@ const VIDEO_SRC =
   "https://cdn.siematic.com/site/assets/files/315793/240919_siematic_loop_3_16zu9_hd_stoerer_unten-compressed.mp4";
 
 /**
- * HeroBackgroundFullBleed
- * - Vollflächiges Hero-Video
+ * HeroBackgroundFullBleedKuechen
+ * - Vollflächiges Hero-Video (Siematic)
  * - Blend-in nach Weiß am unteren Rand
- * - Leerer Slot für späteren Hero-Content
+ * - Attribution-Badge oben rechts im Glass-Look
  */
-export default function HeroBackgroundFullBleed() {
+export default function HeroBackgroundFullBleedKuechen() {
   return (
     <section
       id="hero"
@@ -30,26 +30,26 @@ export default function HeroBackgroundFullBleed() {
       {/* Übergang nach reinem Weiß */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 md:h-64 bg-gradient-to-b from-transparent to-white" />
 
-      {/* Attribution-Badge – Glass-Look über dem Video/Gradient */}
-      <div className="pointer-events-auto absolute right-4 top-4 sm:right-8 sm:top-6 max-w-[70%] z-10">
+      {/* Attribution-Badge – Glass-Look, rechts unterhalb der Navbar */}
+      <div className="pointer-events-auto absolute right-4 top-20 sm:right-8 sm:top-24 max-w-[70%] z-10">
         <a
           href="https://www.siematic.com/de/"
           target="_blank"
           rel="noreferrer"
-          className="relative inline-flex items-center rounded-full px-3 py-1.5 text-[11px] leading-snug"
+          className="relative inline-flex items-center rounded-full px-2 py-1 text-xs leading-snug"
         >
-          {/* einfacher Glass-Look */}
+          {/* einfacher Glass-Look (angelehnt an dein Panel) */}
           <span
             aria-hidden
-            className="absolute inset-0 rounded-full bg-white/18 backdrop-blur-sm border border-white/60 shadow-[0_4px_16px_rgba(15,23,42,0.45)]"
+            className="absolute inset-0 rounded-full bg-white/18 backdrop-blur-sm shadow-[0_4px_16px_rgba(15,23,42,0.45)]"
           />
-          <span className="relative inline-block truncate text-slate-900">
-            Videoausschnitt mit freundlicher Genehmigung von SieMatic.
+          <span className="relative inline-block truncate text-black">
+            Videoausschnitt von SieMatic.
           </span>
         </a>
       </div>
 
-      {/* Slot für Inhalt */}
+      {/* Slot für weiteren Hero-Content (falls später nötig) */}
       <div className="relative mx-auto max-w-6xl h-full px-4 md:px-6" />
     </section>
   );

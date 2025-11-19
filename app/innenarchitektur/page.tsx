@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import InnenarchitekturNavbar from "@/components/navigation/InnenarchitekturNavbar";
-import Innenarchitektur from "@/components/sektionen/HeroBackgroundFullBleed/Innenarchitektur";
+import HeroBackgroundFullBleedInnenarchitektur from "@/components/sektionen/HeroBackgroundFullBleed/Innenarchitektur";
 import GlassPanel from "@/components/sektionen/GlassPanel";
 
 function DottedGridBackground() {
@@ -36,7 +36,7 @@ export default function InnenarchitekturPage() {
       <DottedGridBackground />
 
       {/* 1. Hero-Hintergrund */}
-      <Innenarchitektur />
+      <HeroBackgroundFullBleedInnenarchitektur />
 
       {/* 2. Apple-Style Glass-Panel */}
       <GlassPanel />

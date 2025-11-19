@@ -6,16 +6,17 @@ const VIDEO_SRC =
   "https://cdn.siematic.com/site/assets/files/315973/240529_siematic_loop_16zu9_hd_no_siematic.mp4";
 
 /**
- * HeroBackgroundFullBleedKuechen
+ * HeroBackgroundFullBleedKuechen / Erlebnisse
  * - Vollflächiges Hero-Video (Siematic)
- * - Blend-in nach Weiß am unteren Rand
+ * - Blend-in nach Schwarz am unteren Rand
  * - Attribution-Badge oben rechts im Glass-Look
+ * - Höhe = 100vh (Viewport)
  */
 export default function HeroBackgroundFullBleedKuechen() {
   return (
     <section
       id="hero"
-      className="relative min-h-[72vh] md:min-h-[84vh] overflow-hidden"
+      className="relative h-screen overflow-hidden" // statt min-h-[72vh] / md:min-h-[84vh]
     >
       {/* Hintergrundvideo */}
       <video
@@ -27,8 +28,8 @@ export default function HeroBackgroundFullBleedKuechen() {
         playsInline
       />
 
-      {/* Übergang nach reinem Weiß */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 md:h-64 bg-gradient-to-b from-transparent to-white" />
+      {/* Übergang nach Schwarz (statt Weiß) */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 md:h-64 bg-gradient-to-b from-transparent to-black" />
 
       {/* Attribution-Badge – Glass-Look, rechts unterhalb der Navbar */}
       <div className="pointer-events-auto absolute right-4 top-20 sm:right-8 sm:top-24 max-w-[70%] z-10">

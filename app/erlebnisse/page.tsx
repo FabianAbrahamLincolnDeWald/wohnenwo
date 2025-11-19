@@ -29,9 +29,9 @@ function DottedGridBackground() {
   );
 }
 
-export default function InnenarchitekturPage() {
+export default function ErlebnissePage() {
   return (
-    <main className="relative min-h-screen bg-white text-slate-900 antialiased">
+    <main className="relative min-h-screen bg-black text-slate-900 antialiased">
       <ErlebnisseNavbar />
       <DottedGridBackground />
 

@@ -5,7 +5,7 @@ import { ChevronDown, Globe, Search, User, Menu, X } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Erlebnisse", href: "/erlebnisse", current: true },
-  { label: "Unterkünfte", href: "/erlebnisse/unterkuenfte", current: true },
+  { label: "Unterkünfte", href: "/erlebnisse/unterkuenfte"},
   { label: "Entdeckungen", href: "/erlebnisse/entdeckungen" },
   { label: "Dienstleistungen", href: "/erlebnisse/dienstleistungen" },
 ];

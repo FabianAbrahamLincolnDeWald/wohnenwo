@@ -10,7 +10,7 @@ export default function Topbar() {
         {/* Hauptzeile */}
         <div className="relative w-full px-4 md:px-5">
           <nav className="flex items-center justify-between py-3">
-            {/* Links */}
+            {/* Links: Mobile-Logo + Desktop-Suche */}
             <div className="flex items-center gap-3">
               {/* Mobile-Logo */}
               <Link
@@ -25,8 +25,7 @@ export default function Topbar() {
                 <div className="relative w-full">
                   <input
                     placeholder="Search..."
-                    className="h-9 w-full rounded-md border border-slate-200 bg-slate-50 px-9 text-sm text-slate-900 placeholder:text-slate-400
-                               hover:bg-slate-100 md:hover:border-slate-300 focus:outline-none focus:border-slate-300 focus:border-2 transition-all duration-300"
+                    className="h-9 w-full rounded-md border border-slate-200 bg-slate-50 px-9 text-sm text-slate-900 placeholder:text-slate-400 hover:bg-slate-100 md:hover:border-slate-300 focus:outline-none focus:border-slate-300 focus:border-2 transition-all duration-300"
                   />
                   <div className="absolute inset-y-0 left-3 flex items-center text-xs text-slate-500">
                     <Search className="h-4 w-4" />
@@ -38,9 +37,9 @@ export default function Topbar() {
               </div>
             </div>
 
-            {/* Rechts */}
+            {/* Rechts: Buttons + Mobile-Menü */}
             <div className="flex items-center gap-x-2">
-              {/* Desktop-Buttons */}
+              {/* Desktop Buttons */}
               <div className="hidden md:flex space-x-2 items-center">
                 <button className="rounded-md border border-slate-300 bg-white text-slate-700 px-3 py-1.5 text-xs font-medium hover:bg-slate-100 transition">
                   Anmelden
@@ -69,8 +68,7 @@ export default function Topbar() {
           <div className="relative w-full">
             <input
               placeholder="Search..."
-              className="h-9 w-full rounded-md border border-slate-200 bg-slate-50 px-9 text-sm text-slate-900 placeholder:text-slate-400
-                         hover:bg-slate-100 focus:outline-none focus:border-slate-300 focus:border-2 transition-all duration-300"
+              className="h-9 w-full rounded-md border border-slate-200 bg-slate-50 px-9 text-sm text-slate-900 placeholder:text-slate-400 hover:bg-slate-100 focus:outline-none focus:border-slate-300 focus:border-2 transition-all duration-300"
             />
             <div className="absolute inset-y-0 left-3 flex items-center text-xs text-slate-500">
               <Search className="h-4 w-4" />

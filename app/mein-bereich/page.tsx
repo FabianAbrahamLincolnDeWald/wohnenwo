@@ -5,7 +5,7 @@ export default function MeinBereichHomePage() {
   return (
     <>
       <PageHeader
-        title="Dein Bereich"
+        title="Debug 999"
         description="Willkommen in deinem persönlichen WohnenWo-Bereich. Hier findest du deine Projekte, Anfragen und Trainings auf einen Blick."
       />
 

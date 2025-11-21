@@ -1,43 +1,60 @@
-import {
-  LayoutGrid,
-  BookOpen,
-  Dumbbell,
-  Bookmark,
-  Users,
-  LucideIcon,
-} from "lucide-react";
+// components/mein-bereich/nav-config.ts
 
-export type NavItem = {
-  label: string;
+export type MeinBereichRouteId =
+  | "home"
+  | "kurse"
+  | "training"
+  | "sammlungen"
+  | "community";
+
+export type MeinBereichNavItem = {
+  id: MeinBereichRouteId;
   href: string;
-  icon: LucideIcon;
-  section?: "main" | "community";
+  label: string;
+  description?: string;
 };
 
-export const meinBereichNav: NavItem[] = [
-  { label: "Mein Bereich", href: "/mein-bereich", icon: LayoutGrid, section: "main" },
+export const MEIN_BEREICH_NAV_ITEMS: MeinBereichNavItem[] = [
   {
-    label: "Kurse",
+    id: "home",
+    href: "/mein-bereich",
+    label: "Home",
+    description: "Übersicht über deinen Wirkungsbereich.",
+  },
+  {
+    id: "kurse",
     href: "/mein-bereich/kurse",
-    icon: BookOpen,
-    section: "main",
+    label: "Kurse",
+    description: "Alle Lernpfade und Module, an denen du arbeitest.",
   },
   {
-    label: "Dein Training",
+    id: "training",
     href: "/mein-bereich/training",
-    icon: Dumbbell,
-    section: "main",
+    label: "Dein Training",
+    description: "Routinen, Fortschritt und persönliche Vertiefung.",
   },
   {
-    label: "Sammlungen",
+    id: "sammlungen",
     href: "/mein-bereich/sammlungen",
-    icon: Bookmark,
-    section: "main",
+    label: "Sammlungen",
+    description: "Merkliste, Inspirationen und gespeicherte Inhalte.",
   },
   {
-    label: "Jobs & Community",
+    id: "community",
     href: "/mein-bereich/community",
-    icon: Users,
-    section: "community",
+    label: "Jobs & Community",
+    description: "Menschen, Projekte und Möglichkeiten zum Mitwirken.",
   },
 ];
+
+// Hilfsfunktion, um anhand der URL den aktuellen Eintrag zu finden
+export function findNavItemByPath(pathname: string): MeinBereichNavItem | undefined {
+  // exakte Treffer zuerst
+  const exact = MEIN_BEREICH_NAV_ITEMS.find((item) => item.href === pathname);
+  if (exact) return exact;
+
+  // Fallback: beginnt mit Pfad (z.B. /mein-bereich/kurse/123)
+  return MEIN_BEREICH_NAV_ITEMS.find((item) =>
+    pathname.startsWith(item.href)
+  );
+}

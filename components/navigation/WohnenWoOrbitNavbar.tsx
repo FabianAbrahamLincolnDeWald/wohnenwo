@@ -5,7 +5,7 @@ import { ChevronDown, Globe, Search, User, Menu, X } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "WohnenWo", href: "/", current: true },
-  { label: "Mein Bereich", href: "/meinbereich" },
+  { label: "Mein Bereich", href: "/mein-bereich" },
   { label: "Experten Netzwerk", href: "/experten-netzwerk" },
 ];
 

@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { label: "Wohnen", href: "/innenarchitektur/wohnen" },
 ];
 
-export default function WohnenWoOrbitNavbar() {
+export default function InnenarchitekturNavbar() {
   const [flyoutOpen, setFlyoutOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

@@ -37,7 +37,7 @@ export default function Sidebar() {
     >
       {/* Ecosystem Flyout */}
       <div className="mb-5">
-        <EcosystemFlyout panelWidthClassName="w-[640px]" />
+        <EcosystemFlyout panelWidth={640} />
       </div>
 
       <div className="flex flex-col gap-6">

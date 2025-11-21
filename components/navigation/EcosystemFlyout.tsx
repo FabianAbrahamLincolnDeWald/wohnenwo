@@ -14,73 +14,131 @@ function cx(...classes: (string | false | null | undefined)[]) {
 
 type EcosystemFlyoutProps = {
   className?: string;
-  panelWidthClassName?: string; // z.B. "w-[640px]" oder "w-[520px]"
+  panelWidth?: number; // px – z.B. 640 oder 520
 };
 
 export default function EcosystemFlyout({
   className,
-  panelWidthClassName = "w-[640px]",
+  panelWidth = 640,
 }: EcosystemFlyoutProps) {
   const [open, setOpen] = React.useState(false);
+  const [pos, setPos] = React.useState<{ top: number; left: number }>({
+    top: 0,
+    left: 0,
+  });
+
+  const triggerRef = React.useRef<HTMLDivElement | null>(null);
+  const closeTimeoutRef = React.useRef<number | null>(null);
 
   const handeln = ecosystemSections.find((s) => s.id === "handeln");
   const entdecken = ecosystemSections.find((s) => s.id === "entdecken");
   const wirken = ecosystemSections.find((s) => s.id === "wirken");
 
-  const toggleFlyout = () => setOpen((v) => !v);
+  const GAP = 6; // optische Brücke zwischen Button und Panel
+  const CLOSE_DELAY = 120; // ms – Zeitfenster für den „Sprung“ zur Brücke/ins Panel
+
+  const computePosition = () => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setPos({
+      top: rect.bottom + GAP,
+      left: rect.left,
+    });
+  };
+
+  const openFlyout = () => {
+    window.clearTimeout(closeTimeoutRef.current ?? undefined);
+    computePosition();
+    setOpen(true);
+  };
+
+  const scheduleClose = () => {
+    window.clearTimeout(closeTimeoutRef.current ?? undefined);
+    closeTimeoutRef.current = window.setTimeout(() => {
+      setOpen(false);
+    }, CLOSE_DELAY);
+  };
+
+  const cancelClose = () => {
+    window.clearTimeout(closeTimeoutRef.current ?? undefined);
+    closeTimeoutRef.current = null;
+  };
+
+  const toggleFlyout = () => {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    openFlyout();
+  };
+
+  // bei Resize/Scroll Position des Panels neu berechnen, solange offen
+  React.useEffect(() => {
+    if (!open) return;
+
+    const handler = () => {
+      computePosition();
+    };
+
+    window.addEventListener("resize", handler);
+    window.addEventListener("scroll", handler);
+    return () => {
+      window.removeEventListener("resize", handler);
+      window.removeEventListener("scroll", handler);
+    };
+  }, [open]);
 
   return (
-    <div
-      className={cx("relative inline-flex items-center", className)}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
-      {/* Trigger-Button – identisch zum ErlebnisseNavbar-Flyout */}
-      <button
-        type="button"
-        aria-haspopup="true"
-        aria-expanded={open}
-        aria-label="Ecosystem Dropdown"
-        onClick={toggleFlyout}
-        className="border border-slate-200/80 rounded-md p-1 flex items-center justify-center shadow-sm ring-1 ring-black/5 bg-white"
+    <>
+      {/* Trigger-Wrapper: nur so breit wie der Button */}
+      <div
+        ref={triggerRef}
+        className={cx("inline-flex items-center", className)}
+        onMouseEnter={openFlyout}
+        onMouseLeave={scheduleClose}
       >
-        {/* Brand Orbit-Icon */}
-        <span className="inline-flex h-5.5 w-6.5 items-center justify-center">
-          <img
-            src="https://wohnenwo.vercel.app/images/brand/logos/ww-badge-dark.svg"
-            alt="Orbit Logo"
-            className="h-5.5 w-5.5 object-contain"
-          />
-        </span>
-
-        <span
-          aria-hidden="true"
-          className={cx(
-            "inline-flex h-5 w-4 items-center justify-center text-slate-800 transition-transform",
-            open && "rotate-180"
-          )}
+        <button
+          type="button"
+          aria-haspopup="true"
+          aria-expanded={open}
+          aria-label="Ecosystem Dropdown"
+          onClick={toggleFlyout}
+          className="border border-slate-200/80 rounded-md p-1 flex items-center justify-center shadow-sm ring-1 ring-black/5 bg-white"
         >
-          <ChevronDown className="h-3.5 w-3.5" />
-        </span>
-      </button>
+          {/* Brand Orbit-Icon */}
+          <span className="inline-flex h-5.5 w-6.5 items-center justify-center">
+            <img
+              src="https://wohnenwo.vercel.app/images/brand/logos/ww-badge-dark.svg"
+              alt="Orbit Logo"
+              className="h-5.5 w-5.5 object-contain"
+            />
+          </span>
 
-      {/* Flyout-Panel – Fab.com-Stil + Apple-Glass-Effekt */}
-      {open && (
-        <>
-          {/* Unsichtbare Hover-Brücke – exakt so breit wie das Flyout */}
-          <div
+          <span
+            aria-hidden="true"
             className={cx(
-              "absolute left-0 top-full h-2 w-full", // Brücke direkt unter dem Button
-              panelWidthClassName
-            )}
-          />
-
-          <div
-            className={cx(
-              "absolute left-0 mt-2 rounded-3xl overflow-hidden z-40",
-              panelWidthClassName
+              "inline-flex h-5 w-4 items-center justify-center text-slate-800 transition-transform",
+              open && "rotate-180"
             )}
           >
+            <ChevronDown className="h-3.5 w-3.5" />
+          </span>
+        </button>
+      </div>
+
+      {/* Panel – fixed, mit eigener Hover-Zone (Brücke über Timeout) */}
+      {open && (
+        <div
+          className="fixed z-[999]"
+          style={{
+            top: pos.top,
+            left: pos.left,
+            width: panelWidth,
+          }}
+          onMouseEnter={cancelClose}
+          onMouseLeave={scheduleClose}
+        >
+          <div className="rounded-3xl overflow-hidden">
             <div className="relative rounded-[inherit] bg-white border border-slate-200/80 shadow-[0_22px_60px_rgba(15,23,42,0.25)]">
               {/* --- APPLE GLASS EFFECT --- */}
               <div
@@ -99,7 +157,6 @@ export default function EcosystemFlyout({
               <div className="relative z-10 flex text-sm text-slate-700">
                 {/* Linke Spalte: Handeln + Entdecken */}
                 <div className="flex w-1/2 flex-col border-r border-slate-200">
-                  {/* Handeln */}
                   {handeln && (
                     <SectionBlock
                       section={handeln}
@@ -107,12 +164,10 @@ export default function EcosystemFlyout({
                     />
                   )}
 
-                  {/* Divider zwischen Handeln & Entdecken */}
                   {handeln && entdecken && (
                     <div className="h-px w-full bg-slate-200/70" />
                   )}
 
-                  {/* Entdecken */}
                   {entdecken && (
                     <SectionBlock
                       section={entdecken}
@@ -147,9 +202,9 @@ export default function EcosystemFlyout({
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 }
 

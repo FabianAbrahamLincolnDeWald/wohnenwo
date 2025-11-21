@@ -1,10 +1,12 @@
 // components/navigation/ecosystem-config.ts
 
+export type EcosystemBadgeType = "circle" | "square" | "logo";
+
 export type EcosystemLink = {
   label: string;
   href: string;
   badge?: {
-    type: "circle" | "square" | "logo";
+    type: EcosystemBadgeType;
     text?: string;
     imgSrc?: string;
     imgAlt?: string;
@@ -12,15 +14,15 @@ export type EcosystemLink = {
 };
 
 export type EcosystemSection = {
-  title: string;
   id: "handeln" | "entdecken" | "wirken" | string;
+  title: string;
   links: EcosystemLink[];
 };
 
 export const ecosystemSections: EcosystemSection[] = [
   {
-    title: "Handeln",
     id: "handeln",
+    title: "Handeln",
     links: [
       {
         label: "Startseite",
@@ -35,8 +37,8 @@ export const ecosystemSections: EcosystemSection[] = [
     ],
   },
   {
-    title: "Entdecken",
     id: "entdecken",
+    title: "Entdecken",
     links: [
       {
         label: "WohnenWo Design entsteht",
@@ -56,8 +58,8 @@ export const ecosystemSections: EcosystemSection[] = [
     ],
   },
   {
-    title: "Wirken",
     id: "wirken",
+    title: "Wirken",
     links: [
       {
         label: "Philosophie",

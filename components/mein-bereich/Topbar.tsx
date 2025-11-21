@@ -6,7 +6,7 @@ import { PanelsTopLeft, Search, Menu } from "lucide-react";
 
 export default function Topbar() {
   return (
-    <header className="sticky top-0 z-30">
+    <header className="sticky top-0 z-20">
       <div className="w-full mx-auto bg-slate-50 border-b border-slate-200">
         {/* Hauptzeile */}
         <div className="relative w-full px-4 md:px-5">

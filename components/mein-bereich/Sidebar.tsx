@@ -10,6 +10,7 @@ import {
   Bookmark,
   Users,
 } from "lucide-react";
+import EcosystemFlyout from "@/components/navigation/EcosystemFlyout";
 
 type NavItemProps = {
   href: string;
@@ -31,17 +32,12 @@ function NavItem({ href, label, icon: Icon }: NavItemProps) {
 export default function Sidebar() {
   return (
     <aside
-      className="hidden md:flex flex-col shrink-0 h-screen bg-slate-50 py-3 px-5 border-r border-slate-200 sticky top-0 overflow-hidden"
+      className="hidden md:flex flex-col shrink-0 h-screen bg-slate-50 py-3 px-5 border-r border-slate-200 sticky z-40"
       style={{ width: 240 }}
     >
-      {/* Logo / Home-Button – später durch EcosystemFlyout ersetzbar */}
+      {/* Ecosystem Flyout */}
       <div className="mb-5">
-        <Link
-          href="/mein-bereich"
-          className="border border-slate-200 h-9 w-9 flex items-center justify-center rounded-md bg-white text-slate-900"
-        >
-          <PanelsTopLeft className="h-4 w-4" />
-        </Link>
+        <EcosystemFlyout panelWidthClassName="w-[640px]" />
       </div>
 
       <div className="flex flex-col gap-6">

@@ -3,58 +3,59 @@
 import * as React from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
-import { ecosystemSections } from "./ecosystem-config";
+import {
+  ecosystemSections,
+  type EcosystemSection,
+} from "@/components/navigation/ecosystem-config";
 
-type EcosystemFlyoutProps = {
-  /** Extra Klassen für den Wrapper, z.B. um das Ding im Layout zu positionieren */
-  className?: string;
-  /** Breite des Panels (Default 640px) – für Sidebar kannst du z.B. 520px nehmen */
-  panelWidthClassName?: string;
-  /** Optional: andere Logo-Quelle, wenn du mal variieren willst */
-  logoSrc?: string;
-  logoAlt?: string;
-};
-
-function classNames(...classes: (string | false | null | undefined)[]) {
+function cx(...classes: (string | false | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
+
+type EcosystemFlyoutProps = {
+  className?: string;
+  panelWidthClassName?: string; // z.B. "w-[640px]" oder "w-[520px]"
+};
 
 export default function EcosystemFlyout({
   className,
   panelWidthClassName = "w-[640px]",
-  logoSrc = "https://wohnenwo.vercel.app/images/brand/logos/ww-badge-dark.svg",
-  logoAlt = "Orbit Logo",
 }: EcosystemFlyoutProps) {
   const [open, setOpen] = React.useState(false);
 
-  const toggle = () => setOpen((v) => !v);
+  const handeln = ecosystemSections.find((s) => s.id === "handeln");
+  const entdecken = ecosystemSections.find((s) => s.id === "entdecken");
+  const wirken = ecosystemSections.find((s) => s.id === "wirken");
+
+  const toggleFlyout = () => setOpen((v) => !v);
 
   return (
     <div
-      className={classNames("relative inline-flex items-center", className)}
+      className={cx("relative inline-flex items-center", className)}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
-      {/* Trigger-Button */}
+      {/* Trigger-Button – identisch zum ErlebnisseNavbar-Flyout */}
       <button
         type="button"
         aria-haspopup="true"
         aria-expanded={open}
         aria-label="Ecosystem Dropdown"
-        onClick={toggle}
+        onClick={toggleFlyout}
         className="border border-slate-200/80 rounded-md p-1 flex items-center justify-center shadow-sm ring-1 ring-black/5 bg-white"
       >
+        {/* Brand Orbit-Icon */}
         <span className="inline-flex h-5.5 w-6.5 items-center justify-center">
           <img
-            src={logoSrc}
-            alt={logoAlt}
+            src="https://wohnenwo.vercel.app/images/brand/logos/ww-badge-dark.svg"
+            alt="Orbit Logo"
             className="h-5.5 w-5.5 object-contain"
           />
         </span>
 
         <span
           aria-hidden="true"
-          className={classNames(
+          className={cx(
             "inline-flex h-5 w-4 items-center justify-center text-slate-800 transition-transform",
             open && "rotate-180"
           )}
@@ -63,99 +64,85 @@ export default function EcosystemFlyout({
         </span>
       </button>
 
-      {/* Flyout-Panel Desktop */}
+      {/* Flyout-Panel – Fab.com-Stil + Apple-Glass-Effekt */}
       {open && (
         <>
-          {/* Hover-Brücke */}
+          {/* Unsichtbare Hover-Brücke – exakt so breit wie das Flyout */}
           <div
-            className={classNames(
-              "absolute left-0 top-full h-2",
+            className={cx(
+              "absolute left-0 top-full h-2 w-full", // Brücke direkt unter dem Button
               panelWidthClassName
             )}
           />
 
           <div
-            className={classNames(
+            className={cx(
               "absolute left-0 mt-2 rounded-3xl overflow-hidden z-40",
               panelWidthClassName
             )}
           >
             <div className="relative rounded-[inherit] bg-white border border-slate-200/80 shadow-[0_22px_60px_rgba(15,23,42,0.25)]">
-              {/* Apple Glass Layer */}
+              {/* --- APPLE GLASS EFFECT --- */}
               <div
                 className="absolute inset-0 rounded-[inherit] backdrop-blur-[1.5px]"
                 style={{
-                  filter: "url(#lensFilter) saturate(1.05) brightness(1.03)",
+                  filter:
+                    "url(#lensFilter) saturate(1.05) brightness(1.03)",
                 }}
               />
               <div className="absolute inset-0 rounded-[inherit] bg-white/20" />
               <div className="absolute inset-0 rounded-[inherit] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.45),inset_0_0_0_1px_rgba(0,0,0,0.06)]" />
               <div className="absolute inset-0 rounded-[inherit] ring-1 ring-white/20 ring-offset-1 ring-offset-white/30" />
+              {/* --- END APPLE GLASS EFFECT --- */}
 
-              {/* Inhalt */}
+              {/* Inhalt – Fab.com Layout */}
               <div className="relative z-10 flex text-sm text-slate-700">
-                {/* Linke Hälfte: Handeln + Entdecken (Sections 0 & 1) */}
+                {/* Linke Spalte: Handeln + Entdecken */}
                 <div className="flex w-1/2 flex-col border-r border-slate-200">
-                  {ecosystemSections
-                    .filter((s) => s.id === "handeln" || s.id === "entdecken")
-                    .map((section, index) => (
-                      <React.Fragment key={section.id}>
-                        {index === 1 && (
-                          <div className="h-px w-full bg-slate-200/70" />
-                        )}
-                        <div
-                          className={classNames(
-                            "px-5 space-y-3",
-                            section.id === "handeln"
-                              ? "py-4"
-                              : "pb-4 pt-2"
-                          )}
-                        >
-                          <h3 className="text-base font-semibold tracking-tight">
-                            {section.title}
-                          </h3>
-                          <ul className="space-y-2 text-[14px]">
-                            {section.links.map((link) => (
-                              <li key={link.href}>
-                                <Link
-                                  href={link.href}
-                                  className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-100"
-                                >
-                                  <BadgeRenderer badge={link.badge} />
-                                  <span>{link.label}</span>
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </React.Fragment>
-                    ))}
+                  {/* Handeln */}
+                  {handeln && (
+                    <SectionBlock
+                      section={handeln}
+                      variant="top"
+                    />
+                  )}
+
+                  {/* Divider zwischen Handeln & Entdecken */}
+                  {handeln && entdecken && (
+                    <div className="h-px w-full bg-slate-200/70" />
+                  )}
+
+                  {/* Entdecken */}
+                  {entdecken && (
+                    <SectionBlock
+                      section={entdecken}
+                      variant="bottom"
+                    />
+                  )}
                 </div>
 
-                {/* Rechte Hälfte: Wirken */}
+                {/* Rechte Spalte: Wirken */}
                 <div className="w-1/2 px-5 py-4 space-y-3">
-                  {ecosystemSections
-                    .filter((s) => s.id === "wirken")
-                    .map((section) => (
-                      <React.Fragment key={section.id}>
-                        <h3 className="text-base font-semibold tracking-tight">
-                          {section.title}
-                        </h3>
-                        <ul className="space-y-2 text-[14px]">
-                          {section.links.map((link) => (
-                            <li key={link.href}>
-                              <Link
-                                href={link.href}
-                                className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-100"
-                              >
-                                <BadgeRenderer badge={link.badge} />
-                                <span>{link.label}</span>
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </React.Fragment>
-                    ))}
+                  {wirken && (
+                    <>
+                      <h3 className="text-base font-semibold tracking-tight">
+                        {wirken.title}
+                      </h3>
+                      <ul className="space-y-2 text-[14px]">
+                        {wirken.links.map((link) => (
+                          <li key={link.href}>
+                            <Link
+                              href={link.href}
+                              className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-100"
+                            >
+                              <BadgeRenderer badge={link.badge} />
+                              <span>{link.label}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -166,17 +153,47 @@ export default function EcosystemFlyout({
   );
 }
 
-/** Kleiner Helper: rendert den jeweiligen Badge-Typ */
-function BadgeRenderer({
-  badge,
+/* --- Hilfs-Komponenten --- */
+
+function SectionBlock({
+  section,
+  variant,
 }: {
-  badge?: {
-    type: "circle" | "square" | "logo";
-    text?: string;
-    imgSrc?: string;
-    imgAlt?: string;
-  };
+  section: EcosystemSection;
+  variant: "top" | "bottom";
 }) {
+  return (
+    <div
+      className={cx(
+        "px-5 space-y-3",
+        variant === "top" ? "py-4" : "pb-4 pt-2"
+      )}
+    >
+      <h3 className="text-base font-semibold tracking-tight">
+        {section.title}
+      </h3>
+      <ul className="space-y-2 text-[14px]">
+        {section.links.map((link) => (
+          <li key={link.href}>
+            <Link
+              href={link.href}
+              className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-100"
+            >
+              <BadgeRenderer badge={link.badge} />
+              <span>{link.label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+type Badge = NonNullable<
+  EcosystemSection["links"][number]["badge"]
+>;
+
+function BadgeRenderer({ badge }: { badge?: Badge }) {
   if (!badge) {
     return (
       <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
@@ -205,7 +222,6 @@ function BadgeRenderer({
     );
   }
 
-  // circle
   if (badge.text) {
     return (
       <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-slate-900 text-[12px] font-semibold">

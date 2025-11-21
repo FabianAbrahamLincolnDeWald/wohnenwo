@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import { ChevronDown, Globe, Search, User, Menu, X } from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Startseite", href: "/", current: true },
-  { label: "Mein Bereich", href: "/" },
+  { label: "WohnenWo", href: "/", current: true },
+  { label: "Mein Bereich", href: "/meinbereich" },
+  { label: "Experten Netzwerk", href: "/experten-netzwerk" },
 ];
 
 export default function WohnenWoOrbitNavbar() {
@@ -51,7 +52,7 @@ export default function WohnenWoOrbitNavbar() {
               aria-expanded={flyoutOpen}
               aria-label="Ecosystem Dropdown"
               onClick={toggleFlyout}
-              className="bg-white/80 backdrop-blur border border-slate-200/80 rounded-md p-1 flex items-center justify-center shadow-sm ring-1 ring-black/5 hover:bg-slate-50 transition-colors"
+              className=" border border-slate-200/80 rounded-md p-1 flex items-center justify-center shadow-sm ring-1 ring-black/5"
             >
               {/* Brand Orbit-Icon */}
               <span className="inline-flex h-5.5 w-6.5 items-center justify-center">
@@ -142,7 +143,7 @@ export default function WohnenWoOrbitNavbar() {
                           <ul className="space-y-2 text-[14px]">
                             <li>
                               <a
-                                href="/"
+                                href="/designentsteht"
                                 className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-100"
                               >
                                 <span className="inline-flex h-6 w-6 items-center justify-center">
@@ -157,13 +158,13 @@ export default function WohnenWoOrbitNavbar() {
                             </li>
                             <li>
                               <a
-                                href="/dienst&wirkung"
+                                href="/wertewirken"
                                 className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-100"
                               >
                                 <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[12px] font-black text-slate-900">
                                   DW
                                 </span>
-                                <span>Dienst & Wirkung</span>
+                                <span>WohnenWo Werte wirken</span>
                               </a>
                             </li>
                           </ul>

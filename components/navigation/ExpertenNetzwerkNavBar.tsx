@@ -4,13 +4,12 @@ import React, { useState } from "react";
 import { ChevronDown, ChevronLeft, Globe, Search, User, Menu, X } from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Wohnerlebnisse", href: "/erlebnisse", current: true },
-  { label: "Unterkünfte", href: "/erlebnisse/unterkuenfte" },
-  { label: "Entdeckungen", href: "/erlebnisse/entdeckungen" },
-  { label: "Dienstleistungen", href: "/erlebnisse/dienstleistungen" },
+  { label: "Experten Netzwerk", href: "/experten-netzwerk", current: true },
+  { label: "Experten finden", href: "/experten-netzwerk/expertenfinden" },
+  { label: "Experte werden", href: "/experten-netzwerk/expertewerden" },
 ];
 
-export default function ErlebnisseNavbar() {
+export default function ExpertenNetzwerkNavBar() {
   const [flyoutOpen, setFlyoutOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -247,9 +246,9 @@ export default function ErlebnisseNavbar() {
         {/* Mitte: zentrierter Bereich (max-w-6xl) mit neuem Logo + Tabs */}
         <div className="flex-1 flex justify-center">
           <div className="flex h-full max-w-6xl flex-1 items-center gap-4">
-            {/* Back-Button mit gleichem Rahmen, Link zu /designentsteht */}
+            {/* Neues Logo mit gleichem Rahmen, Link zu /designentsteht */}
             <a
-              href="/designentsteht"
+              href="/"
               aria-label="Back"
               className="border border-slate-200/80 rounded-full p-1 w-8 h-8 flex items-center justify-center shadow-sm ring-1 ring-black/5 hover:bg-slate-50 transition-colors"
             >

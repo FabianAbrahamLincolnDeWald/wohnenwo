@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import KuechenNavBar from "@/components/navigation/KuechenNavBar";
+import WohnenWoDesignEntstehtNavBar from "@/components/navigation/WohnenWoDesignEntstehtNavBar";
 import HeroBackgroundFullBleedKuechen from "@/components/sektionen/HeroBackgroundFullBleed/Kuechen";
 import GlassPanel from "@/components/sektionen/GlassPanel";
 
@@ -32,7 +32,7 @@ function DottedGridBackground() {
 export default function KuechenPage() {
   return (
     <main className="relative min-h-screen bg-white text-slate-900 antialiased">
-      <KuechenNavBar />
+      <WohnenWoDesignEntstehtNavBar />
       <DottedGridBackground />
 
       {/* 1. Hero-Hintergrund */}

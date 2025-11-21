@@ -4,13 +4,15 @@ import React, { useState } from "react";
 import { ChevronDown, ChevronLeft, Globe, Search, User, Menu, X } from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Wohnerlebnisse", href: "/erlebnisse", current: true },
-  { label: "Unterkünfte", href: "/erlebnisse/unterkuenfte" },
-  { label: "Entdeckungen", href: "/erlebnisse/entdeckungen" },
-  { label: "Dienstleistungen", href: "/erlebnisse/dienstleistungen" },
+  { label: "Raumgestaltung", href: "/innenarchitektur",},
+  { label: "Küchen", href: "/innenarchitektur/kuechen", current: true },
+  { label: "Bäder", href: "/innenarchitektur/baeder" },
+  { label: "Ankleiden", href: "/innenarchitektur/ankleiden" },
+  { label: "Schlafen", href: "/innenarchitektur/schlafen" },
+  { label: "Wohnen", href: "/innenarchitektur/wohnen" },
 ];
 
-export default function ErlebnisseNavbar() {
+export default function KuechenNavbar() {
   const [flyoutOpen, setFlyoutOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -247,7 +249,7 @@ export default function ErlebnisseNavbar() {
         {/* Mitte: zentrierter Bereich (max-w-6xl) mit neuem Logo + Tabs */}
         <div className="flex-1 flex justify-center">
           <div className="flex h-full max-w-6xl flex-1 items-center gap-4">
-            {/* Back-Button mit gleichem Rahmen, Link zu /designentsteht */}
+            {/* Neues Logo mit gleichem Rahmen, Link zu /designentsteht */}
             <a
               href="/designentsteht"
               aria-label="Back"

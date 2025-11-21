@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { ChevronDown, Globe, Search, User, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, Globe, Search, User, Menu, X } from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Innenarchitektur", href: "/innenarchitektur", current: true },
+  { label: "Raumgestaltung", href: "/innenarchitektur", current: true },
   { label: "Küchen", href: "/innenarchitektur/kuechen" },
   { label: "Bäder", href: "/innenarchitektur/baeder" },
   { label: "Ankleiden", href: "/innenarchitektur/ankleiden" },
@@ -17,8 +17,8 @@ export default function WohnenWoOrbitNavbar() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
-  const toggleLanguage = () => setLanguageOpen((v) => !v);
 
+  const toggleLanguage = () => setLanguageOpen((v) => !v);
   const toggleFlyout = () => setFlyoutOpen((v) => !v);
 
   const toggleMobileSearch = () => {
@@ -34,7 +34,7 @@ export default function WohnenWoOrbitNavbar() {
   return (
     <nav
       className="
-        absolute inset-x-0 top-0 z-40
+        fixed inset-x-0 top-0 z-40
         bg-transparent
         backdrop-blur bg-white/70
         border-b border-slate-200
@@ -42,9 +42,9 @@ export default function WohnenWoOrbitNavbar() {
       aria-label="Main site navigation"
     >
       {/* DESKTOP-HEADER (>= md) */}
-      <div className="mx-auto hidden h-14 max-w-6xl items-center gap-4 px-4 md:flex">
-        {/* Left: Ecosystem Flyout */}
-        <div className="flex items-center gap-4">
+      <div className="hidden h-14 items-center justify-between px-4 md:flex">
+        {/* Viewport-Links: Ecosystem Flyout (Brand Orbit-Icon ganz links) */}
+        <div className="flex items-center gap-3">
           <div
             className="relative"
             onMouseEnter={() => setFlyoutOpen(true)}
@@ -56,7 +56,7 @@ export default function WohnenWoOrbitNavbar() {
               aria-expanded={flyoutOpen}
               aria-label="Ecosystem Dropdown"
               onClick={toggleFlyout}
-              className="bg-white/80 backdrop-blur border border-slate-200/80 rounded-md p-1 flex items-center justify-center shadow-sm ring-1 ring-black/5 hover:bg-slate-50 transition-colors"
+              className="border border-slate-200/80 rounded-md p-1 flex items-center justify-center shadow-sm ring-1 ring-black/5"
             >
               {/* Brand Orbit-Icon */}
               <span className="inline-flex h-5.5 w-6.5 items-center justify-center">
@@ -147,7 +147,7 @@ export default function WohnenWoOrbitNavbar() {
                           <ul className="space-y-2 text-[14px]">
                             <li>
                               <a
-                                href="/"
+                                href="/designentsteht"
                                 className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-100"
                               >
                                 <span className="inline-flex h-6 w-6 items-center justify-center">
@@ -244,48 +244,59 @@ export default function WohnenWoOrbitNavbar() {
               </>
             )}
           </div>
+        </div>
 
-          {/* Divider */}
+        {/* Mitte: zentrierter Bereich (max-w-6xl) mit neuem Logo + Tabs */}
+        <div className="flex-1 flex justify-center">
+          <div className="flex h-full max-w-6xl flex-1 items-center gap-4">
+            {/* Neues Logo mit gleichem Rahmen, Link zu /designentsteht */}
+            <a
+              href="/designentsteht"
+              aria-label="Back"
+              className="border border-slate-200/80 rounded-full p-1 w-8 h-8 flex items-center justify-center shadow-sm ring-1 ring-black/5 hover:bg-slate-50 transition-colors"
+            >
+              <ChevronLeft className="h-5.5 w-5.5 -translate-x-px" />
+            </a>
+
+          {/* Vertikaler Divider direkt neben dem Orbit-Button */}
           <div className="h-7.5 w-px rounded-full bg-slate-200" />
+
+            {/* Tabs (Desktop) */}
+            <ul
+              className="
+                hidden items-center gap-1
+                md:flex
+              "
+              role="menu"
+            >
+              {NAV_ITEMS.map((item) => {
+                const isCurrent = item.current;
+
+                const baseClasses =
+                  "inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors";
+                const active = "bg-slate-100 text-slate-800";
+                const ghost = "text-slate-600/80 hover:bg-slate-100";
+
+                return (
+                  <li key={item.label}>
+                    <a
+                      href={item.href}
+                      role="menuitem"
+                      aria-current={isCurrent ? "page" : undefined}
+                      className={`${baseClasses} ${
+                        isCurrent ? active : ghost
+                      }`}
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         </div>
 
-        {/* Middle: Tabs ohne zweites Logo */}
-        <div className="flex flex-1 items-center gap-6">
-          {/* Tabs (Desktop) */}
-          <ul
-            className="
-              hidden items-center gap-1
-              md:flex
-            "
-            role="menu"
-          >
-            {NAV_ITEMS.map((item) => {
-              const isCurrent = item.current;
-
-              const baseClasses =
-                "inline-flex items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors";
-              const active = "bg-white/80 text-slate-800";
-              const ghost = "text-slate-600/80 hover:bg-slate-100";
-
-              return (
-                <li key={item.label}>
-                  <a
-                    href={item.href}
-                    role="menuitem"
-                    aria-current={isCurrent ? "page" : undefined}
-                    className={`${baseClasses} ${
-                      isCurrent ? active : ghost
-                    }`}
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-
-        {/* Actions: Language + Avatar */}
+        {/* Rechts: Language + Avatar */}
         <div className="flex items-center gap-2">
           {/* Language Dropdown (Desktop) */}
           <div
@@ -391,7 +402,7 @@ export default function WohnenWoOrbitNavbar() {
         </div>
       </div>
 
-      {/* MOBILE-HEADER (< md) – orientiert an fab.com */}
+      {/* MOBILE-HEADER (< md) – unverändert */}
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 md:hidden">
         {/* Links: Ecosystem-Button */}
         <div className="flex items-center">

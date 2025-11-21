@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import WohnenWoNavbar from "@/components/navigation/WohnenWoNavbar";
+import WerteWirkenNavBar from "@/components/navigation/WerteWirkenNavBar";
 import Sektor1_EinladungZusammenarbeit from "@/components/sektionen/Sektor1_EinladungZusammenarbeit";
 import Sektor2_TransparenteKommunikation from "@/components/sektionen/Sektor2_TransparenteKommunikation";
 import SektorX_ScrollTextStack from "@/components/sektionen/SektorX_ScrollTextStack";
@@ -12,7 +12,7 @@ import Sektor3_Wohnerlebnisse from "@/components/sektionen/Sektor3_Wohnerlebniss
 export default function Startseite() {
   return (
     <main className="flex flex-col min-h-screen bg-white text-slate-900 antialiased">
-      <WohnenWoNavbar />
+      <WerteWirkenNavBar />
       <section id="einladung">
         <Sektor1_EinladungZusammenarbeit />
       </section>

@@ -4,13 +4,12 @@ import React, { useState } from "react";
 import { ChevronDown, ChevronLeft, Globe, Search, User, Menu, X } from "lucide-react";
 
 const NAV_ITEMS = [
-  { label: "Wohnerlebnisse", href: "/erlebnisse", current: true },
-  { label: "Unterkünfte", href: "/erlebnisse/unterkuenfte" },
-  { label: "Entdeckungen", href: "/erlebnisse/entdeckungen" },
-  { label: "Dienstleistungen", href: "/erlebnisse/dienstleistungen" },
+  { label: "WohnenWo Design entsteht", href: "/designentsteht", current: true },
+  { label: "Raumgestaltung", href: "/innenarchitektur" },
+  { label: "Wohnerlebnisse", href: "/erlebnisse" },
 ];
 
-export default function ErlebnisseNavbar() {
+export default function WohnenWoDesignEntstehtNavbar() {
   const [flyoutOpen, setFlyoutOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -247,13 +246,24 @@ export default function ErlebnisseNavbar() {
         {/* Mitte: zentrierter Bereich (max-w-6xl) mit neuem Logo + Tabs */}
         <div className="flex-1 flex justify-center">
           <div className="flex h-full max-w-6xl flex-1 items-center gap-4">
-            {/* Back-Button mit gleichem Rahmen, Link zu /designentsteht */}
+            {/* Neues Logo mit gleichem Rahmen, Link zu /designentsteht – auf Hover ChevronLeft */}
             <a
-              href="/designentsteht"
-              aria-label="Back"
-              className="border border-slate-200/80 rounded-full p-1 w-8 h-8 flex items-center justify-center shadow-sm ring-1 ring-black/5 hover:bg-slate-50 transition-colors"
+              href="/"
+              aria-label="WohnenWo"
+              className="group relative p-1 w-9 h-9 flex items-center justify-center shadow-sm ring-1 ring-black/5"
             >
-              <ChevronLeft className="h-5.5 w-5.5 -translate-x-px" />
+              {/* Zustand 1: Logo (Standard) */}
+              <span className="inline-flex items-center justify-center transition-opacity duration-150 group-hover:opacity-0">
+                <img
+                  src="https://wohnenwo.vercel.app/images/brand/logos/wwde-badge-dark.svg"
+                  alt="Design entsteht Logo"
+                  className="w-6.5 h-6.5 object-contain"
+                />
+              </span>
+              {/* Zustand 2: ChevronLeft (nur auf Hover sichtbar) */}
+              <span className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                <ChevronLeft className="h-5.5 w-5.5 -translate-x-px" />
+              </span>
             </a>
 
           {/* Vertikaler Divider direkt neben dem Orbit-Button */}

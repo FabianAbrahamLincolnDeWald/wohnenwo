@@ -3,17 +3,17 @@ import type { ReactNode } from "react";
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
 
-type Props = {
+type DashboardShellProps = {
   children: ReactNode;
 };
 
-export default function DashboardShell({ children }: Props) {
+export default function DashboardShell({ children }: DashboardShellProps) {
   return (
     <div className="min-h-screen flex bg-slate-100">
-      {/* Linke Sidebar */}
+      {/* Sidebar links */}
       <Sidebar />
 
-      {/* Rechts: Topbar + Inhalt */}
+      {/* Rechts: Topbar + Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         <Topbar />
         <main className="flex-1 bg-slate-100">

@@ -1,33 +1,40 @@
+// components/mein-bereich/Sidebar.tsx
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { PanelsTopLeft, LayoutGrid, BookOpen, Dumbbell, Bookmark, Users } from "lucide-react";
+import {
+  PanelsTopLeft,
+  LayoutGrid,
+  BookOpen,
+  Dumbbell,
+  Bookmark,
+  Users,
+} from "lucide-react";
 
-function cx(...classes: (string | false | null | undefined)[]) {
-  return classes.filter(Boolean).join(" ");
+type NavItemProps = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+};
+
+function NavItem({ href, label, icon: Icon }: NavItemProps) {
+  return (
+    <Link href={href} className="w-full">
+      <div className="flex w-full items-center gap-x-2 p-2.5 rounded-lg text-sm text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all duration-300 ease-in-out">
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className="text-[15px] font-medium leading-tight">{label}</span>
+      </div>
+    </Link>
+  );
 }
 
-const MAIN = [
-  { label: "Home", href: "/mein-bereich", icon: LayoutGrid },
-  { label: "Kurse", href: "/mein-bereich/kurse", icon: BookOpen },
-  { label: "Dein Training", href: "/mein-bereich/training", icon: Dumbbell },
-  { label: "Sammlungen", href: "/mein-bereich/sammlungen", icon: Bookmark },
-];
-
-const COMMUNITY = [
-  { label: "Jobs & Community", href: "/mein-bereich/community", icon: Users },
-];
-
 export default function Sidebar() {
-  const pathname = usePathname();
-
   return (
     <aside
       className="hidden md:flex flex-col shrink-0 h-screen bg-slate-50 py-3 px-5 border-r border-slate-200 sticky top-0 overflow-hidden"
       style={{ width: 240 }}
     >
-      {/* Logo / Home-Button (kann später durch EcosystemFlyout ersetzt werden) */}
+      {/* Logo / Home-Button – später durch EcosystemFlyout ersetzbar */}
       <div className="mb-5">
         <Link
           href="/mein-bereich"
@@ -40,64 +47,31 @@ export default function Sidebar() {
       <div className="flex flex-col gap-6">
         {/* Hauptnavigation */}
         <nav className="flex flex-col gap-1.5">
-          {MAIN.map((item) => {
-            const isActive =
-              item.href === "/mein-bereich"
-                ? pathname === "/mein-bereich"
-                : pathname?.startsWith(item.href);
-
-            const Icon = item.icon;
-
-            return (
-              <Link key={item.href} href={item.href} className="w-full">
-                <div
-                  className={cx(
-                    "flex w-full items-center gap-x-2 p-2.5 rounded-lg text-sm transition-all duration-300 ease-in-out",
-                    "hover:bg-slate-100",
-                    isActive
-                      ? "bg-white text-slate-900 shadow-sm border border-slate-200"
-                      : "text-slate-500 hover:text-slate-900"
-                  )}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span className="text-[15px] font-medium leading-tight">
-                    {item.label}
-                  </span>
-                </div>
-              </Link>
-            );
-          })}
+          <NavItem href="/mein-bereich" icon={LayoutGrid} label="Home" />
+          <NavItem href="/mein-bereich/kurse" icon={BookOpen} label="Kurse" />
+          <NavItem
+            href="/mein-bereich/training"
+            icon={Dumbbell}
+            label="Dein Training"
+          />
+          <NavItem
+            href="/mein-bereich/sammlungen"
+            icon={Bookmark}
+            label="Sammlungen"
+          />
         </nav>
 
-        {/* Community */}
+        {/* Community-Bereich */}
         <div className="flex flex-col gap-1.5">
           <div className="text-xs font-medium text-slate-400 mb-1 tracking-wide">
             Community
           </div>
           <nav className="flex flex-col gap-1.5">
-            {COMMUNITY.map((item) => {
-              const isActive = pathname?.startsWith(item.href);
-              const Icon = item.icon;
-
-              return (
-                <Link key={item.href} href={item.href} className="w-full">
-                  <div
-                    className={cx(
-                      "flex w-full items-center gap-x-2 p-2.5 rounded-lg text-sm transition-all duration-300 ease-in-out",
-                      "hover:bg-slate-100",
-                      isActive
-                        ? "bg-white text-slate-900 shadow-sm border border-slate-200"
-                        : "text-slate-500 hover:text-slate-900"
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="text-[15px] font-medium leading-tight">
-                      {item.label}
-                    </span>
-                  </div>
-                </Link>
-              );
-            })}
+            <NavItem
+              href="/mein-bereich/community"
+              icon={Users}
+              label="Jobs & Community"
+            />
           </nav>
         </div>
       </div>

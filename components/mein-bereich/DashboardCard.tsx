@@ -32,7 +32,7 @@ export default function DashboardCard({
             </p>
           )}
           {badge && (
-            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-[2px] text-[11px] font-medium text-emerald-700">
+            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
               {badge}
             </span>
           )}

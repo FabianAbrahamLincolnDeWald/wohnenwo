@@ -1,5 +1,7 @@
 // app/auth/registrieren/page.tsx
 import Link from "next/link";
+import AuthNavbar from "@/components/navigation/AuthNavbar";
+
 
 export const metadata = {
   title: "Registrieren – WohnenWo",
@@ -7,6 +9,9 @@ export const metadata = {
 
 export default function RegistrierenPage() {
   return (
+  <>
+    <AuthNavbar mode="signup" />
+
     <main className="min-h-screen bg-slate-50">
       <div className="min-h-screen w-full flex items-center justify-center px-4">
         <div className="w-full max-w-[360px] space-y-5">
@@ -34,7 +39,7 @@ export default function RegistrierenPage() {
                     <svg
                       viewBox="0 0 48 48"
                       xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4"
+                      className="h-5 w-5 -translate-y-px"
                     >
                       <path
                         fill="#FFC107"
@@ -62,14 +67,19 @@ export default function RegistrierenPage() {
                 </div>
               </button>
 
-              <div className="grid grid-cols-[1fr,0.5fr,1fr] items-center w-full justify-center">
-                <div className="w-full h-px bg-slate-200 mx-auto" />
-                <div className="text-slate-400 text-[14px] text-center font-normal">
-                  oder
-                </div>
-                <div className="w-full h-px bg-slate-200 mx-auto" />
-              </div>
+              <div className="flex items-center justify-center w-full">
+              {/* Linker Strich */}
+              <div className="h-px flex-1 bg-slate-200" />
+
+              {/* Abstand + Text */}
+              <span className="mx-3 text-slate-400 text-[14px] text-center font-normal">
+                oder    
+              </span>
+
+              {/* Rechter Strich */}
+              <div className="h-px flex-1 bg-slate-200" />
             </div>
+          </div>
 
             {/* Formular */}
             <div>
@@ -92,7 +102,7 @@ export default function RegistrierenPage() {
                                 md:hover:border-slate-300
                                 transition ease-in-out duration-300
                                 focus:outline-none focus:border-slate-300 focus:ring-0
-                                rounded-md bg-slate-50
+                                rounded-md bg-white
                               "
                               placeholder="E-Mail-Adresse eingeben…"
                               type="email"
@@ -124,7 +134,7 @@ export default function RegistrierenPage() {
                                 md:hover:border-slate-300
                                 transition ease-in-out duration-300
                                 focus:outline-none focus:border-slate-300 focus:ring-0
-                                rounded-md bg-slate-50
+                                rounded-md bg-white
                               "
                               placeholder="Passwort wählen…"
                               type="password"
@@ -171,7 +181,7 @@ export default function RegistrierenPage() {
                                 md:hover:border-slate-300
                                 transition ease-in-out duration-300
                                 focus:outline-none focus:border-slate-300 focus:ring-0
-                                rounded-md bg-slate-50
+                                rounded-md bg-white
                               "
                               placeholder="Passwort wiederholen…"
                               type="password"
@@ -219,20 +229,10 @@ export default function RegistrierenPage() {
                 von WohnenWo gelesen und verstanden hast.
               </div>
             </div>
-
-            {/* Switch zu Anmelden */}
-            <div className="text-[14px] text-slate-500 text-center sm:mt-2">
-              Du hast bereits ein Konto?{" "}
-              <Link
-                href="/auth/anmelden"
-                className="underline underline-offset-[3px] text-slate-800 hover:text-slate-900"
-              >
-                Anmelden
-              </Link>
-            </div>
           </div>
         </div>
       </div>
     </main>
+  </>
   );
 }

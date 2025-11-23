@@ -1,5 +1,7 @@
 // app/auth/anmelden/page.tsx
 import Link from "next/link";
+import AuthNavbar from "@/components/navigation/AuthNavbar";
+
 
 export const metadata = {
   title: "Anmelden – WohnenWo",
@@ -7,6 +9,9 @@ export const metadata = {
 
 export default function AnmeldenPage() {
   return (
+  <>
+    <AuthNavbar mode="signin" />
+
     <main className="min-h-screen bg-slate-50">
       {/* zentrierter Wrapper */}
       <div className="min-h-screen w-full flex items-center justify-center px-4">
@@ -31,7 +36,7 @@ export default function AnmeldenPage() {
                   <svg
                     viewBox="0 0 48 48"
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
+                    className="h-5 w-5 -translate-y-px"
                   >
                     <path
                       fill="#FFC107"
@@ -59,12 +64,17 @@ export default function AnmeldenPage() {
               </div>
             </button>
 
-            <div className="grid grid-cols-[1fr,0.5fr,1fr] items-center w-full justify-center">
-              <div className="w-full h-px bg-slate-200 mx-auto" />
-              <div className="text-slate-400 text-[14px] text-center font-normal">
-                oder
-              </div>
-              <div className="w-full h-px bg-slate-200 mx-auto" />
+            <div className="flex items-center justify-center w-full">
+              {/* Linker Strich */}
+              <div className="h-px flex-1 bg-slate-200" />
+
+              {/* Abstand + Text */}
+              <span className="mx-3 text-slate-400 text-[14px] text-center font-normal">
+                oder    
+              </span>
+
+              {/* Rechter Strich */}
+              <div className="h-px flex-1 bg-slate-200" />
             </div>
           </div>
 
@@ -89,7 +99,7 @@ export default function AnmeldenPage() {
                               md:hover:border-slate-300
                               transition ease-in-out duration-300
                               focus:outline-none focus:border-slate-300 focus:ring-0
-                              rounded-md bg-slate-50
+                              rounded-md bg-white
                             "
                             placeholder="E-Mail-Adresse eingeben…"
                             type="email"
@@ -121,7 +131,7 @@ export default function AnmeldenPage() {
                               md:hover:border-slate-300
                               transition ease-in-out duration-300
                               focus:outline-none focus:border-slate-300 focus:ring-0
-                              rounded-md bg-slate-50
+                              rounded-md bg-white
                             "
                             placeholder="Passwort eingeben…"
                             type="password"
@@ -170,18 +180,9 @@ export default function AnmeldenPage() {
           <div className="text-[14px] font-medium text-slate-500 underline w-full text-center cursor-pointer">
             Passwort zurücksetzen
           </div>
-
-          <div className="text-[14px] text-slate-500 text-center">
-            Noch kein Konto?{" "}
-            <Link
-              href="/auth/registrieren"
-              className="underline underline-offset-[3px] text-slate-800 hover:text-slate-900"
-            >
-              Registrieren
-            </Link>
-          </div>
         </div>
       </div>
     </main>
+  </>
   );
 }

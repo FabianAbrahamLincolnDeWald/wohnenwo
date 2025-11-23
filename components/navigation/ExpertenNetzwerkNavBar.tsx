@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { ChevronDown, ChevronLeft, Globe, Search, User, Menu, X } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -384,8 +385,8 @@ export default function ExpertenNetzwerkNavBar() {
             )}
           </div>
 
-          <button
-            type="button"
+          <Link
+            href="/auth/anmelden"
             aria-label="Sign in"
             className="
               inline-flex h-8 w-8 items-center justify-center
@@ -395,7 +396,7 @@ export default function ExpertenNetzwerkNavBar() {
             "
           >
             <User className="h-4 w-4" aria-hidden="true" />
-          </button>
+          </Link>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { ChevronDown, ChevronLeft, Globe, Search, User, Menu, X } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -30,12 +31,7 @@ export default function WohnenWoDesignEntstehtNavbar() {
 
   return (
     <nav
-      className="
-        fixed inset-x-0 top-0 z-40
-        bg-transparent
-        backdrop-blur bg-white/70
-        border-b border-slate-200
-      "
+      className="fixed inset-x-0 top-0 z-40 bg-transparent backdrop-blur bg-white/70 border-b border-slate-200"
       aria-label="Main site navigation"
     >
       {/* DESKTOP-HEADER (>= md) */}
@@ -395,8 +391,8 @@ export default function WohnenWoDesignEntstehtNavbar() {
             )}
           </div>
 
-          <button
-            type="button"
+          <Link
+            href="/auth/anmelden"
             aria-label="Sign in"
             className="
               inline-flex h-8 w-8 items-center justify-center
@@ -406,7 +402,7 @@ export default function WohnenWoDesignEntstehtNavbar() {
             "
           >
             <User className="h-4 w-4" aria-hidden="true" />
-          </button>
+          </Link>
         </div>
       </div>
 

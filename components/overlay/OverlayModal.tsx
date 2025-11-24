@@ -25,6 +25,9 @@ export type OverlayModalProps = {
    * um TS-Fehler mit älteren CloseDock-Versionen zu vermeiden) */
   dockRootMargin?: string;
   dockThreshold?: number;
+
+  /** Optional: zusätzliche Klassen nur für das Sheet (Dialog-Inhalt) */
+  contentClassName?: string;
 };
 
 export default function OverlayModal({
@@ -37,6 +40,7 @@ export default function OverlayModal({
   durationMs = 400,
   topGapMobile = 16,
   topGapMobileSm = 24,
+  contentClassName,
 }: OverlayModalProps) {
   const overlayRef = React.useRef<HTMLDivElement | null>(null); // äußerer Scroller (Backdrop)
   const contentRef = React.useRef<HTMLDivElement | null>(null); // Sheet/Content
@@ -224,14 +228,15 @@ export default function OverlayModal({
           className={[
             "relative mx-0 my-0 w-screen md:w-[min(96vw,680px)]",
             "rounded-t-3xl rounded-b-none md:rounded-3xl",
-            // 3) Immer blickdicht: KEIN bg-white/95 mehr.
-            "bg-white shadow-xl ring-1 ring-black/5 md:bg-white md:shadow-2xl",
+            // Schatten & Rahmen bleiben fest
+            "shadow-xl ring-1 ring-black/5 md:shadow-2xl",
             "min-h-[calc(100vh-var(--overlay-top-gap,16px))] sm:min-h-[calc(100vh-var(--overlay-top-gap-sm,24px))]",
             "pb-[env(safe-area-inset-bottom)]",
-            // Mobil darf Content überstehen (Hover-Shadows etc.), Desktop hält sauber im Sheet:
             "overflow-visible md:overflow-hidden",
             "transition-transform transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none",
             "transform-gpu will-change-transform",
+            // HINTERGRUND KOMMT JETZT AUS contentClassName – oder default weiß
+            contentClassName ?? "bg-white md:bg-white",
           ].join(" ")}
         >
           <CloseDock

@@ -89,7 +89,7 @@ export default function RegistrierenPage() {
                   <div className="relative m-0">
                     <div className="relative">
                       <div className="space-y-0.5">
-                        <div className="text-slate-500 text-[14px]">
+                        <div className="text-slate-500 text-[16px] md:text-[14px]">
                           E-Mail
                         </div>
                         <div className="relative">
@@ -97,7 +97,7 @@ export default function RegistrierenPage() {
                             <input
                               className="
                                 text-slate-900 placeholder:text-slate-400
-                                py-2 px-[10px] w-full text-[14px]
+                                py-2 px-[10px] w-full text-[16px] md:text-[14px]
                                 border border-slate-200
                                 md:hover:border-slate-300
                                 transition ease-in-out duration-300
@@ -121,7 +121,7 @@ export default function RegistrierenPage() {
                   <div className="relative m-0">
                     <div className="relative">
                       <div className="space-y-0.5">
-                        <div className="text-slate-500 text-[14px]">
+                        <div className="text-slate-500 text-[16px] md:text-[14px]">
                           Passwort
                         </div>
                         <div className="relative">
@@ -129,7 +129,7 @@ export default function RegistrierenPage() {
                             <input
                               className="
                                 text-slate-900 placeholder:text-slate-400
-                                py-2 px-[10px] w-full text-[14px]
+                                py-2 px-[10px] w-full text-[16px] md:text-[14px]
                                 border border-slate-200
                                 md:hover:border-slate-300
                                 transition ease-in-out duration-300
@@ -168,7 +168,7 @@ export default function RegistrierenPage() {
                   <div className="relative m-0">
                     <div className="relative">
                       <div className="space-y-0.5">
-                        <div className="text-slate-500 text-[14px]">
+                        <div className="text-slate-500 text-[16px] md:text-[14px]">
                           Passwort bestätigen
                         </div>
                         <div className="relative">
@@ -176,7 +176,7 @@ export default function RegistrierenPage() {
                             <input
                               className="
                                 text-slate-900 placeholder:text-slate-400
-                                py-2 px-[10px] w-full text-[14px]
+                                py-2 px-[10px] w-full text-[16px] md:text-[14px]
                                 border border-slate-200
                                 md:hover:border-slate-300
                                 transition ease-in-out duration-300

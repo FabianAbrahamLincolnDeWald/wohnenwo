@@ -20,7 +20,7 @@ export default function Topbar() {
         onSwitchMode={(mode) => setAuthMode(mode)}
       />
 
-      <header className="fixed top-0 left-0 z-20 w-full md:left-60 md:w-[calc(100%-240px)]">
+      <header className="sticky top-0 z-20 w-full">
         <div className="w-full mx-auto backdrop-blur bg-white/70 border-b border-slate-200">
           {/* Hauptzeile */}
           <div className="relative w-full px-4 md:px-5">

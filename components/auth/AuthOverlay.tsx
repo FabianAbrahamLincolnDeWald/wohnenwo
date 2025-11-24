@@ -26,6 +26,7 @@ export default function AuthOverlay({
       open={!!mode}
       onClose={onClose}
       ariaLabel={headline}
+      contentClassName="bg-slate-50 md:bg-slate-50"
       // KEIN title/headline mehr – Header bauen wir selbst im Content,
       // damit alles auf derselben Breite wie die Form-Felder sitzt.
     >
@@ -131,11 +132,11 @@ function SignInFields() {
       {/* E-Mail */}
       <div>
         <div className="space-y-0.5">
-          <div className="text-slate-500 text-[14px]">E-Mail</div>
+          <div className="text-slate-500 text-[16px] md:text-[14px]">E-Mail</div>
           <input
             className="
               text-slate-900 placeholder:text-slate-400
-              py-2 px-[10px] w-full text-[14px]
+              py-2 px-[10px] w-full text-[16px] md:text-[14px]
               border border-slate-200
               md:hover:border-slate-300
               transition ease-in-out duration-300
@@ -152,11 +153,11 @@ function SignInFields() {
       {/* Passwort */}
       <div>
         <div className="space-y-0.5">
-          <div className="text-slate-500 text-[14px]">Passwort</div>
+          <div className="text-slate-500 text-[16px] md:text-[14px]">Passwort</div>
           <input
             className="
               text-slate-900 placeholder:text-slate-400
-              py-2 px-[10px] w-full text-[14px]
+              py-2 px-[10px] w-full text-[16px] md:text-[14px]
               border border-slate-200
               md:hover:border-slate-300
               transition ease-in-out duration-300
@@ -192,11 +193,11 @@ function SignUpFields() {
       {/* E-Mail */}
       <div>
         <div className="space-y-0.5">
-          <div className="text-slate-500 text-[14px]">E-Mail</div>
+          <div className="text-slate-500 text-[16px] md:text-[14px]">E-Mail</div>
           <input
             className="
               text-slate-900 placeholder:text-slate-400
-              py-2 px-[10px] w-full text-[14px]
+              py-2 px-[10px] w-full text-[16px] md:text-[14px]
               border border-slate-200
               md:hover:border-slate-300
               transition ease-in-out duration-300
@@ -213,11 +214,11 @@ function SignUpFields() {
       {/* Passwort */}
       <div>
         <div className="space-y-0.5">
-          <div className="text-slate-500 text-[14px]">Passwort</div>
+          <div className="text-slate-500 text-[16px] md:text-[14px]">Passwort</div>
           <input
             className="
               text-slate-900 placeholder:text-slate-400
-              py-2 px-[10px] w-full text-[14px]
+              py-2 px-[10px] w-full text-[16px] md:text-[14px]
               border border-slate-200
               md:hover:border-slate-300
               transition ease-in-out duration-300
@@ -234,11 +235,11 @@ function SignUpFields() {
       {/* Passwort bestätigen */}
       <div>
         <div className="space-y-0.5">
-          <div className="text-slate-500 text-[14px]">Passwort bestätigen</div>
+          <div className="text-slate-500 text-[16px] md:text-[14px]">Passwort bestätigen</div>
           <input
             className="
               text-slate-900 placeholder:text-slate-400
-              py-2 px-[10px] w-full text-[14px]
+              py-2 px-[10px] w-full text-[16px] md:text-[14px]
               border border-slate-200
               md:hover:border-slate-300
               transition ease-in-out duration-300

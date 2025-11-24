@@ -8,8 +8,8 @@ export type OverlayModalProps = {
   open: boolean;
   onClose: () => void;
   ariaLabel?: string;
-  title?: string;
-  headline?: string;
+  title?: React.ReactNode;
+  headline?: React.ReactNode;
   children?: React.ReactNode;
 
   /** Animationsdauer (nur als CSS-Var genutzt) */
@@ -179,7 +179,11 @@ export default function OverlayModal({
 
   if (!mounted) return null;
 
-  const computedAriaLabel = ariaLabel || headline || title || "Overlay";
+  const textFromNode = (node: React.ReactNode | undefined) =>
+    typeof node === "string" ? node : undefined;
+
+  const computedAriaLabel =
+    ariaLabel || textFromNode(headline) || textFromNode(title) || "Overlay";
 
   // Sichtbarkeit: während der allerersten Hydration kurz „versteckt“, danach weich eingeblendet
   const visibleNow = open && hydrationReady;

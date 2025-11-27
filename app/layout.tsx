@@ -2,6 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import React from "react";
+import { AuthOverlayProvider } from "@/components/auth/AuthOverlayContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -10,11 +11,19 @@ export const metadata: Metadata = {
   description: "Innenarchitektur mit Bewusstsein",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="de" className="h-full">
-      <body className={`${inter.className} h-full antialiased bg-white text-slate-900`}>
-        {children}
+      <body
+        className={`${inter.className} h-full antialiased bg-white text-slate-900`}
+      >
+        <AuthOverlayProvider>
+          {children}
+        </AuthOverlayProvider>
       </body>
     </html>
   );

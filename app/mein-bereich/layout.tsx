@@ -2,7 +2,6 @@
 import type { ReactNode } from "react";
 import Sidebar from "@/components/mein-bereich/Sidebar";
 import Topbar from "@/components/mein-bereich/Topbar";
-import PageHeader from "@/components/mein-bereich/PageHeader";
 
 export default function MeinBereichLayout({
   children,
@@ -18,9 +17,6 @@ export default function MeinBereichLayout({
         {/* Rechte Spalte: Topbar + Header + Content */}
         <div className="flex min-h-screen flex-1 flex-col">
           <Topbar />
-
-          {/* PageHeader – Luxusvariante */}
-          <PageHeader />
 
           {/* Content-Bereich */}
           <main className="flex-1">

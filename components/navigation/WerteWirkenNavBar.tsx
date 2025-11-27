@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { ChevronDown, ChevronLeft, Globe, Search, User, Menu, X } from "lucide-react";
+import AuthAvatar from "@/components/navigation/AuthAvatar";
 
 const NAV_ITEMS = [
   { label: "WohnenWo Werte wirken", href: "/wertewirken", current: true },
@@ -384,19 +384,7 @@ export default function WerteWirkenNavBar() {
               </>
             )}
           </div>
-
-          <Link
-            href="/auth/anmelden"
-            aria-label="Sign in"
-            className="
-              inline-flex h-8 w-8 items-center justify-center
-              rounded-full bg-slate-900 text-white
-              hover:bg-black
-              transition-colors
-            "
-          >
-            <User className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          <AuthAvatar size="sm" />
         </div>
       </div>
 

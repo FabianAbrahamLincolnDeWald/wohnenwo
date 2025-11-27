@@ -1,12 +1,14 @@
 "use client";
 
 import * as React from "react";
+import { FormEvent, useState } from "react";
 import OverlayModal from "@/components/overlay/OverlayModal";
+import { supabase } from "@/lib/supabaseClient";
 
 export type AuthMode = "signin" | "signup";
 
 type AuthOverlayProps = {
-  mode: AuthMode | null;                 // null = geschlossen
+  mode: AuthMode | null; // null = geschlossen
   onClose: () => void;
   onSwitchMode?: (mode: AuthMode) => void;
 };
@@ -27,11 +29,9 @@ export default function AuthOverlay({
       onClose={onClose}
       ariaLabel={headline}
       contentClassName="bg-slate-50 md:bg-slate-50"
-      // KEIN title/headline mehr – Header bauen wir selbst im Content,
-      // damit alles auf derselben Breite wie die Form-Felder sitzt.
     >
       <div className="mt-4 mx-auto w-full max-w-[360px] space-y-6">
-        {/* Header: Logo eigene Zeile, Titel darunter, alles in derselben Breite wie die Felder */}
+        {/* Header */}
         <div className="space-y-3">
           <div>
             <img
@@ -56,6 +56,7 @@ export default function AuthOverlay({
             <div className="flex items-center justify-center pointer-events-none">
               <div>Mit Google fortfahren</div>
               <div className="mr-1 order-first">
+                {/* Google Icon */}
                 <svg
                   viewBox="0 0 48 48"
                   xmlns="http://www.w3.org/2000/svg"
@@ -89,7 +90,7 @@ export default function AuthOverlay({
 
           <div className="flex items-center justify-center w-full">
             <div className="h-px flex-1 bg-slate-200" />
-            <span className="mx-3 text-slate-400 text-[14px] text-center font-normal">
+            <span className="mx-3 text-slate-400 text-[16px] md:text-[14px] text-center font-normal">
               oder
             </span>
             <div className="h-px flex-1 bg-slate-200" />
@@ -97,10 +98,14 @@ export default function AuthOverlay({
         </div>
 
         {/* Formular */}
-        {isSignin ? <SignInFields /> : <SignUpFields />}
+        {isSignin ? (
+          <SignInFields onSuccess={onClose} />
+        ) : (
+          <SignUpFields onSuccess={onClose} />
+        )}
 
-        {/* Divider + Switch-Bereich unten */}
-        <div className="mt-6 pt-4 border-t border-slate-200 flex flex-warp items-center gap-2">
+        {/* Switch-Bereich unten */}
+        <div className="mt-6 pt-4 border-t border-slate-200 flex flex-wrap items-center gap-2">
           <span className="text-[14px] text-slate-500">
             {isSignin ? "Noch kein Zugang?" : "Du hast bereits ein Konto?"}
           </span>
@@ -110,10 +115,8 @@ export default function AuthOverlay({
             onClick={() => onSwitchMode?.(isSignin ? "signup" : "signin")}
             className={
               isSignin
-                ? // Switch-Button in Richtung Registrieren (wie dunkler Topbar-Button)
-                  "rounded-md border border-slate-900 bg-slate-900 text-white px-3 py-1.5 text-sm font-medium hover:bg-black transition"
-                : // Switch-Button in Richtung Anmelden (wie heller Topbar-Button)
-                  "rounded-md border border-slate-300 bg-white text-slate-700 px-3 py-1.5 text-sm font-medium hover:bg-slate-100 transition"
+                ? "rounded-md border border-slate-900 bg-slate-900 text-white px-3 py-1.5 text-[16px] md:text-[14px] font-medium hover:bg-black transition"
+                : "rounded-md border border-slate-300 bg-white text-slate-700 px-3 py-1.5 text-[16px] md:text-[14px] font-medium hover:bg-slate-100 transition"
             }
           >
             {isSignin ? "Registrieren" : "Anmelden"}
@@ -124,11 +127,51 @@ export default function AuthOverlay({
   );
 }
 
-/* --- Teilformulare --- */
+/* --- Teilformulare mit Supabase-Logik --- */
 
-function SignInFields() {
+type FormProps = {
+  onSuccess?: () => void;
+};
+
+function SignInFields({ onSuccess }: FormProps) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setErrorMsg(null);
+
+    if (!email || !password) {
+      setErrorMsg("Bitte fülle E-Mail und Passwort aus.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setErrorMsg(error.message);
+        return;
+      }
+
+      // ✅ Nur Overlay schließen – Nutzer bleibt auf der aktuellen Seite
+      onSuccess?.();
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg("Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+    <form className="space-y-6" onSubmit={handleSubmit}>
       {/* E-Mail */}
       <div>
         <div className="space-y-0.5">
@@ -146,6 +189,9 @@ function SignInFields() {
             placeholder="E-Mail-Adresse eingeben…"
             type="email"
             name="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
       </div>
@@ -167,29 +213,88 @@ function SignInFields() {
             placeholder="Passwort eingeben…"
             type="password"
             name="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
       </div>
 
+      {errorMsg && (
+        <p className="text-[13px] text-red-500 mt-0.5">{errorMsg}</p>
+      )}
+
       <button
         type="submit"
+        disabled={loading}
         className="
           mt-2
           text-center transition duration-300 ease-out whitespace-nowrap font-medium
           w-full bg-slate-900 text-white border border-slate-900
           md:hover:bg-black
-          py-1.5 px-3 text-[15px] rounded-md
+          py-1.5 px-3 text-[16px] md:text-[14px] rounded-md
+          disabled:opacity-60 disabled:cursor-not-allowed
         "
       >
-        Mit E-Mail anmelden
+        {loading ? "Melde an…" : "Mit E-Mail anmelden"}
       </button>
     </form>
   );
 }
 
-function SignUpFields() {
+function SignUpFields({ onSuccess }: FormProps) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [infoMsg, setInfoMsg] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setErrorMsg(null);
+    setInfoMsg(null);
+
+    if (!email || !password || !passwordConfirm) {
+      setErrorMsg("Bitte fülle alle Felder aus.");
+      return;
+    }
+    if (password !== passwordConfirm) {
+      setErrorMsg("Die Passwörter stimmen nicht überein.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        setErrorMsg(error.message);
+        return;
+      }
+
+      if (data.session) {
+        // Direkt eingeloggt → nur Overlay schließen
+        onSuccess?.();
+      } else {
+        // Bestätigungs-Mail
+        setInfoMsg(
+          "Registrierung erfolgreich. Bitte prüfe deine E-Mails, um dein Konto zu bestätigen."
+        );
+      }
+    } catch (err: any) {
+      console.error(err);
+      setErrorMsg("Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+    <form className="space-y-6" onSubmit={handleSubmit}>
       {/* E-Mail */}
       <div>
         <div className="space-y-0.5">
@@ -207,6 +312,9 @@ function SignUpFields() {
             placeholder="E-Mail-Adresse eingeben…"
             type="email"
             name="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
       </div>
@@ -228,6 +336,9 @@ function SignUpFields() {
             placeholder="Passwort wählen…"
             type="password"
             name="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
       </div>
@@ -235,7 +346,9 @@ function SignUpFields() {
       {/* Passwort bestätigen */}
       <div>
         <div className="space-y-0.5">
-          <div className="text-slate-500 text-[16px] md:text-[14px]">Passwort bestätigen</div>
+          <div className="text-slate-500 text-[16px] md:text-[14px]">
+            Passwort bestätigen
+          </div>
           <input
             className="
               text-slate-900 placeholder:text-slate-400
@@ -249,20 +362,32 @@ function SignUpFields() {
             placeholder="Passwort wiederholen…"
             type="password"
             name="passwordConfirm"
+            autoComplete="new-password"
+            value={passwordConfirm}
+            onChange={(e) => setPasswordConfirm(e.target.value)}
           />
         </div>
       </div>
 
+      {errorMsg && (
+        <p className="text-[13px] text-red-500 mt-0.5">{errorMsg}</p>
+      )}
+      {infoMsg && (
+        <p className="text-[13px] text-emerald-600 mt-0.5">{infoMsg}</p>
+      )}
+
       <button
         type="submit"
+        disabled={loading}
         className="
           text-center transition duration-300 ease-out whitespace-nowrap font-medium
           w-full bg-slate-900 text-white border border-slate-900
           md:hover:bg-black
-          py-1.5 px-3 text-[15px] rounded-md
+          py-1.5 px-3 text-[16px] md:text-[14px] rounded-md
+          disabled:opacity-60 disabled:cursor-not-allowed
         "
       >
-        Mit E-Mail registrieren
+        {loading ? "Wird erstellt…" : "Mit E-Mail registrieren"}
       </button>
 
       <div className="hidden sm:block mt-3 text-[13px] text-slate-500 text-center">

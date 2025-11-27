@@ -14,12 +14,12 @@ function cx(...classes: (string | false | null | undefined)[]) {
 
 type EcosystemFlyoutProps = {
   className?: string;
-  panelWidth?: number; // px – z.B. 640 oder 520
+  panelWidth?: number; // px – z.B. 520 oder 640
 };
 
 export default function EcosystemFlyout({
   className,
-  panelWidth = 640,
+  panelWidth = 520,
 }: EcosystemFlyoutProps) {
   const [open, setOpen] = React.useState(false);
   const [pos, setPos] = React.useState<{ top: number; left: number }>({
@@ -34,15 +34,16 @@ export default function EcosystemFlyout({
   const entdecken = ecosystemSections.find((s) => s.id === "entdecken");
   const wirken = ecosystemSections.find((s) => s.id === "wirken");
 
-  const GAP = 6; // optische Brücke zwischen Button und Panel
-  const CLOSE_DELAY = 120; // ms – Zeitfenster für den „Sprung“ zur Brücke/ins Panel
+  const GAP = 8; // etwas größere Brücke zwischen Button und Panel
+  const CLOSE_DELAY = 120;
+  const H_OFFSET = -12; // dein manueller Offset
 
   const computePosition = () => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
     setPos({
       top: rect.bottom + GAP,
-      left: rect.left,
+      left: rect.left + H_OFFSET,
     });
   };
 
@@ -72,7 +73,6 @@ export default function EcosystemFlyout({
     openFlyout();
   };
 
-  // bei Resize/Scroll Position des Panels neu berechnen, solange offen
   React.useEffect(() => {
     if (!open) return;
 
@@ -126,42 +126,31 @@ export default function EcosystemFlyout({
         </button>
       </div>
 
-      {/* Panel – fixed, mit eigener Hover-Zone (Brücke über Timeout) */}
+      {/* Panel – fixed, eigene Hover-Zone (Brücke via GAP) */}
       {open && (
         <div
           className="fixed z-[999]"
           style={{
-            top: pos.top,
+            // Wrapper startet GAP höher → unsichtbare Brücke
+            top: pos.top - GAP,
             left: pos.left,
-            width: panelWidth,
+            width: panelWidth, // in der Sidebar: 640
           }}
           onMouseEnter={cancelClose}
           onMouseLeave={scheduleClose}
         >
-          <div className="rounded-3xl overflow-hidden">
-            <div className="relative rounded-[inherit] bg-white border border-slate-200/80 shadow-[0_22px_60px_rgba(15,23,42,0.25)]">
-              {/* --- APPLE GLASS EFFECT --- */}
-              <div
-                className="absolute inset-0 rounded-[inherit] backdrop-blur-[1.5px]"
-                style={{
-                  filter:
-                    "url(#lensFilter) saturate(1.05) brightness(1.03)",
-                }}
-              />
-              <div className="absolute inset-0 rounded-[inherit] bg-white/20" />
-              <div className="absolute inset-0 rounded-[inherit] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.45),inset_0_0_0_1px_rgba(0,0,0,0.06)]" />
-              <div className="absolute inset-0 rounded-[inherit] ring-1 ring-white/20 ring-offset-1 ring-offset-white/30" />
-              {/* --- END APPLE GLASS EFFECT --- */}
-
-              {/* Inhalt – Fab.com Layout */}
-              <div className="relative z-10 flex text-sm text-slate-700">
+          {/* Sichtbares Panel rutscht optisch an den Button */}
+          <div
+            className="rounded-xl overflow-hidden"
+            style={{ marginTop: GAP }}
+          >
+            <div className="relative rounded-[inherit] bg-white border border-slate-200/80 shadow-[0_18px_45px_rgba(15,23,42,0.25)]">
+              {/* Kein Glas-Effekt mehr */}
+              <div className="relative z-10 flex text-[13px] text-slate-700">
                 {/* Linke Spalte: Handeln + Entdecken */}
                 <div className="flex w-1/2 flex-col border-r border-slate-200">
                   {handeln && (
-                    <SectionBlock
-                      section={handeln}
-                      variant="top"
-                    />
+                    <SectionBlock section={handeln} variant="top" />
                   )}
 
                   {handeln && entdecken && (
@@ -169,21 +158,18 @@ export default function EcosystemFlyout({
                   )}
 
                   {entdecken && (
-                    <SectionBlock
-                      section={entdecken}
-                      variant="bottom"
-                    />
+                    <SectionBlock section={entdecken} variant="bottom" />
                   )}
                 </div>
 
                 {/* Rechte Spalte: Wirken */}
-                <div className="w-1/2 px-5 py-4 space-y-3">
+                <div className="w-1/2 px-4 py-3 space-y-3">
                   {wirken && (
                     <>
-                      <h3 className="text-base font-semibold tracking-tight">
+                      <h3 className="text-[14px] font-semibold tracking-tight">
                         {wirken.title}
                       </h3>
-                      <ul className="space-y-2 text-[14px]">
+                      <ul className="space-y-2 text-[13px]">
                         {wirken.links.map((link) => (
                           <li key={link.href}>
                             <Link
@@ -220,14 +206,14 @@ function SectionBlock({
   return (
     <div
       className={cx(
-        "px-5 space-y-3",
-        variant === "top" ? "py-4" : "pb-4 pt-2"
+        "px-4 space-y-3",
+        variant === "top" ? "py-3" : "pb-3 pt-2"
       )}
     >
-      <h3 className="text-base font-semibold tracking-tight">
+      <h3 className="text-[14px] font-semibold tracking-tight">
         {section.title}
       </h3>
-      <ul className="space-y-2 text-[14px]">
+      <ul className="space-y-2 text-[13px]">
         {section.links.map((link) => (
           <li key={link.href}>
             <Link
@@ -244,9 +230,7 @@ function SectionBlock({
   );
 }
 
-type Badge = NonNullable<
-  EcosystemSection["links"][number]["badge"]
->;
+type Badge = NonNullable<EcosystemSection["links"][number]["badge"]>;
 
 function BadgeRenderer({ badge }: { badge?: Badge }) {
   if (!badge) {

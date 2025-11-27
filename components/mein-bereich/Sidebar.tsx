@@ -1,25 +1,131 @@
 // components/mein-bereich/Sidebar.tsx
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import EcosystemFlyout from "@/components/navigation/EcosystemFlyout";
 import {
   MEIN_BEREICH_NAV_ITEMS,
+  MeinBereichRole,
+  MeinBereichFlag,
 } from "@/components/mein-bereich/nav-config";
+import { supabase } from "@/lib/supabaseClient";
 
 function classNames(...classes: (string | boolean | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
+type MeinBereichFlagsState = {
+  hasProjects: boolean;
+  hasInvoices: boolean;
+};
+
 export default function Sidebar() {
   const pathname = usePathname();
 
+  const [role, setRole] = useState<MeinBereichRole>("guest");
+  const [flags, setFlags] = useState<MeinBereichFlagsState>({
+    hasProjects: false,
+    hasInvoices: false,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadProfile() {
+      try {
+        setLoading(true);
+
+        // 1. Aktuellen Auth-User holen
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          if (!mounted) return;
+          setRole("guest");
+          setFlags({ hasProjects: false, hasInvoices: false });
+          return;
+        }
+
+        // 2. Profil aus Supabase laden
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("role, has_projects, has_invoices")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Fehler beim Laden des Profils:", error);
+          if (!mounted) return;
+          // Fallback: angemeldeter User ohne spezielles Profil
+          setRole("user");
+          setFlags({ hasProjects: false, hasInvoices: false });
+          return;
+        }
+
+        // 3. Rolle bestimmen
+        const dbRole = (profile?.role as MeinBereichRole | null) ?? "user";
+
+        // 4. Flags aus Profil ableiten (oder Fallback)
+        const nextFlags: MeinBereichFlagsState = {
+          hasProjects: Boolean(profile?.has_projects),
+          hasInvoices: Boolean(profile?.has_invoices),
+        };
+
+        if (!mounted) return;
+        setRole(dbRole);
+        setFlags(nextFlags);
+      } catch (err) {
+        console.error("Unerwarteter Fehler beim Laden des Profils:", err);
+        if (!mounted) return;
+        setRole("guest");
+        setFlags({ hasProjects: false, hasInvoices: false });
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    loadProfile();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // kleine Hilfsfunktion: prüft, ob ein Item sichtbar sein darf
+  function isItemVisible(
+    requiredRoles: MeinBereichRole[],
+    requiresFlag?: MeinBereichFlag
+  ) {
+    const roleOk = requiredRoles.includes(role);
+
+    if (!requiresFlag || requiresFlag === "none") {
+      return roleOk;
+    }
+
+    const flagMap: Record<MeinBereichFlag, boolean> = {
+      none: true,
+      hasProjects: flags.hasProjects,
+      hasInvoices: flags.hasInvoices,
+    };
+
+    const flagOk = flagMap[requiresFlag];
+    return roleOk && flagOk;
+  }
+
   const mainItems = MEIN_BEREICH_NAV_ITEMS.filter(
-    (item) => item.section === "main"
+    (item) =>
+      item.section === "main" &&
+      isItemVisible(item.visibleFor, item.requiresFlag)
   );
+
   const communityItems = MEIN_BEREICH_NAV_ITEMS.filter(
-    (item) => item.section === "community"
+    (item) =>
+      item.section === "community" &&
+      isItemVisible(item.visibleFor, item.requiresFlag)
   );
 
   return (
@@ -33,6 +139,13 @@ export default function Sidebar() {
       </div>
 
       <div className="flex flex-col gap-6">
+        {/* Optional: kleiner Hinweis oben, wenn noch geladen wird */}
+        {loading && (
+          <div className="text-[11px] text-slate-400 mb-1">
+            Bereich wird personalisiert …
+          </div>
+        )}
+
         {/* Hauptnavigation */}
         <nav className="flex flex-col gap-1.5">
           {mainItems.map((item) => {

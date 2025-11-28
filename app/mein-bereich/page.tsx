@@ -148,7 +148,9 @@ export default function MeinBereichPage() {
     <main className="min-h-screen bg-slate-50 px-4 pt-20 pb-10">
       <div className="mx-auto max-w-6xl lg:flex lg:items-start lg:gap-10">
         {/* Linke Spalte: Slider-Bereiche */}
-        <div className="flex-1 space-y-10">
+        <div className="flex-1 min-w-0 space-y-10">
+          {/* ↑ min-w-0 ist wichtig, damit diese Flex-Spalte nicht breiter als der Viewport wird */}
+
           {/* Header */}
           <header className="space-y-3">
             <p className="text-[11px] tracking-[0.24em] uppercase text-slate-500">
@@ -209,6 +211,31 @@ export default function MeinBereichPage() {
                     label=""
                     text="Platz für weitere Rechnungen."
                   />
+                  <InvoiceSlotCard
+                    icon={<FileText className="h-12 w-12" />}
+                    label=""
+                    text="Platz für weitere Rechnungen."
+                  />
+                  <InvoiceSlotCard
+                    icon={<FileText className="h-12 w-12" />}
+                    label=""
+                    text="Platz für weitere Rechnungen."
+                  />
+                  <InvoiceSlotCard
+                    icon={<FileText className="h-12 w-12" />}
+                    label=""
+                    text="Platz für weitere Rechnungen."
+                  />
+                  <InvoiceSlotCard
+                    icon={<FileText className="h-12 w-12" />}
+                    label=""
+                    text="Platz für weitere Rechnungen."
+                  />
+                  <InvoiceSlotCard
+                    icon={<FileText className="h-12 w-12" />}
+                    label=""
+                    text="Platz für weitere Rechnungen."
+                  />
                 </>
               )}
             </SliderShell>
@@ -261,6 +288,36 @@ export default function MeinBereichPage() {
                     title="Freier Projektslot"
                     meta="Dein nächstes Wohnerlebnis."
                   />
+                  <ProjectSlotCard
+                    icon={<FolderKanban className="h-10 w-10" />}
+                    badgeText=""
+                    title="Freier Projektslot"
+                    meta="Dein nächstes Wohnerlebnis."
+                  />
+                  <ProjectSlotCard
+                    icon={<FolderKanban className="h-10 w-10" />}
+                    badgeText=""
+                    title="Freier Projektslot"
+                    meta="Dein nächstes Wohnerlebnis."
+                  />
+                  <ProjectSlotCard
+                    icon={<FolderKanban className="h-10 w-10" />}
+                    badgeText=""
+                    title="Freier Projektslot"
+                    meta="Dein nächstes Wohnerlebnis."
+                  />
+                  <ProjectSlotCard
+                    icon={<FolderKanban className="h-10 w-10" />}
+                    badgeText=""
+                    title="Freier Projektslot"
+                    meta="Dein nächstes Wohnerlebnis."
+                  />
+                  <ProjectSlotCard
+                    icon={<FolderKanban className="h-10 w-10" />}
+                    badgeText=""
+                    title="Freier Projektslot"
+                    meta="Dein nächstes Wohnerlebnis."
+                  />
                 </>
               )}
             </SliderShell>
@@ -287,6 +344,26 @@ export default function MeinBereichPage() {
               <PersonSlotCard
                 name="Freier Team-Slot"
                 role="Platz für weitere Studios, Planer:innen oder Hersteller."
+              />
+              <PersonSlotCard
+                name="Freier Team-Slot"
+                role="Dein Netzwerk wächst mit jedem Projekt."
+              />
+              <PersonSlotCard
+                name="Freier Team-Slot"
+                role="Dein Netzwerk wächst mit jedem Projekt."
+              />
+              <PersonSlotCard
+                name="Freier Team-Slot"
+                role="Dein Netzwerk wächst mit jedem Projekt."
+              />
+              <PersonSlotCard
+                name="Freier Team-Slot"
+                role="Dein Netzwerk wächst mit jedem Projekt."
+              />
+              <PersonSlotCard
+                name="Freier Team-Slot"
+                role="Dein Netzwerk wächst mit jedem Projekt."
               />
               <PersonSlotCard
                 name="Freier Team-Slot"
@@ -520,14 +597,15 @@ function SliderShell(props: {
         </div>
       </div>
 
-      {/* Slider-Track – Scrollbar versteckt */}
-      <div className="overflow-hidden">
+      {/* Slider-Track – eigener horizontaler Scroll-Bereich */}
+      <div className="relative">
         <div
           ref={trackRef}
           className="
             flex gap-x-3 sm:gap-x-4 md:gap-x-5
-            max-md:overflow-x-auto md:overflow-x-hidden
+            overflow-x-auto
             scroll-smooth pb-2
+            w-full max-w-full
             [scrollbar-width:none] [-ms-overflow-style:none]
             [&::-webkit-scrollbar]:hidden
           "
@@ -541,11 +619,6 @@ function SliderShell(props: {
 
 /* ───────────── Karten-Typen für Equipment-Slots ───────────── */
 
-/**
- * Rechnungs-Slot – A4-ähnliches Hochformat,
- * außen gestrichelter Rand, innen durchgezogen,
- * großes Icon im Hintergrund, innerer Bereich wird beim Hover weiß.
- */
 function InvoiceSlotCard(props: {
   icon: React.ReactNode;
   label: string;
@@ -579,10 +652,6 @@ function InvoiceSlotCard(props: {
   );
 }
 
-/**
- * Projekt-Slot – oben 16/9-Fläche, unten weißer Content-Streifen
- * mit fester Höhe, keine horizontalen Divider.
- */
 function ProjectSlotCard(props: {
   icon: React.ReactNode;
   badgeText: string;
@@ -596,7 +665,6 @@ function ProjectSlotCard(props: {
       <div className="group relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col h-[220px] sm:h-[240px] md:h-[260px] transition duration-300 ease-out">
         {/* Top: 16/9-Feld */}
         <div className="relative flex-1 bg-slate-100/80">
-          {/* „Badge“ oben links – nur erste Karte */}
           {showBadge && badgeText && (
             <div className="absolute top-2 left-2 z-10">
               <div className="inline-flex items-center gap-1 rounded-md bg-white/80 px-2 py-1 border border-slate-200 text-[10px] font-medium text-slate-600">
@@ -608,7 +676,6 @@ function ProjectSlotCard(props: {
             </div>
           )}
 
-          {/* innerer Bereich: Icon im Hintergrund, wird beim Hover weiß */}
           <div className="absolute inset-2 rounded-xl border border-slate-200/80 bg-slate-100/80 group-hover:bg-white transition-colors duration-300 ease-out flex items-center justify-center overflow-hidden">
             <div className="flex items-center justify-center opacity-40">
               <div className="rounded-full border border-slate-200/80 p-4">
@@ -618,7 +685,7 @@ function ProjectSlotCard(props: {
           </div>
         </div>
 
-        {/* Unterer Content-Streifen – gleiche Höhe für alle Karten */}
+        {/* Unterer Content-Streifen */}
         <div className="bg-white px-3 py-2.5 space-y-1 h-[82.5px] flex flex-col justify-center">
           <p className="text-sm font-medium text-slate-900 line-clamp-1">
             {title}
@@ -630,10 +697,6 @@ function ProjectSlotCard(props: {
   );
 }
 
-/**
- * Person-/Team-Slot – schlanker, mit Equipment-Icon in der Mitte.
- * Text erscheint erst beim Hover als Overlay.
- */
 function PersonSlotCard(props: {
   name: string;
   role: string;
@@ -644,9 +707,7 @@ function PersonSlotCard(props: {
   return (
     <article className="shrink-0 w-[150px] sm:w-[170px] md:w-[180px] lg:w-[180px]">
       <div className="group relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex h-[210px] sm:h-[220px] transition duration-300 ease-out">
-        {/* Ruhiger Hintergrund ohne Schimmer */}
         <div className="relative flex-1 bg-slate-100">
-          {/* Badge oben links (optional) */}
           {showBadge && badgeText && (
             <div className="absolute top-2 left-2 z-10">
               <div className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 border border-slate-200 text-[10px] font-medium text-slate-600">
@@ -655,14 +716,12 @@ function PersonSlotCard(props: {
             </div>
           )}
 
-          {/* Equipment-Icon dezent im Hintergrund */}
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-40">
             <div className="rounded-full border border-slate-200/80 p-4 bg-white/70">
               <UserPlus className="h-7 w-7 text-slate-300" />
             </div>
           </div>
 
-          {/* Hover-Overlay mit Text */}
           <div className="absolute inset-x-0 bottom-0 p-3 text-left text-white bg-gradient-to-t from-slate-900/80 via-slate-900/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out">
             <p className="text-sm font-medium leading-snug line-clamp-2">
               {name}
@@ -696,7 +755,6 @@ function PlaceholderCard(props: {
   );
 }
 
-// breite Reserve-Karte (falls du sie später brauchst)
 function PlaceholderWide(props: {
   icon: React.ReactNode;
   title: string;

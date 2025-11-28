@@ -20,7 +20,7 @@ export default function MeinBereichLayout({
 
           {/* Content-Bereich */}
           <main className="flex-1">
-            <div className="mx-auto w-[min(92vw,1120px)] py-6">
+            <div className="mx-auto w-full max-w-7xl px-4 lg:px-6 py-6">
               {children}
             </div>
           </main>

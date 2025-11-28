@@ -104,7 +104,7 @@ export default function MeinBereichPage() {
   if (view === "loading") {
     return (
       <main className="min-h-screen bg-slate-50 px-4 pt-20 pb-10">
-        <div className="mx-auto max-w-6xl grid gap-8 lg:grid-cols-[minmax(0,1.9fr)_minmax(260px,1fr)]">
+        <div className="mx-auto max-w-7xl grid gap-8 lg:grid-cols-[minmax(0,1.9fr)_minmax(260px,1fr)]">
           <div className="space-y-4">
             <div className="h-6 w-40 rounded bg-slate-200 animate-pulse" />
             <div className="h-4 w-64 rounded bg-slate-200 animate-pulse" />
@@ -146,11 +146,9 @@ export default function MeinBereichPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 pt-20 pb-10">
-      <div className="mx-auto max-w-6xl lg:flex lg:items-start lg:gap-10">
+      <div className="mx-auto max-w-7xl lg:flex lg:items-start lg:gap-10">
         {/* Linke Spalte: Slider-Bereiche */}
         <div className="flex-1 min-w-0 space-y-10">
-          {/* ↑ min-w-0 ist wichtig, damit diese Flex-Spalte nicht breiter als der Viewport wird */}
-
           {/* Header */}
           <header className="space-y-3">
             <p className="text-[11px] tracking-[0.24em] uppercase text-slate-500">
@@ -241,7 +239,7 @@ export default function MeinBereichPage() {
             </SliderShell>
           </section>
 
-          {/* Sektion: Projekte – 16:9 oben, weißer Streifen unten, Equipment-Stil */}
+          {/* Sektion: Projekte – 16:9 oben, weißer Streifen unten */}
           <section>
             <SliderShell
               title="Projekte"
@@ -533,12 +531,28 @@ function SliderShell(props: {
     };
   }, []);
 
+  // exakt eine Karte (inkl. Gap) pro Klick
   const handleScroll = (direction: "left" | "right") => {
     const el = trackRef.current;
     if (!el) return;
-    const amount = el.clientWidth * 0.9;
+
+    const first = el.children[0] as HTMLElement | null;
+    const second = el.children[1] as HTMLElement | null;
+
+    let step: number;
+
+    if (first && second) {
+      const rect1 = first.getBoundingClientRect();
+      const rect2 = second.getBoundingClientRect();
+      step = rect2.left - rect1.left; // Breite + Gap
+    } else if (first) {
+      step = first.getBoundingClientRect().width;
+    } else {
+      step = el.clientWidth * 0.9;
+    }
+
     el.scrollBy({
-      left: direction === "left" ? -amount : amount,
+      left: direction === "left" ? -step : step,
       behavior: "smooth",
     });
   };
@@ -548,11 +562,9 @@ function SliderShell(props: {
       {/* Header + Navigation */}
       <div className="flex items-center justify-between gap-2">
         <div>
-          {/* Titel im Stil „Design Accessible UI Checkboxes in Figma“ */}
           <h2 className="text-[18px] sm:text-[20px] font-semibold text-slate-900 leading-tight">
             {title}
           </h2>
-          {/* Untertitel im Stil „3 courses · Intermediate“ */}
           {subtitle && (
             <p className="hidden sm:block text-[13px] text-slate-500 mt-0.5">
               {subtitle}
@@ -568,7 +580,7 @@ function SliderShell(props: {
           >
             <div
               className={cn(
-                "rounded-full text-center transition duration-300 ease-out whitespace-nowrap font-medium border border-slate-200 text-slate-500 bg-white w-max flex items-center justify-center h-8 w-8",
+                "inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 text-center transition duration-300 ease-out",
                 !canLeft &&
                   "opacity-30 cursor-not-allowed hover:bg-white pointer-events-none",
                 canLeft && "hover:bg-slate-100"
@@ -585,7 +597,7 @@ function SliderShell(props: {
           >
             <div
               className={cn(
-                "rounded-full text-center transition duration-300 ease-out whitespace-nowrap font-medium border border-slate-200 text-slate-500 bg-white w-max flex items-center justify-center h-8 w-8",
+                "inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 text-center transition duration-300 ease-out",
                 !canRight &&
                   "opacity-30 cursor-not-allowed hover:bg-white pointer-events-none",
                 canRight && "hover:bg-slate-100"

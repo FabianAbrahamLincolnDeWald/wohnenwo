@@ -2,18 +2,20 @@
 
 import {
   LayoutGrid,
-  BookOpen,
-  Dumbbell,
+  FileText,
+  FolderKanban,
   Bookmark,
   Users,
+  UserStar,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export type MeinBereichRouteId =
   | "mein-bereich"
-  | "kurse"
-  | "training"
+  | "rechnungen"
+  | "projekte"
   | "sammlungen"
+  | "experten"
   | "community";
 
 export type MeinBereichSection = "main" | "community";
@@ -42,10 +44,10 @@ export type MeinBereichNavItem = {
   section: MeinBereichSection;
   icon: LucideIcon;
 
-  // NEU: Sichtbarkeit nach Rolle
+  // Sichtbarkeit nach Rolle
   visibleFor: MeinBereichRole[];
 
-  // NEU: Optionaler Daten-Flag
+  // Optionaler Daten-Flag
   requiresFlag?: MeinBereichFlag;
 };
 
@@ -54,31 +56,32 @@ export const MEIN_BEREICH_NAV_ITEMS: MeinBereichNavItem[] = [
     id: "mein-bereich",
     href: "/mein-bereich",
     label: "Mein Bereich",
-    description: "Übersicht über deinen Wirkungsbereich.",
+    description: "Start in deinen persönlichen Wirkungsbereich.",
     section: "main",
     icon: LayoutGrid,
     visibleFor: ["guest", "user", "kunde", "partner", "admin"],
     requiresFlag: "none",
   },
   {
-    id: "kurse",
-    href: "/mein-bereich/kurse",
-    label: "Kurse",
-    description: "Alle Lernpfade und Module, an denen du arbeitest.",
+    id: "rechnungen",
+    href: "/mein-bereich/rechnungen",
+    label: "Rechnungen",
+    description:
+      "Transparente Rechnungen und Aufschlüsselungen deiner Projekte.",
     section: "main",
-    icon: BookOpen,
-    // Gäste dürfen Kurse-Übersicht sehen, um ein Gefühl zu bekommen
+    icon: FileText,
+    // Gäste dürfen die Struktur sehen, um ein Gefühl zu bekommen
     visibleFor: ["guest", "user", "kunde", "partner", "admin"],
     requiresFlag: "none",
   },
   {
-    id: "training",
-    href: "/mein-bereich/training",
-    label: "Dein Training",
-    description: "Routinen, Fortschritt und persönliche Vertiefung.",
+    id: "projekte",
+    href: "/mein-bereich/projekte",
+    label: "Projekte",
+    description: "Laufende und abgeschlossene Wohnerlebnisse im Überblick.",
     section: "main",
-    icon: Dumbbell,
-    // Training erst, wenn jemand angemeldet ist
+    icon: FolderKanban,
+    // Projekte erst, wenn jemand angemeldet ist
     visibleFor: ["user", "kunde", "partner", "admin"],
     requiresFlag: "none",
   },
@@ -89,18 +92,28 @@ export const MEIN_BEREICH_NAV_ITEMS: MeinBereichNavItem[] = [
     description: "Merkliste, Inspirationen und gespeicherte Inhalte.",
     section: "main",
     icon: Bookmark,
-    // Merkliste ebenfalls nur für eingeloggte
+    // Merkliste nur für eingeloggte
     visibleFor: ["user", "kunde", "partner", "admin"],
+    requiresFlag: "none",
+  },
+  {
+    id: "experten",
+    href: "/mein-bereich/experten",
+    label: "Experten",
+    description:
+      "Verbundenes Team aus Studios, Planer:innen und Hersteller:innen.",
+    section: "community",
+    icon: UserStar,
+    visibleFor: ["guest", "user", "kunde", "partner", "admin"],
     requiresFlag: "none",
   },
   {
     id: "community",
     href: "/mein-bereich/community",
-    label: "Jobs & Community",
-    description: "Menschen, Projekte und Möglichkeiten zum Mitwirken.",
+    label: "Community",
+    description: "Menschen und Projekte, mit denen du Wirkung teilst.",
     section: "community",
     icon: Users,
-    // Community kann für alle sichtbar sein
     visibleFor: ["guest", "user", "kunde", "partner", "admin"],
     requiresFlag: "none",
   },

@@ -130,7 +130,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="hidden md:flex flex-col shrink-0 h-screen bg-slate-50 py-3 px-5 border-r border-slate-200 sticky top-0 z-40"
+      className="hidden md:flex flex-col shrink-0 h-screen bg-slate-100 py-3 px-5 border-r border-slate-200 sticky top-0 z-40"
       style={{ width: 240 }}
     >
       {/* Ecosystem Flyout */}

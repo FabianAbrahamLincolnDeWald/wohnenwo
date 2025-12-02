@@ -5,22 +5,21 @@ import Topbar from "@/components/mein-bereich/Topbar";
 
 export default function MeinBereichLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="flex">
-        {/* Linke Spalte: Sidebar */}
-        <Sidebar />
+    <div className="min-h-screen bg-slate-50 flex">
+      {/* Linke Spalte: Sidebar (fixer Rahmen links) */}
+      <Sidebar />
 
-        {/* Rechte Spalte: Topbar + Header + Content */}
-        <div className="flex min-h-screen flex-1 flex-col">
-          <Topbar />
+      {/* Rechte Spalte: Topbar oben, darunter scrollbarer Inhalt */}
+      <div className="flex flex-1 flex-col h-screen overflow-hidden">
+        {/* Topbar bleibt wie gebaut – kein fixed/kein sticky nötig */}
+        <Topbar />
 
-          {/* Content-Bereich mit max-w, wie gehabt */}
-          <main className="flex-1">
-            <div className="mx-auto w-full max-w-7xl px-4 lg:px-6 py-6">
-              {children}
-            </div>
-          </main>
-        </div>
+        {/* Content-Bereich scrollt unabhängig von Topbar */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="mx-auto w-full max-w-7xl px-4 lg:px-6 py-6">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

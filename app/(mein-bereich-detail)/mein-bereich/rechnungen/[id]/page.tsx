@@ -1,4 +1,3 @@
-// app/(mein-bereich-detail)/mein-bereich/rechnungen/[id]/page.tsx
 "use client";
 
 import * as React from "react";
@@ -52,8 +51,8 @@ export default function RechnungDetailPage({
     MOCK_DOCS[0]?.id ?? ""
   );
 
-  const activeDoc =
-    MOCK_DOCS.find((d) => d.id === activeDocId) ?? MOCK_DOCS[0];
+  const activeDoc: InvoiceDoc =
+    MOCK_DOCS.find((d) => d.id === activeDocId) ?? MOCK_DOCS[0]!;
 
   return (
     // Root der Seite: muss die volle Höhe unterhalb der Topbar einnehmen

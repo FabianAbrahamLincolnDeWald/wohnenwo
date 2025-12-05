@@ -6,7 +6,6 @@ import {
   Download,
   Printer,
   MoreHorizontal,
-  User,
   Layers,
   Sparkles,
   Info,
@@ -53,14 +52,26 @@ export default function RechnungDetailPage({
 }: {
   params: { id: string };
 }) {
+  // Sicherer Initialwert – falls PARTICIPANTS mal leer sein sollte
   const [activeParticipantId, setActiveParticipantId] = React.useState<string>(
-    PARTICIPANTS[0].id
+    PARTICIPANTS.length > 0 ? PARTICIPANTS[0]!.id : ""
   );
 
-  const activeParticipant = React.useMemo<Participant>(() => {
+  // Hier explizit nur Participant | null, nie undefined
+  const activeParticipant = React.useMemo<Participant | null>(() => {
+    if (PARTICIPANTS.length === 0) return null;
+
     const found = PARTICIPANTS.find((p) => p.id === activeParticipantId);
-    return found ?? PARTICIPANTS[0];
+    if (found) return found;
+
+    // Liste ist nicht leer (siehe Check oben), also ist [0]! sicher
+    return PARTICIPANTS[0]!;
   }, [activeParticipantId]);
+
+  if (!activeParticipant) {
+    // Fallback, falls wirklich keine Teilnehmer definiert sind
+    return null;
+  }
 
   return (
     <div className="h-full">

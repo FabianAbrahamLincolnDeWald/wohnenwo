@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import {
   FileText,
   Download,
@@ -13,20 +14,20 @@ import {
 
 type Participant = {
   id: string;
-  label: string;       // Name (z.B. WohnenWo Studio)
+  label: string; // Name (z.B. WohnenWo Studio)
   description: string; // Kurzbeschreibung
-  pages: number;       // Anzahl „Dokumente“ in der Vorschau
-  avatar: string;      // Kürzel im Avatar
-  role: string;        // Rolle in der Wertschöpfung
+  pages: number; // Anzahl „Dokumente“ in der Vorschau
+  avatar: string; // Kürzel im Avatar
+  role: string; // Rolle in der Wertschöpfung
 };
 
 const PARTICIPANTS: Participant[] = [
   {
     id: "wohnenwo",
-    label: "WohnenWo Studio",
+    label: "Fabian · WohnenWo",
     description: "Planung, Koordination & Umsetzung vor Ort.",
     pages: 2,
-    avatar: "WS",
+    avatar: "F",
     role: "Planung, Koordination & Umsetzung",
   },
   {
@@ -52,26 +53,20 @@ export default function RechnungDetailPage({
 }: {
   params: { id: string };
 }) {
-  // Sicherer Initialwert – falls PARTICIPANTS mal leer sein sollte
   const [activeParticipantId, setActiveParticipantId] = React.useState<string>(
     PARTICIPANTS.length > 0 ? PARTICIPANTS[0]!.id : ""
   );
 
-  // Hier explizit nur Participant | null, nie undefined
   const activeParticipant = React.useMemo<Participant | null>(() => {
     if (PARTICIPANTS.length === 0) return null;
 
     const found = PARTICIPANTS.find((p) => p.id === activeParticipantId);
     if (found) return found;
 
-    // Liste ist nicht leer (siehe Check oben), also ist [0]! sicher
     return PARTICIPANTS[0]!;
   }, [activeParticipantId]);
 
-  if (!activeParticipant) {
-    // Fallback, falls wirklich keine Teilnehmer definiert sind
-    return null;
-  }
+  if (!activeParticipant) return null;
 
   return (
     <div className="h-full">
@@ -79,6 +74,7 @@ export default function RechnungDetailPage({
         {/* Linke Spalte */}
         <section className="flex-1 min-w-0 border-r border-slate-200 bg-white">
           <div className="h-full overflow-y-auto">
+            {/* Header */}
             <div className="px-6 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between gap-3">
               <div className="space-y-1">
                 <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">
@@ -88,7 +84,8 @@ export default function RechnungDetailPage({
                   Austausch Ablaufgarnitur &amp; Geruchsverschluss
                 </h1>
                 <p className="text-[12px] text-slate-500">
-                  Rechnungs-ID: <span className="font-mono">{params.id}</span>
+                  Rechnungs-ID:{" "}
+                  <span className="font-mono">{params.id}</span>
                 </p>
               </div>
 
@@ -110,12 +107,14 @@ export default function RechnungDetailPage({
                 <button
                   type="button"
                   className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                  aria-label="Mehr"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
+            {/* Content */}
             <div className="px-6 py-5">
               <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 md:px-6 py-4 md:py-5">
                 <div className="flex items-center justify-between gap-3 mb-4">
@@ -151,7 +150,8 @@ export default function RechnungDetailPage({
                             {activeParticipant.label}
                           </span>
                         </div>
-                        <div className="h-[320px] md:h-[420px] rounded-lg border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center">
+
+                        <div className="h-80 md:h-[420px] rounded-lg border border-dashed border-slate-200 bg-slate-50 flex items-center justify-center">
                           <div className="text-center px-6">
                             <FileText className="mx-auto mb-3 h-7 w-7 text-slate-300" />
                             <p className="text-[13px] font-medium text-slate-800">
@@ -176,232 +176,616 @@ export default function RechnungDetailPage({
         </section>
 
         {/* Rechte Spalte */}
-        <aside className="w-[320px] xl:w-[360px] bg-slate-50">
+        <aside className="w-[320px] xl:w-[400px] bg-slate-50">
           <div className="h-full overflow-y-auto border-l border-slate-200 px-5 py-5 space-y-5">
-            {/* 1. Lerne deinen Dienstleister kennen – vertikale Profilkarte */}
-            <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-4 shadow-sm">
-              <header className="space-y-1">
-                <p className="text-[11px] tracking-[0.15em] uppercase text-slate-500">
-                  Lerne deinen Dienstleister kennen
-                </p>
-              </header>
-
-              <button
-                type="button"
-                className="w-full rounded-lg border border-slate-100 bg-slate-50/60 px-4 py-5 flex flex-col items-center text-center gap-3 hover:border-slate-200 hover:bg-slate-50 transition cursor-pointer"
-              >
-                {/* Avatar – später durch echtes Bild ersetzen */}
-                <div className="inline-flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-full bg-slate-900 text-white text-[20px] font-semibold">
-                  F
-                </div>
-                <div className="space-y-0.5">
-                  <p className="text-[16px] font-semibold text-slate-900 leading-tight">
-                    Fabian
-                  </p>
-                  <p className="text-[14px] text-slate-500 leading-tight">
-                    Gründer von WohnenWo
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-1">
-                    Klicke hier, um mehr über mich zu erfahren.
-                  </p>
-                </div>
-              </button>
-            </section>
-
-            {/* 1.5 Eigenständiger Cyan-Container (Badge) */}
-            <section className="rounded-md bg-cyan-500 px-4 py-2 shadow-sm">
-              <p className="text-[12px] font-semibold text-white">
-                Dieses Projekt entstand in Zusammenarbeit mit Partnern, die
-                meine Werte teilen.
-              </p>
-            </section>
-
-            {/* 2. Wer an dieser Rechnung mitgewirkt hat */}
-            <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-4 shadow-sm">
-              <header className="space-y-1">
+            {/* Top-Container: Rechnung + Person + Partner/Tabs */}
+            <section className="rounded-2xl bg-white border border-slate-200 px-4 py-6 space-y-6 shadow-sm">
+              {/* 1) Rechnungsübersicht */}
+              <div className="space-y-1">
                 <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
-                  Dienstleister &amp; Wertschöpfung
+                  Rechnungsübersicht
                 </p>
-                <p className="text-[13px] font-semibold text-slate-900">
-                  Wer an dieser Rechnung mitgewirkt hat
-                </p>
-              </header>
 
-              <div className="space-y-2">
-                {PARTICIPANTS.map((p) => {
-                  const active = p.id === activeParticipantId;
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setActiveParticipantId(p.id)}
-                      className={[
-                        "w-full text-left rounded-lg px-3 py-2.5 text-[12px] flex items-center gap-3 transition border",
-                        active
-                          ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                          : "bg-white text-slate-900 border-slate-200 hover:bg-slate-50",
-                      ].join(" ")}
-                    >
-                      <div
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <p className="text-[13px] font-semibold text-slate-900 leading-snug">
+                      Austausch Ablaufgarnitur &amp; Geruchsverschluss
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Rechnungs-ID:{" "}
+                      <span className="font-mono">{params.id}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-100">
+                      Bezahlt
+                    </span>
+                    <span className="text-[11px] text-slate-500">
+                      144,22 € brutto
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-[11px] text-slate-600">
+                  <div className="space-y-0.5">
+                    <p className="text-slate-500">Rechnungsdatum</p>
+                    <p className="font-medium text-slate-800">12.11.2025</p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-slate-500">Leistungszeitraum</p>
+                    <p className="font-medium text-slate-800">
+                      12.11.2025 · Sanitär
+                    </p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-slate-500">Netto-Betrag</p>
+                    <p className="font-medium text-slate-800">121,19 €</p>
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-slate-500">Umsatzsteuer (19 %)</p>
+                    <p className="font-medium text-slate-800">23,03 €</p>
+                  </div>
+                </div>
+              </div>
+              {/* Divider */}
+              <div className="border-t border-slate-200" />
+
+
+              {/* Mitwirkende / Tabs */}
+              <div className="space-y-3">
+                <header className="space-y-0.5">
+                  <p className="text-[11px] tracking-[0.11em] uppercase text-slate-500">
+                    Wer an dieser Rechnung mitgewirkt hat
+                  </p>
+                </header>
+
+                <div className="space-y-2">
+                  {PARTICIPANTS.map((p) => {
+                    const active = p.id === activeParticipantId;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setActiveParticipantId(p.id)}
                         className={[
-                          "inline-flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold shrink-0",
+                          "w-full text-left rounded-lg px-3 py-2.5 text-[12px] flex items-center gap-3 transition border",
                           active
-                            ? "bg-white/10 text-white"
-                            : "bg-slate-900 text-white",
+                            ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                            : "bg-white text-slate-900 border-slate-200 hover:bg-slate-50",
                         ].join(" ")}
-                        title={p.label}
                       >
-                        {p.avatar}
-                      </div>
-                      <div className="space-y-0.5">
-                        <p
+                        <div
                           className={[
-                            "font-medium",
-                            active ? "text-white" : "text-slate-900",
+                            "inline-flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold shrink-0",
+                            active
+                              ? "bg-white/10 text-white"
+                              : "bg-slate-900 text-white",
                           ].join(" ")}
+                          title={p.label}
                         >
-                          {p.label}
-                        </p>
-                        <p
-                          className={[
-                            "text-[11px]",
-                            active ? "text-slate-200" : "text-slate-500",
-                          ].join(" ")}
-                        >
-                          {p.role}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                          {p.avatar}
+                        </div>
 
-              <p className="mt-2 text-[11px] leading-snug text-slate-600">
-                Tippe auf einen Mitwirkenden: Die linke Dokumentenvorschau
-                springt automatisch zu den Unterlagen, die diesen Schritt der
-                Wertschöpfung dokumentieren.
-              </p>
-            </section>
+                        <div className="space-y-0.5">
+                          <p
+                            className={[
+                              "font-medium",
+                              active ? "text-white" : "text-slate-900",
+                            ].join(" ")}
+                          >
+                            {p.label}
+                          </p>
+                          <p
+                            className={[
+                              "text-[11px]",
+                              active ? "text-slate-200" : "text-slate-500",
+                            ].join(" ")}
+                          >
+                            {p.role}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
 
-            {/* 3. Betragsübersicht */}
-            <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-3 shadow-sm">
-              <header className="space-y-1">
-                <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
-                  Betrag dieser Rechnung
+                <p className="mt-1 text-[11px] leading-snug text-slate-600">
+                  Tippe auf einen Mitwirkenden: Die linke Dokumentenvorschau
+                  springt automatisch zu den Unterlagen, die diesen Schritt der
+                  Wertschöpfung dokumentieren.
                 </p>
-                <p className="text-[13px] font-semibold text-slate-900">
-                  Wie sich der Gesamtbetrag zusammensetzt
-                </p>
-              </header>
-
-              <div className="space-y-2 text-[12px] text-slate-600">
-                <Row label="Brutto-Gesamtbetrag" value="144,22 €" />
-                <Row label="Netto-Gesamtbetrag" value="121,19 €" />
-                <Row label="Enthaltene Umsatzsteuer (19 %)" value="23,03 €" />
-                <Row label="Leistungsumfang" value="Sanitär · Serviceeinsatz" />
               </div>
             </section>
 
-            {/* 4. Aufschlüsselung */}
+            {/* 2. Kontextabhängige Detailansicht */}
+            {activeParticipant.id === "wohnenwo" && (
+              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm">
+                {/* Header */}
+                <header className="space-y-0.5">
+                  <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                    Lohnkosten
+                  </p>
+                  <p className="text-[13px] font-semibold text-slate-900">
+                    Zeit &amp; Einsatz für deinen Auftrag
+                  </p>
+                </header>
+
+                {/* Tabelle */}
+                <table className="w-full border-collapse text-[11px] table-fixed">
+                  <colgroup>
+                    <col className="w-[40%]" />
+                    <col className="w-[40%]" />
+                    <col className="w-[20%]" />
+                  </colgroup>
+                  <thead>
+                    <tr className="text-slate-700">
+                      <th className="py-1 text-left font-medium">Tätigkeit</th>
+                      <th className="py-1 text-left font-medium">Einordnung</th>
+                      <th className="py-1 text-right font-medium">Zeit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t border-slate-200">
+                      <td className="py-1 text-slate-700">
+                        Anfahrt &amp; Abfahrt
+                      </td>
+                      <td className="py-1 text-slate-500">
+                        Weg zu dir und zurück
+                      </td>
+                      <td className="py-1 text-right text-slate-700">
+                        10 min
+                      </td>
+                    </tr>
+
+                    <tr className="border-t border-slate-200">
+                      <td className="py-1 text-slate-700">
+                        Arbeit im Raum
+                      </td>
+                      <td className="py-1 text-slate-500">
+                        Ausbau &amp; Einbau
+                      </td>
+                      <td className="py-1 text-right text-slate-700">
+                        22 min
+                      </td>
+                    </tr>
+
+                    <tr className="border-t border-slate-300">
+                      <td className="py-1.5 font-semibold text-slate-800">
+                        Gesamtzeit
+                      </td>
+                      <td />
+                      <td className="py-1.5 text-right font-semibold text-slate-800">
+                        32 min
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* Kurz-Erklärung */}
+                <p className="text-[11px] leading-snug text-slate-600">
+                  Abgerechnet werden{" "}
+                  <span className="font-medium">32 min</span>{" "}
+                  Arbeitszeit als Lohnkosten.
+                </p>
+
+                {/* Zusammenfassung */}
+                <div className="pt-2 border-t border-slate-100 space-y-0.5 text-[11px] text-slate-600">
+                  <div className="flex justify-between">
+                    <span>Stundensatz</span>
+                    <span className="font-medium text-slate-800">66,00 €</span>
+                  </div>
+                  <div className="flex justify-between pt-1">
+                    <span className="text-[14px] font-bold text-slate-800">Arbeitslohn (netto)</span>
+                    <span className="text-[14px] font-bold text-slate-900">35,20 €</span>
+                  </div>
+                </div>
+              </section>
+            )}{activeParticipant.id === "wohnenwo" && (
+              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm">
+
+                {/* Header */}
+                <header className="space-y-0.5">
+                  <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                    Materialkosten
+                  </p>
+                  <p className="text-[13px] font-semibold text-slate-900">
+                    Wie sich der Materialpreis zusammensetzt
+                  </p>
+                </header>
+
+                {/* Tabelle */}
+                <table className="w-full border-collapse text-[11px]">
+                  <tbody className="divide-y divide-slate-200">
+                    <tr>
+                      <td className="py-1.5 text-slate-600">
+                        Materialpreis für Sie (brutto)
+                      </td>
+                      <td className="py-1.5 text-right font-medium text-slate-900">
+                        102,33 €
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td className="py-1.5 text-slate-600">
+                        enthaltene Umsatzsteuer (19 %)
+                      </td>
+                      <td className="py-1.5 text-right">
+                        − 16,34 €
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td className="py-1.5 text-slate-600">
+                        Materialwert netto
+                      </td>
+                      <td className="py-1.5 text-right font-medium">
+                        85,99 €
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td className="py-1.5 text-slate-600">
+                        Einkaufspreis netto (Händler)
+                      </td>
+                      <td className="py-1.5 text-right">
+                        − 57,32 €
+                      </td>
+                    </tr>
+
+                    <tr className="border-t border-slate-300">
+                      <td className="text-[14px] py-2 font-semibold text-slate-800">
+                        Kalkulierter Materialanteil
+                      </td>
+                      <td className="text-[14px] py-2 text-right font-semibold text-slate-900">
+                        28,67 €
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+            )}
+
+
+            {activeParticipant.id === "grohe" && (
+              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-4 shadow-sm">
+                <header className="space-y-1">
+                  <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                    Materialherkunft · Grohe
+                  </p>
+                  <p className="text-[13px] font-semibold text-slate-900">
+                    Hier wurde Ihr neuer Geruchsverschluss gekauft
+                  </p>
+                </header>
+
+                <table className="w-full border-collapse text-[11px]">
+                  <tbody className="divide-y divide-slate-200">
+                    <tr>
+                      <td className="py-1.5 text-slate-600">Händler</td>
+                      <td className="py-1.5 text-right font-medium text-slate-900">
+                        Amazon EU
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 text-slate-600">Einkaufspreis (brutto)</td>
+                      <td className="py-1.5 text-right">15,22 €</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 text-slate-600">Enthaltene MwSt.</td>
+                      <td className="py-1.5 text-right">2,43 €</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 text-slate-600">Netto-Warenwert</td>
+                      <td className="py-1.5 text-right font-medium">12,79 €</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 text-slate-600">Kalkulation (÷ 0,6666)</td>
+                      <td className="py-1.5 text-right">19,19 €</td>
+                    </tr>
+                    <tr>
+                      <td className="py-1.5 text-slate-600">Umsatzsteuer (19 %)</td>
+                      <td className="py-1.5 text-right">3,65 €</td>
+                    </tr>
+                    <tr className="border-t border-slate-300">
+                      <td className="py-2 font-medium text-slate-800">
+                        Materialpreis für Sie
+                      </td>
+                      <td className="py-2 text-right font-semibold text-slate-900">
+                        22,84 € brutto
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <p className="pt-2 mt-1 border-t border-slate-100 text-[11px] leading-snug text-slate-500">
+                  Die beim Einkauf gezahlte Vorsteuer wird steuerlich verrechnet.
+                  Sichtbar ist hier ausschließlich der reale Wertstrom dieses Bauteils.
+                </p>
+              </section>
+            )}
+            {activeParticipant.id === "hansgrohe" && (
+              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-4 shadow-sm">
+                <header className="space-y-1">
+                  <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                    Materialherkunft · Hansgrohe
+                  </p>
+                  <p className="text-[13px] font-semibold text-slate-900">
+                    Hier wurde Ihre neue Ablaufgarnitur gekauft
+                  </p>
+                </header>
+
+                <table className="w-full border-collapse text-[11px]">
+                  <tbody className="divide-y divide-slate-200">
+                    <tr>
+                      <td className="py-1.5 text-slate-600">Materialquelle</td>
+                      <td className="py-1.5 text-right font-medium text-slate-900">
+                        Lagerbestand · WohnenWo
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td className="py-1.5 text-slate-600">
+                        Hinweis zur Herkunft
+                      </td>
+                      <td className="py-1.5 text-right text-slate-700">
+                        keine externe Rechnung
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td className="py-1.5 text-slate-600">
+                        Netto-Warenwert
+                      </td>
+                      <td className="py-1.5 text-right font-medium text-slate-900">
+                        44,53 €
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td className="py-1.5 text-slate-600">
+                        Kalkulation (÷ 0,6666)
+                      </td>
+                      <td className="py-1.5 text-right text-slate-900">
+                        66,80 €
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td className="py-1.5 text-slate-600">
+                        Umsatzsteuer (19 %)
+                      </td>
+                      <td className="py-1.5 text-right text-slate-900">
+                        12,69 €
+                      </td>
+                    </tr>
+
+                    <tr className="border-t border-slate-300">
+                      <td className="py-2 font-medium text-slate-800">
+                        Materialpreis für Sie
+                      </td>
+                      <td className="py-2 text-right font-semibold text-slate-900">
+                        79,49 € brutto
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <p className="pt-2 mt-1 border-t border-slate-100 text-[11px] leading-snug text-slate-500">
+                  Diese Ablaufgarnitur stammt aus einem Lager-Altbestand.
+                  Der ausgewiesene Preis basiert auf derselben transparenten
+                  Kalkulationslogik wie neu beschaffte Materialien.
+                </p>
+              </section>
+            )}
+
+            {/* 3. Wohin deine Zahlung fließt */}
+            {activeParticipant.id === "wohnenwo" && (
+              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-3 shadow-sm">
+                <header className="space-y-1">
+                  <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                    Wohin deine Zahlung fließt
+                  </p>
+                  <p className="text-[13px] font-semibold text-slate-900">
+                    Wie dein Betrag verteilt ist
+                  </p>
+                </header>
+
+                <div className="space-y-2 text-[12px] text-slate-600">
+                  <Row
+                    label="Arbeitnehmer:in vor Ort (Lohnanteil)"
+                    value="≈ 11,73 €"
+                  />
+                  <Row
+                    label="Betrieb &amp; Service (Organisation, Risiko)"
+                    value="≈ 11,73 €"
+                  />
+                  <Row
+                    label="Wirkungsfonds (gemeinsame Projekte)"
+                    value="≈ 11,73 € + Materialanteile"
+                  />
+                  <Row
+                    label="Mitwirkende Partner (Hersteller &amp; Handel)"
+                    value={
+                      <span className="text-right">
+                        Teil der 85,99 € Material – aktuell noch
+                        <br />
+                        nicht im Detail offengelegt
+                      </span>
+                    }
+                  />
+                  <Row label="Staat (Umsatzsteuer 19 %)" value="23,03 €" />
+                </div>
+
+                <p className="pt-2 mt-1 text-[10px] leading-snug text-slate-500 border-t border-slate-100">
+                  Die gesetzlich vorgeschriebenen Angaben wie Netto-, Brutto- und
+                  Steuerbeträge findest du links in der Rechnungsdokumentation.
+                  Hier zeigen wir dir, wie sich dein Betrag inhaltlich auf
+                  Menschen, Betrieb, Staat und Mitwirkende verteilt.
+                </p>
+              </section>
+            )}
+
+            {/* 4. Gewinn & Verantwortung – kontextabhängig */}
             <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-4 shadow-sm">
               <header className="flex items-center gap-2">
                 <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-white">
                   <Layers className="h-3.5 w-3.5" />
                 </div>
-                <div>
+                <div className="space-y-0.5">
                   <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
-                    Aufschlüsselung
+                    Gewinn &amp; Verantwortung
                   </p>
                   <p className="text-[13px] font-semibold text-slate-900">
-                    Material · Handwerk · Planung · Wirkung
+                    {activeParticipant.id === "wohnenwo"
+                      ? "Wie ich Gewinn und Verantwortung teile"
+                      : "Gewinn & Verantwortung des Zwischenhändlers"}
                   </p>
                 </div>
               </header>
 
-              <div className="space-y-2 text-[12px] text-slate-600">
-                <Row
-                  label="Material &amp; Ausstattung (netto)"
-                  value="85,99 €"
-                />
-                <Row
-                  label="Handwerk &amp; Umsetzung (netto)"
-                  value="35,20 €"
-                />
-                <Row label="Planung &amp; Koordination" value="–" />
-                <Row
-                  label="Wirkungsfonds-Anteil"
-                  value="≈ 21,30 € (Lohn &amp; Material)"
-                />
-              </div>
+              {/* ───────── FALL 1: WohnenWo ───────── */}
+              {activeParticipant.id === "wohnenwo" && (
+                <>
+                  <p className="text-[12px] leading-snug text-slate-700">
+                    Mit jedem Auftrag entsteht Gewinn – und Verantwortung.
+                    Ich lege offen, wie beides zwischen Handwerk, Betrieb
+                    und Wirkungsfonds aufgeteilt wird.
+                  </p>
 
-              <div className="pt-2 mt-2 border-t border-slate-100 space-y-1.5">
-                <p className="text-[11px] leading-snug text-slate-600">
-                  Arbeitszeit: 10 Minuten An- und Abfahrt + 22 Minuten Arbeit im
-                  Raum = 32 Minuten zu 66,00 € netto/Stunde.
-                </p>
-                <p className="text-[11px] leading-snug text-slate-600">
-                  Die Netto-Lohnkosten von 35,20 € werden in drei gleich große
-                  Teile geteilt: Handwerker &amp; Umsetzung, Betrieb &amp;
-                  Service sowie Wirkungsfonds (jeweils ca. 11,73 €).
-                </p>
-                <p className="text-[11px] leading-snug text-slate-600">
-                  Die Materialgewinne aus Ablaufgarnitur und
-                  Geruchsverschluss werden ebenfalls Drittel für Drittel auf
-                  Handwerk, Betrieb und Wirkungsfonds verteilt.
-                </p>
-              </div>
+                  <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-600">
+                    Arbeits- und Materialgewinne werden zu gleichen Teilen
+                    für Umsetzung, Betrieb und gemeinsame Wirkung verwendet.
+                  </div>
+                </>
+              )}
+
+              {/* ───────── FALL 2: Grohe ───────── */}
+              {activeParticipant.id === "grohe" && (
+                <>
+                  <div className="pt-1">
+                    <p className="text-[11px] text-slate-500">
+                      Weitergeleiteter Materialbetrag
+                    </p>
+                    <p className="text-[18px] font-semibold text-slate-900">
+                      15,22 €
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 space-y-1 text-[11px] text-slate-600">
+                    <div className="flex justify-between">
+                      <span>Umsatzsteuer</span>
+                      <span className="font-medium">2,43 €</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Verbleibender Wert</span>
+                      <span className="font-medium">12,79 €</span>
+                    </div>
+                  </div>
+
+                  <p className="pt-2 text-[11px] leading-snug text-slate-500">
+                    Dieser Betrag ermöglicht dem Zwischenhändler,
+                    Produktion, Logistik, Personal und
+                    prozessabhängige Kosten zu tragen.
+                    Wir vertrauen darauf, dass dieser Wert
+                    verantwortungsvoll eingesetzt wird.
+                  </p>
+                </>
+              )}
+
+              {/* ───────── FALL 3: Hansgrohe ───────── */}
+              {activeParticipant.id === "hansgrohe" && (
+                <>
+                  <div className="pt-1">
+                    <p className="text-[11px] text-slate-500">
+                      Kalkulierter Materialwert (Altbestand)
+                    </p>
+                    <p className="text-[18px] font-semibold text-slate-900">
+                      66,80 €
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 space-y-1 text-[11px] text-slate-600">
+                    <div className="flex justify-between">
+                      <span>Umsatzsteuer</span>
+                      <span className="font-medium">12,69 €</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Materialpreis (brutto)</span>
+                      <span className="font-medium">79,49 €</span>
+                    </div>
+                  </div>
+
+                  <p className="pt-2 text-[11px] leading-snug text-slate-500">
+                    Auch bei Lagerbestand basiert der ausgewiesene Wert
+                    auf derselben transparenten Kalkulationslogik.
+                    Wir gehen davon aus, dass dieser Wert
+                    verantwortungsvoll im System des Herstellers wirkt.
+                  </p>
+                </>
+              )}
             </section>
 
-            {/* 5. Wirkung & Effekte */}
-            <section className="rounded-2xl bg-slate-50 text-slate-900 px-4 py-5 space-y-4 shadow-sm border border-slate-200">
-              <header className="flex items-center gap-2">
-                <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-white">
-                  <Sparkles className="h-3.5 w-3.5" />
-                </div>
-                <div>
-                  <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
-                    Wirkung &amp; Effekte
-                  </p>
-                  <p className="text-[13px] font-semibold text-slate-900">
-                    Was diese Rechnung möglich macht
-                  </p>
-                </div>
-              </header>
 
-              <p className="text-[12px] leading-snug text-slate-800">
-                Deine Investition sorgt dafür, dass der Ablauf deines
-                Waschbeckens technisch erneuert ist – Ablaufgarnitur und
-                Geruchsverschluss sind jetzt auf dem aktuellen Stand und
-                fachgerecht montiert.
-              </p>
+            {/* 5. Wirkung & Überschuss */}
+            {activeParticipant.id === "wohnenwo" && (
+              <section className="rounded-2xl bg-slate-50 text-slate-900 px-4 py-5 space-y-4 shadow-sm border border-slate-200">
+                <header className="flex items-center gap-2">
+                  <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-white">
+                    <Sparkles className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                      Wirkung &amp; Überschuss
+                    </p>
+                    <p className="text-[13px] font-semibold text-slate-900">
+                      Welche Wirkung dein Überschuss hat
+                    </p>
+                  </div>
+                </header>
 
-              <p className="text-[11px] leading-snug text-slate-700">
-                Gleichzeitig fließen aus Lohn und Materialgewinnen zusammen rund{" "}
-                <span className="font-semibold">21,30 €</span> in den
-                Wirkungsfonds. Damit stärkst du künftige Projekte, die wir
-                transparent dokumentieren – etwa soziale oder lokale Maßnahmen,
-                CO₂-Einsparungen oder besondere handwerkliche Einsätze.
-              </p>
-            </section>
+                <p className="text-[12px] leading-snug text-slate-800">
+                  Deine Investition sorgt dafür, dass der Ablauf deines Waschbeckens
+                  technisch erneuert ist – Ablaufgarnitur und Geruchsverschluss sind
+                  jetzt auf dem aktuellen Stand und fachgerecht montiert.
+                </p>
+
+                <p className="text-[11px] leading-snug text-slate-700">
+                  Gleichzeitig fließen aus Lohn und Materialgewinnen zusammen rund{" "}
+                  <span className="font-semibold">21,30 €</span> in den Wirkungsfonds.
+                  Damit stärkst du künftige Projekte, die wir transparent
+                  dokumentieren – etwa soziale oder lokale Maßnahmen, CO₂-Einsparungen
+                  oder besondere handwerkliche Einsätze.
+                </p>
+
+                <p className="text-[11px] leading-snug text-slate-700">
+                  Dieses System ist keine Pflicht, sondern eine Einladung: Wer Wert
+                  darauf legt, dass mit Mitarbeitern, Natur und Umfeld im
+                  Gleichgewicht gehandelt wird, soll diesen Weg hier klar erkennen
+                  können.
+                </p>
+              </section>
+            )}
 
             {/* 6. Transparenz-Hinweis */}
-            <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm">
-              <div className="flex items-center gap-2">
-                <div className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-500">
-                  <Info className="h-3.5 w-3.5" />
+            {activeParticipant.id === "wohnenwo" && (
+              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <div className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                    <Info className="h-3.5 w-3.5" />
+                  </div>
+                  <p className="text-[12px] font-medium text-slate-900">
+                    Transparenz-Hinweis
+                  </p>
                 </div>
-                <p className="text-[12px] font-medium text-slate-900">
-                  Transparenz-Hinweis
+                <p className="text-[11px] leading-snug text-slate-600">
+                  Persönliche Daten von Auftraggeber:innen werden in der online
+                  sichtbaren Version datenschutzkonform reduziert. Die vollständige
+                  Original-Rechnung bleibt ausschließlich dir vorbehalten. Du
+                  entscheidest später selbst, welche Details du für andere sichtbar
+                  machen möchtest.
                 </p>
-              </div>
-              <p className="text-[11px] leading-snug text-slate-600">
-                Persönliche Daten von Auftraggeber:innen werden in der online
-                sichtbaren Version datenschutzkonform reduziert. Die
-                vollständige Original-Rechnung bleibt ausschließlich dir
-                vorbehalten. Du entscheidest später selbst, welche Details du
-                für andere sichtbar machen möchtest.
-              </p>
-            </section>
+              </section>
+            )}
 
             <div className="h-10" />
           </div>

@@ -717,7 +717,7 @@ function PersonSlotCard(props: {
 }) {
   const { name, role, showBadge, badgeText } = props;
   return (
-    <article className="shrink-0 w-[150px] sm:w-[170px] md:w-[180px] lg:w-[180px]">
+    <article className="shrink-0 w-40">
       <div className="group relative overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex h-[210px] sm:h-[220px] transition duration-300 ease-out">
         <div className="relative flex-1 bg-slate-100">
           {showBadge && badgeText && (

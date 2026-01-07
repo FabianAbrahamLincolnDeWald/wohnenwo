@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import WohnenWoOrbitNavbar from "@/components/navigation/WohnenWoOrbitNavbar";
+import TransformHero from "@/components/sektionen/transform-hero/TransformHero";
 import HeroSection from "@/components/sektionen/HeroSection";
 import PanelImageSection from "@/components/sektionen/PanelImageSection";
 import InterstitialTextSection from "@/components/sektionen/InterstitialTextSection";
@@ -11,6 +12,25 @@ export default function HeroShell() {
   return (
     <main className="relative min-h-screen bg-white text-slate-900 antialiased">
       <WohnenWoOrbitNavbar />
+
+      <TransformHero
+        title={
+          <>
+            Sei Gast einer neuen Art,
+            <br />
+            zusammenzuarbeiten.
+          </>
+        }
+        description={
+          <>
+            Hier trifft Gestaltung auf Handwerk, und Unternehmer auf Kunde, um
+            gemeinsam zu handeln und zu wirken – ehrlich, offen, menschlich und
+            sinnstiftend. Jeder hat volle Einsicht in Zahlen, Systeme, Absichten
+            und Strukturen. Ein wirtschaftlicher Raum, in dem du dich vertraut
+            fühlst – und in dem das, was dir wichtig ist, sichtbar wird.
+          </>
+        }
+      />
       <HeroSection />
       <PanelImageSection />
       <InterstitialTextSection />

@@ -1,8 +1,16 @@
 "use client";
 
 import * as React from "react";
+import type { ReactNode } from "react";
 import Image from "next/image";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  AnimatePresence,
+} from "framer-motion";
+
+/* ---------------- TYPES ---------------- */
 
 type Slide = {
   id: string;
@@ -11,24 +19,31 @@ type Slide = {
 };
 
 type TransformHeroProps = {
-  title: string;
-  description: string;
+  title: ReactNode;
+  description: ReactNode;
 };
+
+/* ---------------- IMAGES ---------------- */
 
 const UNSPLASH_IMAGES: Slide[] = [
   {
     id: "1",
     src: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2400&q=80",
+    alt: "Raum und Licht",
   },
   {
     id: "2",
     src: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=2400&q=80",
+    alt: "Gestaltung und Material",
   },
   {
     id: "3",
     src: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=2400&q=80",
+    alt: "Mensch und Raum",
   },
 ];
+
+/* ---------------- HERO ---------------- */
 
 export default function TransformHero({
   title,
@@ -41,23 +56,21 @@ export default function TransformHero({
     offset: ["start start", "end start"],
   });
 
-  /* --- Apple-ClipPath exakt --- */
+  /* ---- Container-Transformation ---- */
   const clipTop = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
   const clipSide = useTransform(scrollYProgress, [0, 1], ["0%", "6.25%"]);
   const clipRadius = useTransform(scrollYProgress, [0, 1], ["0px", "40px"]);
 
-  const clipPath = useTransform(
+  const clipPath = useTransform<
+    [string, string, string],
+    string
+  >(
     [clipTop, clipSide, clipRadius],
     ([t, s, r]) => `inset(${t} ${s} round ${r})`
   );
 
-  /* --- Text Crossfade (keine Bewegung) --- */
-  const titleOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.18],
-    [1, 0]
-  );
-
+  /* ---- Text Crossfade ---- */
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.18], [1, 0]);
   const descriptionOpacity = useTransform(
     scrollYProgress,
     [0.18, 0.45],
@@ -69,7 +82,7 @@ export default function TransformHero({
       <div className="sticky top-0 h-screen">
         <motion.div
           style={{ clipPath }}
-          className="relative h-full w-full overflow-hidden"
+          className="relative h-full w-full overflow-hidden bg-black"
         >
           {/* MEDIA */}
           <HeroCarousel images={UNSPLASH_IMAGES} />
@@ -99,10 +112,13 @@ export default function TransformHero({
 }
 
 /* ---------------- CAROUSEL ---------------- */
+
 function HeroCarousel({ images }: { images: Slide[] }) {
   const [index, setIndex] = React.useState(0);
 
   React.useEffect(() => {
+    if (images.length === 0) return;
+
     const interval = setInterval(() => {
       setIndex((v) => (v + 1) % images.length);
     }, 5000);
@@ -110,11 +126,14 @@ function HeroCarousel({ images }: { images: Slide[] }) {
     return () => clearInterval(interval);
   }, [images.length]);
 
+  const current = images[index];
+  if (!current) return null;
+
   return (
     <div className="absolute inset-0">
       <AnimatePresence mode="wait">
         <motion.div
-          key={images[index].id}
+          key={current.id}
           className="absolute inset-0"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -122,8 +141,8 @@ function HeroCarousel({ images }: { images: Slide[] }) {
           transition={{ duration: 1 }}
         >
           <Image
-            src={images[index].src}
-            alt={images[index].alt ?? ""}
+            src={current.src}
+            alt={current.alt ?? ""}
             fill
             priority
             className="object-cover"

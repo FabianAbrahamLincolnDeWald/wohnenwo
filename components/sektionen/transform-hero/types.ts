@@ -1,5 +1,7 @@
+import type { ReactNode } from "react";
+
 export type TransformHeroProps = {
-  title: React.ReactNode;
-  description: React.ReactNode;
+  title: ReactNode;
+  description: ReactNode;
   images?: string[];
 };

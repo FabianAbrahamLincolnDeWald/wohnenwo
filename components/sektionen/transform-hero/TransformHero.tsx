@@ -25,25 +25,20 @@ type TransformHeroProps = {
 
 /* ---------------- IMAGES ---------------- */
 
-const UNSPLASH_IMAGES: Slide[] = [
+const IMAGES: Slide[] = [
   {
     id: "1",
     src: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2400&q=80",
-    alt: "Raum und Licht",
   },
   {
     id: "2",
     src: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=2400&q=80",
-    alt: "Gestaltung und Material",
   },
   {
     id: "3",
     src: "https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=2400&q=80",
-    alt: "Mensch und Raum",
   },
 ];
-
-/* ---------------- HERO ---------------- */
 
 export default function TransformHero({
   title,
@@ -56,10 +51,20 @@ export default function TransformHero({
     offset: ["start start", "end start"],
   });
 
-  /* ---- Container-Transformation ---- */
-  const clipTop = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
-  const clipSide = useTransform(scrollYProgress, [0, 1], ["0%", "6.25%"]);
-  const clipRadius = useTransform(scrollYProgress, [0, 1], ["0px", "40px"]);
+  /* -------------------------------------------------
+     SHRINK PHASE – endet bewusst früher (Plateau)
+  ------------------------------------------------- */
+  const shrinkProgress = useTransform(
+    scrollYProgress,
+    [0, 0.55],
+    [0, 1],
+    { clamp: true }
+  );
+
+  /* --- CONTAINER SIZE (max ~1680px sichtbar) --- */
+  const clipTop = useTransform(shrinkProgress, [0, 1], ["0%", "11%"]);
+  const clipSide = useTransform(shrinkProgress, [0, 1], ["0%", "8%"]);
+  const clipRadius = useTransform(shrinkProgress, [0, 1], ["0px", "44px"]);
 
   const clipPath = useTransform<
     [string, string, string],
@@ -69,37 +74,68 @@ export default function TransformHero({
     ([t, s, r]) => `inset(${t} ${s} round ${r})`
   );
 
-  /* ---- Text Crossfade ---- */
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.18], [1, 0]);
+  /* --- BACKGROUND DIM --- */
+  const dimOpacity = useTransform(
+    shrinkProgress,
+    [0.3, 1],
+    [0, 0.45]
+  );
+
+  /* --- TEXT CROSSFADE (gleiche Position!) --- */
+  const titleOpacity = useTransform(shrinkProgress, [0, 0.25], [1, 0]);
   const descriptionOpacity = useTransform(
-    scrollYProgress,
-    [0.18, 0.45],
+    shrinkProgress,
+    [0.25, 0.6],
     [0, 1]
   );
 
   return (
-    <section ref={ref} className="relative h-[220vh] bg-white">
-      <div className="sticky top-0 h-screen">
+    <section ref={ref} className="relative h-[300vh] -mt-14 bg-white">
+      <div className="sticky top-0 h-screen flex items-center justify-center">
         <motion.div
           style={{ clipPath }}
           className="relative h-full w-full overflow-hidden bg-black"
         >
-          {/* MEDIA */}
-          <HeroCarousel images={UNSPLASH_IMAGES} />
+          {/* IMAGES */}
+          <HeroCarousel images={IMAGES} />
 
-          {/* TEXT */}
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-center px-6">
-            <div className="max-w-4xl">
+          {/* DIM OVERLAY */}
+          <motion.div
+            style={{ opacity: dimOpacity }}
+            className="absolute inset-0 bg-black z-10"
+          />
+
+          {/* TEXT – exakt übereinander */}
+          <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center px-6">
+            <div className="relative w-full max-w-[52rem] h-[10rem]">
+              {/* TITLE */}
               <motion.h1
                 style={{ opacity: titleOpacity }}
-                className="text-4xl md:text-6xl font-semibold tracking-tight text-white"
+                className="
+                  absolute inset-0
+                  flex items-center justify-center
+                  text-center
+                  text-[clamp(3.5rem,7vw,6rem)]
+                  font-semibold
+                  tracking-tight
+                  text-white
+                "
               >
                 {title}
               </motion.h1>
 
+              {/* DESCRIPTION */}
               <motion.p
                 style={{ opacity: descriptionOpacity }}
-                className="mt-6 text-lg md:text-xl text-white/90 leading-relaxed"
+                className="
+                  absolute inset-0
+                  flex items-center justify-center
+                  text-center
+                  text-[clamp(1.5rem,2.6vw,2rem)]
+                  font-medium
+                  leading-snug
+                  text-white/90
+                "
               >
                 {description}
               </motion.p>
@@ -117,13 +153,11 @@ function HeroCarousel({ images }: { images: Slide[] }) {
   const [index, setIndex] = React.useState(0);
 
   React.useEffect(() => {
-    if (images.length === 0) return;
-
-    const interval = setInterval(() => {
-      setIndex((v) => (v + 1) % images.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
+    const id = setInterval(
+      () => setIndex((v) => (v + 1) % images.length),
+      5200
+    );
+    return () => clearInterval(id);
   }, [images.length]);
 
   const current = images[index];
@@ -138,7 +172,7 @@ function HeroCarousel({ images }: { images: Slide[] }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 1.2 }}
         >
           <Image
             src={current.src}

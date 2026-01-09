@@ -15,10 +15,7 @@ export default function HeroShell() {
 
       <TransformHero
         title={
-          <>
-            Sei Gast einer neuen Art,
-            <br />
-            zusammenzuarbeiten.
+          <>Willkommen in einer neuen Ära wirtschaftlicher Zusammenarbeit
           </>
         }
         description={

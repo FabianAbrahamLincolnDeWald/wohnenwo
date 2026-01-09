@@ -40,10 +40,21 @@ const IMAGES: Slide[] = [
   },
 ];
 
+const HERO_SRC =
+  "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2400&q=80";
+
+/* ======================================================
+   COMPONENT
+====================================================== */
+
 export default function TransformHero({
   title,
   description,
 }: TransformHeroProps) {
+  /* ======================================================
+     DESKTOP HERO (Transform / Scroll)
+  ====================================================== */
+
   const ref = React.useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({
@@ -51,112 +62,135 @@ export default function TransformHero({
     offset: ["start start", "end start"],
   });
 
-  /* -------------------------------------------------
-     SHRINK PHASE – endet bewusst früher (Plateau)
-  ------------------------------------------------- */
   const shrinkProgress = useTransform(
     scrollYProgress,
-    [0, 0.55],
+    [0, 0.38],
     [0, 1],
     { clamp: true }
   );
 
-  /* --- CONTAINER SIZE (max ~1680px sichtbar) --- */
   const clipTop = useTransform(shrinkProgress, [0, 1], ["0%", "11%"]);
   const clipSide = useTransform(shrinkProgress, [0, 1], ["0%", "8%"]);
   const clipRadius = useTransform(shrinkProgress, [0, 1], ["0px", "44px"]);
 
-  const clipPath = useTransform<
-    [string, string, string],
-    string
-  >(
+  const clipPath = useTransform(
     [clipTop, clipSide, clipRadius],
     ([t, s, r]) => `inset(${t} ${s} round ${r})`
   );
 
-  /* --- BACKGROUND DIM --- */
-  const dimOpacity = useTransform(
-    shrinkProgress,
-    [0.3, 1],
-    [0, 0.45]
-  );
+  const dimOpacity = useTransform(shrinkProgress, [0.25, 1], [0, 0.45]);
 
-  /* --- TEXT CROSSFADE (gleiche Position!) --- */
-  const titleOpacity = useTransform(shrinkProgress, [0, 0.25], [1, 0]);
+  const titleOpacity = useTransform(shrinkProgress, [0, 0.3], [1, 0]);
   const descriptionOpacity = useTransform(
     shrinkProgress,
-    [0.25, 0.6],
+    [0.3, 0.65],
     [0, 1]
   );
 
   return (
-    <section ref={ref} className="relative h-[300vh] -mt-14 bg-white">
-      <div className="sticky top-0 h-screen flex items-center justify-center">
-        <motion.div
-          style={{ clipPath }}
-          className="relative h-full w-full overflow-hidden bg-black"
-        >
-          {/* IMAGES */}
-          <HeroCarousel images={IMAGES} />
-
-          {/* DIM OVERLAY */}
-          <motion.div
-            style={{ opacity: dimOpacity }}
-            className="absolute inset-0 bg-black z-10"
-          />
-
-          {/* TEXT – exakt übereinander */}
-          <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center px-6">
-            <div className="relative w-full max-w-[52rem] h-[10rem]">
-              {/* TITLE */}
-              <motion.h1
-                style={{ opacity: titleOpacity }}
-                className="
-                  absolute inset-0
-                  flex items-center justify-center
-                  text-center
-                  text-[clamp(3.5rem,7vw,6rem)]
-                  font-semibold
-                  tracking-tight
-                  text-white
-                "
-              >
-                {title}
-              </motion.h1>
-
-              {/* DESCRIPTION */}
-              <motion.p
-                style={{ opacity: descriptionOpacity }}
-                className="
-                  absolute inset-0
-                  flex items-center justify-center
-                  text-center
-                  text-[clamp(1.5rem,2.6vw,2rem)]
-                  font-medium
-                  leading-snug
-                  text-white/90
-                "
-              >
-                {description}
-              </motion.p>
-            </div>
+    <>
+      {/* ==================================================
+          MOBILE HERO
+      ================================================== */}
+      <section className="block md:hidden relative h-[90vh] -mt-14 bg-black">
+        <Image
+          src={HERO_SRC}
+          alt=""
+          fill
+          priority
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-black/45" />
+        <div className="relative z-10 flex h-full items-center justify-center px-6 text-center">
+          <div className="max-w-md">
+            <h1 className="text-[2.4rem] font-semibold tracking-tight text-white">
+              {title}
+            </h1>
+            <p className="mt-6 text-[1.1rem] font-medium leading-snug text-white/90">
+              {description}
+            </p>
           </div>
-        </motion.div>
-      </div>
-    </section>
+        </div>
+      </section>
+
+      {/* ==================================================
+          TABLET HERO
+      ================================================== */}
+      <section className="hidden md:block lg:hidden relative h-screen -mt-14 bg-black">
+        <Image
+          src={HERO_SRC}
+          alt=""
+          fill
+          priority
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-black/35" />
+        <div className="relative z-10 flex h-full items-center justify-center px-10 text-center">
+          <div className="max-w-2xl">
+            <h1 className="text-[3.4rem] font-semibold tracking-tight text-white">
+              {title}
+            </h1>
+            <p className="mt-8 text-[1.35rem] font-medium leading-snug text-white/90">
+              {description}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================================================
+          DESKTOP HERO
+      ================================================== */}
+      <section
+        ref={ref}
+        className="hidden lg:block relative h-[150vh] -mt-14 bg-white"
+      >
+        <div className="sticky top-0 h-screen flex items-center justify-center">
+          <motion.div
+            style={{ clipPath }}
+            className="relative h-full w-full overflow-hidden bg-black"
+          >
+            <HeroCarousel images={IMAGES} />
+
+            <motion.div
+              style={{ opacity: dimOpacity }}
+              className="absolute inset-0 bg-black z-10"
+            />
+
+            <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center px-6">
+              <div className="relative w-full max-w-208 h-40 text-center">
+                <motion.h1
+                  style={{ opacity: titleOpacity }}
+                  className="absolute inset-0 flex items-center justify-center text-[clamp(2.5rem,5vw,4rem)] font-semibold tracking-tight text-white"
+                >
+                  {title}
+                </motion.h1>
+
+                <motion.p
+                  style={{ opacity: descriptionOpacity }}
+                  className="absolute inset-0 flex items-center justify-center text-[clamp(1.5rem,2.6vw,2rem)] font-medium leading-snug text-white/90"
+                >
+                  {description}
+                </motion.p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+    </>
   );
 }
 
-/* ---------------- CAROUSEL ---------------- */
+/* ======================================================
+   CAROUSEL – immer aktiv (wie vorher)
+====================================================== */
 
 function HeroCarousel({ images }: { images: Slide[] }) {
   const [index, setIndex] = React.useState(0);
 
   React.useEffect(() => {
-    const id = setInterval(
-      () => setIndex((v) => (v + 1) % images.length),
-      5200
-    );
+    const id = setInterval(() => {
+      setIndex((i) => (i + 1) % images.length);
+    }, 5200);
     return () => clearInterval(id);
   }, [images.length]);
 

@@ -372,7 +372,7 @@ export default function RechnungDetailPage({
                 {/* Zusammenfassung */}
                 <div className="pt-2 border-t border-slate-100 space-y-0.5 text-[11px] text-slate-600">
                   <div className="flex justify-between">
-                    <span>Stundensatz</span>
+                    <span>Stundensatz (netto)</span>
                     <span className="font-medium text-slate-800">66,00 €</span>
                   </div>
                   <div className="flex justify-between pt-1">
@@ -381,7 +381,67 @@ export default function RechnungDetailPage({
                   </div>
                 </div>
               </section>
-            )}{activeParticipant.id === "wohnenwo" && (
+            )}
+            {/* Verantwortung & Gewinn – Ist-Zustand */}
+            {activeParticipant.id === "wohnenwo" && (
+              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-4 shadow-sm">
+
+                {/* Header – neutral */}
+                <header className="space-y-0.5">
+                  <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                    Verantwortung
+                  </p>
+                  <p className="text-[13px] font-semibold text-slate-900">
+                    Wie sich der Arbeitswert dieses Auftrags verteilt
+                  </p>
+                </header>
+
+                {/* VERBUNDENER BLOCK */}
+                <div className="overflow-hidden rounded-xl border border-slate-200">
+
+                  {/* Arbeitswert-Badge (oben, dominant) */}
+                  <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
+                        <Layers className="h-3.5 w-3.5 text-white" />
+                      </div>
+                      <span className="text-[14px] font-semibold text-slate-100">
+                        Arbeitswert (brutto)
+                      </span>
+                    </div>
+                    <span className="text-[14px] font-semibold">
+                      41,89 €
+                    </span>
+                  </div>
+
+                  {/* Aufschlüsselung – ANGEKOPPELT */}
+                  <div className="bg-slate-50 px-3 py-3 space-y-1 text-[12px] text-slate-600">
+                    <Row label="Arbeitnehmer:in · Netto" value="7,92 €" />
+                    <Row
+                      label="Unternehmerische Struktur · Netto"
+                      value="8,77 €"
+                    />
+                    <Row
+                      label="Wirkungsfonds"
+                      value="11,73 €"
+                    />
+                    <Row
+                      label="Staat & Sozialkassen"
+                      value="14,02 €"
+                    />
+                  </div>
+                </div>
+
+                {/* Kurz-Hinweis */}
+                <p className="pt-2 text-[11px] leading-snug text-slate-500 border-t border-slate-100">
+                  Die dargestellten Anteile basieren auf prozentualen Schätzungen.
+                  In Einzelfällen können geringfügige Abweichungen auftreten.
+                  Verbindliche Werte ergeben sich erst mit Abschluss des Kalenderjahres.
+                </p>
+
+              </section>
+            )}
+            {activeParticipant.id === "wohnenwo" && (
               <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm">
 
                 {/* Header */}
@@ -578,152 +638,108 @@ export default function RechnungDetailPage({
               </section>
             )}
 
-            {/* 3. Wohin deine Zahlung fließt */}
+            {/* Verantwortung & Gewinn – Ist-Zustand */}
             {activeParticipant.id === "wohnenwo" && (
-              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-3 shadow-sm">
-                <header className="space-y-1">
+              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-4 shadow-sm">
+
+                {/* Header – neutral */}
+                <header className="space-y-0.5">
                   <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
-                    Wohin deine Zahlung fließt
+                    Verantwortung &amp; Gewinn
                   </p>
                   <p className="text-[13px] font-semibold text-slate-900">
-                    Wie dein Betrag verteilt ist
+                    Wie sich der Arbeitswert dieses Auftrags verteilt
                   </p>
                 </header>
 
-                <div className="space-y-2 text-[12px] text-slate-600">
-                  <Row
-                    label="Arbeitnehmer:in vor Ort (Lohnanteil)"
-                    value="≈ 11,73 €"
-                  />
-                  <Row
-                    label="Betrieb &amp; Service (Organisation, Risiko)"
-                    value="≈ 11,73 €"
-                  />
-                  <Row
-                    label="Wirkungsfonds (gemeinsame Projekte)"
-                    value="≈ 11,73 € + Materialanteile"
-                  />
-                  <Row
-                    label="Mitwirkende Partner (Hersteller &amp; Handel)"
-                    value={
-                      <span className="text-right">
-                        Teil der 85,99 € Material – aktuell noch
-                        <br />
-                        nicht im Detail offengelegt
+                {/* VERBUNDENER BLOCK */}
+                <div className="overflow-hidden rounded-xl border border-slate-200">
+
+                  {/* Arbeitswert-Badge (oben, dominant) */}
+                  <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
+                        <Layers className="h-3.5 w-3.5 text-white" />
+                      </div>
+                      <span className="text-[14px] font-semibold text-slate-100">
+                        Arbeitswert (brutto)
                       </span>
-                    }
-                  />
-                  <Row label="Staat (Umsatzsteuer 19 %)" value="23,03 €" />
+                    </div>
+                    <span className="text-[14px] font-semibold">
+                      41,89 €
+                    </span>
+                  </div>
+
+                  {/* Aufschlüsselung – ANGEKOPPELT */}
+                  <div className="bg-slate-50 px-3 py-3 space-y-1 text-[12px] text-slate-600">
+                    <Row label="Arbeitnehmer:in · Netto" value="7,92 €" />
+                    <Row
+                      label="Unternehmerische Struktur · Netto"
+                      value="8,77 €"
+                    />
+                    <Row
+                      label="Wirkungsfonds"
+                      value="11,73 €"
+                    />
+                    <Row
+                      label="Staat & Sozialkassen"
+                      value="14,02 €"
+                    />
+                  </div>
                 </div>
 
-                <p className="pt-2 mt-1 text-[10px] leading-snug text-slate-500 border-t border-slate-100">
-                  Die gesetzlich vorgeschriebenen Angaben wie Netto-, Brutto- und
-                  Steuerbeträge findest du links in der Rechnungsdokumentation.
-                  Hier zeigen wir dir, wie sich dein Betrag inhaltlich auf
-                  Menschen, Betrieb, Staat und Mitwirkende verteilt.
-                </p>
+                {/* Gewinnverteilung – Material */}
+                <div className="pt-3 border-t border-slate-200 space-y-3">
+
+                  {/* Überschrift – gleiche Sprachebene */}
+                  <header className="space-y-0.5">
+                    <p className="text-[13px] font-semibold text-slate-900">
+                      Wie sich der Gewinn dieses Auftrags verteilt
+                    </p>
+                  </header>
+
+                  {/* VERBUNDENER BLOCK – identische Gestalt */}
+                  <div className="overflow-hidden rounded-xl border border-slate-200">
+
+                    {/* Gewinn-Badge */}
+                    <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
+                          <Sparkles className="h-3.5 w-3.5 text-white" />
+                        </div>
+                        <span className="text-[14px] font-semibold text-slate-100">
+                          Material-/Gewinnanteil
+                        </span>
+                      </div>
+                      <span className="text-[14px] font-semibold">
+                        28,67 €
+                      </span>
+                    </div>
+
+                    {/* Tabelle – identisch zur Arbeitswert-Tabelle */}
+                    <div className="bg-slate-50 px-3 py-3 space-y-1 text-[12px] text-slate-600">
+                      <Row label="Dienstleistung · Anteil" value="9,56 €" />
+                      <Row
+                        label="Unternehmerische Struktur · Anteil"
+                        value="9,55 €"
+                      />
+                      <Row
+                        label="Wirkungsfonds"
+                        value="9,56 €"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Kurz-Hinweis */}
+                  <p className="pt-2 text-[11px] leading-snug text-slate-500 border-t border-slate-100">
+                    Die dargestellten Anteile basieren auf prozentualen Schätzungen.
+                    In Einzelfällen können geringfügige Abweichungen auftreten.
+                    Verbindliche Werte ergeben sich erst mit Abschluss des Kalenderjahres.
+                  </p>
+                </div>
               </section>
             )}
 
-            {/* 4. Gewinn & Verantwortung – kontextabhängig */}
-            <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-4 shadow-sm">
-              <header className="flex items-center gap-2">
-                <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-white">
-                  <Layers className="h-3.5 w-3.5" />
-                </div>
-                <div className="space-y-0.5">
-                  <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
-                    Gewinn &amp; Verantwortung
-                  </p>
-                  <p className="text-[13px] font-semibold text-slate-900">
-                    {activeParticipant.id === "wohnenwo"
-                      ? "Wie ich Gewinn und Verantwortung teile"
-                      : "Gewinn & Verantwortung des Zwischenhändlers"}
-                  </p>
-                </div>
-              </header>
-
-              {/* ───────── FALL 1: WohnenWo ───────── */}
-              {activeParticipant.id === "wohnenwo" && (
-                <>
-                  <p className="text-[12px] leading-snug text-slate-700">
-                    Mit jedem Auftrag entsteht Gewinn – und Verantwortung.
-                    Ich lege offen, wie beides zwischen Handwerk, Betrieb
-                    und Wirkungsfonds aufgeteilt wird.
-                  </p>
-
-                  <div className="pt-2 border-t border-slate-100 text-[11px] text-slate-600">
-                    Arbeits- und Materialgewinne werden zu gleichen Teilen
-                    für Umsetzung, Betrieb und gemeinsame Wirkung verwendet.
-                  </div>
-                </>
-              )}
-
-              {/* ───────── FALL 2: Grohe ───────── */}
-              {activeParticipant.id === "grohe" && (
-                <>
-                  <div className="pt-1">
-                    <p className="text-[11px] text-slate-500">
-                      Weitergeleiteter Materialbetrag
-                    </p>
-                    <p className="text-[18px] font-semibold text-slate-900">
-                      15,22 €
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 space-y-1 text-[11px] text-slate-600">
-                    <div className="flex justify-between">
-                      <span>Umsatzsteuer</span>
-                      <span className="font-medium">2,43 €</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Verbleibender Wert</span>
-                      <span className="font-medium">12,79 €</span>
-                    </div>
-                  </div>
-
-                  <p className="pt-2 text-[11px] leading-snug text-slate-500">
-                    Dieser Betrag ermöglicht dem Zwischenhändler,
-                    Produktion, Logistik, Personal und
-                    prozessabhängige Kosten zu tragen.
-                    Wir vertrauen darauf, dass dieser Wert
-                    verantwortungsvoll eingesetzt wird.
-                  </p>
-                </>
-              )}
-
-              {/* ───────── FALL 3: Hansgrohe ───────── */}
-              {activeParticipant.id === "hansgrohe" && (
-                <>
-                  <div className="pt-1">
-                    <p className="text-[11px] text-slate-500">
-                      Kalkulierter Materialwert (Altbestand)
-                    </p>
-                    <p className="text-[18px] font-semibold text-slate-900">
-                      66,80 €
-                    </p>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 space-y-1 text-[11px] text-slate-600">
-                    <div className="flex justify-between">
-                      <span>Umsatzsteuer</span>
-                      <span className="font-medium">12,69 €</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Materialpreis (brutto)</span>
-                      <span className="font-medium">79,49 €</span>
-                    </div>
-                  </div>
-
-                  <p className="pt-2 text-[11px] leading-snug text-slate-500">
-                    Auch bei Lagerbestand basiert der ausgewiesene Wert
-                    auf derselben transparenten Kalkulationslogik.
-                    Wir gehen davon aus, dass dieser Wert
-                    verantwortungsvoll im System des Herstellers wirkt.
-                  </p>
-                </>
-              )}
-            </section>
 
 
             {/* 5. Wirkung & Überschuss */}

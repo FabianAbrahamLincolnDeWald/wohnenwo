@@ -10,6 +10,10 @@ import {
   Layers,
   Sparkles,
   Info,
+  ShoppingCart,
+  Factory,
+  Briefcase,
+  Scale,
 } from "lucide-react";
 
 type Participant = {
@@ -17,36 +21,50 @@ type Participant = {
   label: string; // Name (z.B. WohnenWo Studio)
   description: string; // Kurzbeschreibung
   pages: number; // Anzahl „Dokumente“ in der Vorschau
-  avatar: string; // Kürzel im Avatar
+  icon?: React.ReactNode; // ← NEU
   role: string; // Rolle in der Wertschöpfung
+  value?: string; // ← NEU: Mehrwert / Beitrag
 };
 
 const PARTICIPANTS: Participant[] = [
   {
     id: "wohnenwo",
     label: "Fabian · WohnenWo",
-    description: "Planung, Koordination & Umsetzung vor Ort.",
+    description: "Planung, Koordination & Umsetzung",
     pages: 2,
-    avatar: "F",
-    role: "Planung, Koordination & Umsetzung",
+    icon: <Briefcase className="h-4 w-4" />,
+    role: "Dienstleister",
+    value: "70,56 €",
   },
   {
     id: "hansgrohe",
     label: "Hansgrohe",
-    description: "Neue Ablaufgarnitur für das Waschbecken.",
+    description: "Ablaufgarnitur · Ablauf-System",
     pages: 2,
-    avatar: "HG",
-    role: "Ablaufgarnitur · neues Ablauf-System",
+    icon: <Factory className="h-4 w-4" />,
+    role: "Hersteller",
+    value: "44,53 €",
   },
   {
     id: "grohe",
     label: "Grohe",
-    description: "Neuer Röhren-Geruchsverschluss (Siphon).",
+    description: "Röhren-Geruchsverschluss · Siphon",
     pages: 1,
-    avatar: "GR",
-    role: "Röhren-Geruchsverschluss · Siphon",
+    icon: <Factory className="h-4 w-4" />,
+    role: "Hersteller",
+    value: "12,79 €",
+  },
+  {
+    id: "staat",
+    label: "Staat & Sozialkassen",
+    description: "Steuern & Sozialabgaben",
+    pages: 0,
+    icon: <Scale className="h-4 w-4" />,
+    role: "Gesetzlich gebundene Abgaben",
+    value: "14,02 €",
   },
 ];
+
 
 export default function RechnungDetailPage({
   params,
@@ -235,14 +253,53 @@ export default function RechnungDetailPage({
               {/* Mitwirkende / Tabs */}
               <div className="space-y-3">
                 <header className="space-y-0.5">
-                  <p className="text-[11px] tracking-[0.11em] uppercase text-slate-500">
-                    Wer an dieser Rechnung mitgewirkt hat
+                  <p className="text-[13px] font-semibold text-slate-900">
+                    Wie sich der Wert dieser Rechnung verteilt
                   </p>
                 </header>
 
                 <div className="space-y-2">
                   {PARTICIPANTS.map((p) => {
                     const active = p.id === activeParticipantId;
+                    const isState = p.id === "staat";
+
+                    // ─────────────────────────────
+                    // STAAT & SOZIALKASSEN – NICHT KLICKBAR
+                    // ─────────────────────────────
+                    if (isState) {
+                      return (
+                        <div
+                          key={p.id}
+                          className="w-full rounded-lg px-3 py-2.5 text-[12px] flex items-center gap-3 border bg-slate-500/80 border-slate-400 text-white shadow-sm"
+                        >
+                          {/* Avatar */}
+                          <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white">
+                            {p.icon}
+                          </div>
+
+                          {/* Text */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[14px] font-semibold truncate">
+                              {p.label}
+                            </p>
+                            <p className="text-[11px] truncate text-slate-200">
+                              {p.description}
+                            </p>
+                          </div>
+
+                          {/* Betrag */}
+                          {p.value && (
+                            <span className="text-[14px] font-semibold tabular-nums text-white">
+                              {p.value}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    // ─────────────────────────────
+                    // NORMALE, KLICKBARER TABS
+                    // ─────────────────────────────
                     return (
                       <button
                         key={p.id}
@@ -255,22 +312,21 @@ export default function RechnungDetailPage({
                             : "bg-white text-slate-900 border-slate-200 hover:bg-slate-50",
                         ].join(" ")}
                       >
+                        {/* Avatar */}
                         <div
                           className={[
-                            "inline-flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold shrink-0",
-                            active
-                              ? "bg-white/10 text-white"
-                              : "bg-slate-900 text-white",
+                            "inline-flex h-8 w-8 items-center justify-center rounded-full shrink-0",
+                            active ? "bg-white/10 text-white" : "bg-slate-900 text-white",
                           ].join(" ")}
-                          title={p.label}
                         >
-                          {p.avatar}
+                          {p.icon}
                         </div>
 
-                        <div className="space-y-0.5">
+                        {/* Text */}
+                        <div className="flex-1 min-w-0">
                           <p
                             className={[
-                              "font-medium",
+                              "text-[14px] font-semibold truncate",
                               active ? "text-white" : "text-slate-900",
                             ].join(" ")}
                           >
@@ -278,13 +334,25 @@ export default function RechnungDetailPage({
                           </p>
                           <p
                             className={[
-                              "text-[11px]",
+                              "text-[11px] truncate",
                               active ? "text-slate-200" : "text-slate-500",
                             ].join(" ")}
                           >
-                            {p.role}
+                            {p.description}
                           </p>
                         </div>
+
+                        {/* Betrag */}
+                        {p.value && (
+                          <span
+                            className={[
+                              "text-[14px] font-semibold tabular-nums",
+                              active ? "text-white" : "text-slate-900",
+                            ].join(" ")}
+                          >
+                            {p.value}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -382,187 +450,97 @@ export default function RechnungDetailPage({
                 </div>
               </section>
             )}
-            {/* Verantwortung & Gewinn – Ist-Zustand */}
-            {activeParticipant.id === "wohnenwo" && (
-              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-4 shadow-sm">
 
-                {/* Header – neutral */}
-                <header className="space-y-0.5">
-                  <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
-                    Verantwortung
-                  </p>
-                  <p className="text-[13px] font-semibold text-slate-900">
-                    Wie sich der Arbeitswert dieses Auftrags verteilt
-                  </p>
-                </header>
+{activeParticipant.id === "grohe" && (
+  <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-5 shadow-sm">
 
-                {/* VERBUNDENER BLOCK */}
-                <div className="overflow-hidden rounded-xl border border-slate-200">
+    {/* HEADER */}
+    <header className="space-y-0.5">
+      <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+        Materialherkunft &amp; Wertstrom
+      </p>
+      <p className="text-[13px] font-semibold text-slate-900">
+        Hier wurde Ihr neuer Geruchsverschluss gekauft
+      </p>
+    </header>
 
-                  {/* Arbeitswert-Badge (oben, dominant) */}
-                  <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
-                        <Layers className="h-3.5 w-3.5 text-white" />
-                      </div>
-                      <span className="text-[14px] font-semibold text-slate-100">
-                        Arbeitswert (brutto)
-                      </span>
-                    </div>
-                    <span className="text-[14px] font-semibold">
-                      41,89 €
-                    </span>
-                  </div>
+    {/* ───────────── EINKAUF ───────────── */}
+    <div className="overflow-hidden rounded-xl border border-slate-200">
+      <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
+            <ShoppingCart className="h-4 w-4" />
+          </div>
+          <span className="text-[14px] font-semibold">
+            Einkauf · Amazon
+          </span>
+        </div>
+        <span className="text-[14px] font-semibold">
+          15,22 €
+        </span>
+      </div>
 
-                  {/* Aufschlüsselung – ANGEKOPPELT */}
-                  <div className="bg-slate-50 px-3 py-3 space-y-1 text-[12px] text-slate-600">
-                    <Row label="Arbeitnehmer:in · Netto" value="7,92 €" />
-                    <Row
-                      label="Unternehmerische Struktur · Netto"
-                      value="8,77 €"
-                    />
-                    <Row
-                      label="Wirkungsfonds"
-                      value="11,73 €"
-                    />
-                    <Row
-                      label="Staat & Sozialkassen"
-                      value="14,02 €"
-                    />
-                  </div>
-                </div>
+      <div className="bg-slate-50 px-3 py-3 space-y-1 text-[12px] text-slate-600">
+        <Row label="enthaltene Umsatzsteuer" value="2,43 €" />
+        <Row label="Netto-Einkaufswert (Grohe)" value="12,79 €" />
+      </div>
+    </div>
 
-                {/* Kurz-Hinweis */}
-                <p className="pt-2 text-[11px] leading-snug text-slate-500 border-t border-slate-100">
-                  Die dargestellten Anteile basieren auf prozentualen Schätzungen.
-                  In Einzelfällen können geringfügige Abweichungen auftreten.
-                  Verbindliche Werte ergeben sich erst mit Abschluss des Kalenderjahres.
-                </p>
+    {/* ───────────── MATERIALAUFSCHLAG · DIENSTLEISTER ───────────── */}
+    <div className="overflow-hidden rounded-xl border border-slate-200">
+  <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
+    <div className="flex items-center gap-2">
+      <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
+        <Briefcase className="h-4 w-4" />
+      </div>
+      <span className="text-[14px] font-semibold">
+        Materialaufschlag
+      </span>
+    </div>
+    <span className="text-[14px] font-semibold">
+      6,40 €
+    </span>
+  </div>
 
-              </section>
-            )}
-            {activeParticipant.id === "wohnenwo" && (
-              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm">
-
-                {/* Header */}
-                <header className="space-y-0.5">
-                  <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
-                    Materialkosten
-                  </p>
-                  <p className="text-[13px] font-semibold text-slate-900">
-                    Wie sich der Materialpreis zusammensetzt
-                  </p>
-                </header>
-
-                {/* Tabelle */}
-                <table className="w-full border-collapse text-[11px]">
-                  <tbody className="divide-y divide-slate-200">
-                    <tr>
-                      <td className="py-1.5 text-slate-600">
-                        Materialpreis für Sie (brutto)
-                      </td>
-                      <td className="py-1.5 text-right font-medium text-slate-900">
-                        102,33 €
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="py-1.5 text-slate-600">
-                        enthaltene Umsatzsteuer (19 %)
-                      </td>
-                      <td className="py-1.5 text-right">
-                        − 16,34 €
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="py-1.5 text-slate-600">
-                        Materialwert netto
-                      </td>
-                      <td className="py-1.5 text-right font-medium">
-                        85,99 €
-                      </td>
-                    </tr>
-
-                    <tr>
-                      <td className="py-1.5 text-slate-600">
-                        Einkaufspreis netto (Händler)
-                      </td>
-                      <td className="py-1.5 text-right">
-                        − 57,32 €
-                      </td>
-                    </tr>
-
-                    <tr className="border-t border-slate-300">
-                      <td className="text-[14px] py-2 font-semibold text-slate-800">
-                        Kalkulierter Materialanteil
-                      </td>
-                      <td className="text-[14px] py-2 text-right font-semibold text-slate-900">
-                        28,67 €
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-            )}
+  <div className="bg-slate-50 px-3 py-3 space-y-1 text-[12px] text-slate-600">
+    <Row label="Arbeitnehmer:in · Netto" value="≈ 1,69 €" />
+    <Row label="Unternehmerische Struktur · Netto" value="≈ 1,60 €" />
+    <Row label="Wirkungsfonds" value="2,13 €" />
+    <Row label="Staat & Sozialkassen" value="≈ 0,97 €" />
+  </div>
+</div>
 
 
-            {activeParticipant.id === "grohe" && (
-              <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-4 shadow-sm">
-                <header className="space-y-1">
-                  <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
-                    Materialherkunft · Grohe
-                  </p>
-                  <p className="text-[13px] font-semibold text-slate-900">
-                    Hier wurde Ihr neuer Geruchsverschluss gekauft
-                  </p>
-                </header>
+    {/* ───────────── STAAT & SOZIALKASSEN ───────────── */}
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+      <div className="px-3 py-2 flex items-center justify-between text-slate-700">
+        <div className="flex items-center gap-2">
+          <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-300">
+            <Scale className="h-4 w-4" />
+          </div>
+          <span className="text-[14px] font-semibold">
+            Staat &amp; Sozialkassen
+          </span>
+        </div>
+        <span className="text-[14px] font-semibold">
+          ≈ 7,87 €
+        </span>
+      </div>
 
-                <table className="w-full border-collapse text-[11px]">
-                  <tbody className="divide-y divide-slate-200">
-                    <tr>
-                      <td className="py-1.5 text-slate-600">Händler</td>
-                      <td className="py-1.5 text-right font-medium text-slate-900">
-                        Amazon EU
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="py-1.5 text-slate-600">Einkaufspreis (brutto)</td>
-                      <td className="py-1.5 text-right">15,22 €</td>
-                    </tr>
-                    <tr>
-                      <td className="py-1.5 text-slate-600">Enthaltene MwSt.</td>
-                      <td className="py-1.5 text-right">2,43 €</td>
-                    </tr>
-                    <tr>
-                      <td className="py-1.5 text-slate-600">Netto-Warenwert</td>
-                      <td className="py-1.5 text-right font-medium">12,79 €</td>
-                    </tr>
-                    <tr>
-                      <td className="py-1.5 text-slate-600">Kalkulation (÷ 0,6666)</td>
-                      <td className="py-1.5 text-right">19,19 €</td>
-                    </tr>
-                    <tr>
-                      <td className="py-1.5 text-slate-600">Umsatzsteuer (19 %)</td>
-                      <td className="py-1.5 text-right">3,65 €</td>
-                    </tr>
-                    <tr className="border-t border-slate-300">
-                      <td className="py-2 font-medium text-slate-800">
-                        Materialpreis für Sie
-                      </td>
-                      <td className="py-2 text-right font-semibold text-slate-900">
-                        22,84 € brutto
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+      <div className="px-3 py-3 space-y-1 text-[12px] text-slate-600">
+        <Row label="Umsatzsteuer (Endkunde)" value="3,65 €" />
+        <Row label="Abgaben aus Produktion & Handel (≈ 33 %)" value="≈ 4,22 €" />
+      </div>
+    </div>
 
-                <p className="pt-2 mt-1 border-t border-slate-100 text-[11px] leading-snug text-slate-500">
-                  Die beim Einkauf gezahlte Vorsteuer wird steuerlich verrechnet.
-                  Sichtbar ist hier ausschließlich der reale Wertstrom dieses Bauteils.
-                </p>
-              </section>
-            )}
+    {/* HINWEIS */}
+    <p className="pt-2 text-[11px] leading-snug text-slate-500 border-t border-slate-100">
+      Geschätzte Anteile basieren auf branchenüblichen Näherungen.
+      Hersteller- und lieferkettenabhängige Abweichungen sind möglich.
+    </p>
+  </section>
+)}
+
             {activeParticipant.id === "hansgrohe" && (
               <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-4 shadow-sm">
                 <header className="space-y-1">
@@ -648,7 +626,7 @@ export default function RechnungDetailPage({
                     Verantwortung &amp; Gewinn
                   </p>
                   <p className="text-[13px] font-semibold text-slate-900">
-                    Wie sich der Arbeitswert dieses Auftrags verteilt
+                    Wie sich der Arbeitswert zusammensetzt
                   </p>
                 </header>
 
@@ -691,24 +669,25 @@ export default function RechnungDetailPage({
                 {/* Gewinnverteilung – Material */}
                 <div className="pt-3 border-t border-slate-200 space-y-3">
 
-                  {/* Überschrift – gleiche Sprachebene */}
+                  {/* Überschrift */}
                   <header className="space-y-0.5">
                     <p className="text-[13px] font-semibold text-slate-900">
-                      Wie sich der Gewinn dieses Auftrags verteilt
+                      Wie sich der Gesamtwert dieses Auftrags verteilt
                     </p>
                   </header>
 
-                  {/* VERBUNDENER BLOCK – identische Gestalt */}
+                  {/* HAUPT-BLOCK – Material / Gesamtgewinn */}
                   <div className="overflow-hidden rounded-xl border border-slate-200">
 
-                    {/* Gewinn-Badge */}
+                    {/* Gewinn-Badge – Fabian / WohnenWo */}
                     <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
-                          <Sparkles className="h-3.5 w-3.5 text-white" />
+                        {/* F-Avatar statt Icon */}
+                        <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10 text-[12px] font-semibold">
+                          F
                         </div>
                         <span className="text-[14px] font-semibold text-slate-100">
-                          Material-/Gewinnanteil
+                          Material- &amp; Gewinnanteil
                         </span>
                       </div>
                       <span className="text-[14px] font-semibold">
@@ -716,7 +695,7 @@ export default function RechnungDetailPage({
                       </span>
                     </div>
 
-                    {/* Tabelle – identisch zur Arbeitswert-Tabelle */}
+                    {/* Tabelle */}
                     <div className="bg-slate-50 px-3 py-3 space-y-1 text-[12px] text-slate-600">
                       <Row label="Dienstleistung · Anteil" value="9,56 €" />
                       <Row
@@ -730,11 +709,46 @@ export default function RechnungDetailPage({
                     </div>
                   </div>
 
-                  {/* Kurz-Hinweis */}
+                  {/* SEKUNDÄRE BADGES – Hersteller */}
+                  <div className="grid grid-cols-1 gap-2">
+
+                    {/* Hansgrohe */}
+                    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-100 px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <div className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-300 text-[10px] font-semibold text-slate-700">
+                          HG
+                        </div>
+                        <span className="text-[12px] font-medium text-slate-700">
+                          Hansgrohe · Gewinnanteil
+                        </span>
+                      </div>
+                      <span className="text-[12px] font-semibold text-slate-800">
+                        44,53 €
+                      </span>
+                    </div>
+
+                    {/* Grohe */}
+                    <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-100 px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <div className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-slate-300 text-[10px] font-semibold text-slate-700">
+                          GR
+                        </div>
+                        <span className="text-[12px] font-medium text-slate-700">
+                          Grohe · Gewinnanteil
+                        </span>
+                      </div>
+                      <span className="text-[12px] font-semibold text-slate-800">
+                        12,79 €
+                      </span>
+                    </div>
+
+                  </div>
+
+                  {/* Hinweis */}
                   <p className="pt-2 text-[11px] leading-snug text-slate-500 border-t border-slate-100">
                     Die dargestellten Anteile basieren auf prozentualen Schätzungen.
-                    In Einzelfällen können geringfügige Abweichungen auftreten.
-                    Verbindliche Werte ergeben sich erst mit Abschluss des Kalenderjahres.
+                    Geringfügige Abweichungen sind möglich und werden erst mit
+                    Abschluss des Kalenderjahres exakt bestimmt.
                   </p>
                 </div>
               </section>

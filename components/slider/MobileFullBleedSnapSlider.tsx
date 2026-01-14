@@ -20,9 +20,17 @@ const BTN_CLS =
 const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
   function MobileFullBleedSnapSlider({ children, scrollerPaddingX = 16 }, ref) {
     const items = React.Children.toArray(children);
+
     const wrapperRef = React.useRef<HTMLDivElement | null>(null);
     const scrollerRef = React.useRef<HTMLDivElement | null>(null);
+
     const [index, setIndex] = React.useState(0);
+
+    // NEW: robust nav state (fixes "extra click until disabled")
+    const [canScroll, setCanScroll] = React.useState(true);
+    const [atStart, setAtStart] = React.useState(true);
+    const [atEnd, setAtEnd] = React.useState(false);
+
     const isProgrammaticRef = React.useRef(false);
     const animTimerRef = React.useRef<number | null>(null);
 
@@ -32,15 +40,12 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
       if (!el) return;
 
       const applySidePad = () => {
-        // echte Full-bleed Berechnung erst im Browser
         const calcExpr = `calc((100vw - min(100vw, 72rem)) / 2 + ${scrollerPaddingX}px)`;
         el.style.setProperty("--side-pad", calcExpr);
       };
 
-      // initial setzen
       applySidePad();
 
-      // bei Resize aktualisieren (rAF entlastet Layout)
       let raf = 0;
       const onResize = () => {
         cancelAnimationFrame(raf);
@@ -62,22 +67,52 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
       return Number.isFinite(pad) ? pad : 0;
     }, []);
 
-    // Index-Erkennung beim nativen Scrollen
+    // NEW: measure edges + whether we can scroll (tolerance for subpixels)
+    const measure = React.useCallback(() => {
+      const s = scrollerRef.current;
+      if (!s) return;
+
+      const max = Math.max(0, s.scrollWidth - s.clientWidth);
+      const x = s.scrollLeft;
+
+      // if content doesn't exceed viewport, treat as static
+      const can = max > 2;
+      setCanScroll(can);
+
+      // tolerance avoids "one extra click" due to rounding/paddingRight
+      setAtStart(x <= 2);
+      setAtEnd(x >= max - 2);
+
+      // clamp stale index if items change
+      if (items.length === 0) {
+        setIndex(0);
+      } else if (index > items.length - 1) {
+        setIndex(items.length - 1);
+      }
+    }, [index, items.length]);
+
+    // Index-Erkennung beim nativen Scrollen (edges IMMER messen)
     React.useEffect(() => {
       const s = scrollerRef.current;
       if (!s) return;
 
       const onScroll = () => {
+        // ALWAYS update edge state (even for programmatic scroll)
+        measure();
+
+        // only compute nearest index for user-driven scrolling
         if (isProgrammaticRef.current) return;
+
         const kids = Array.from(s.children) as HTMLElement[];
         if (!kids.length) return;
+
         const padL = getPadLeft();
         const sl = s.scrollLeft;
+
         let nearest = 0;
         let min = Infinity;
         for (let i = 0; i < kids.length; i++) {
           const k = kids[i];
-          // TS-sicher
           const target = Math.max(0, (k?.offsetLeft ?? 0) - padL);
           const d = Math.abs(target - sl);
           if (d < min) {
@@ -89,57 +124,94 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
       };
 
       s.addEventListener("scroll", onScroll, { passive: true });
+      // initial
       onScroll();
+
       return () => s.removeEventListener("scroll", onScroll);
-    }, [getPadLeft]);
+    }, [getPadLeft, measure]);
 
-    React.useEffect(() => () => {
-      if (animTimerRef.current) window.clearTimeout(animTimerRef.current);
-    }, []);
+    // NEW: keep canScroll/edges correct when layout or images load (ResizeObserver)
+    React.useEffect(() => {
+      const s = scrollerRef.current;
+      if (!s) return;
 
-    // Programmatisches Scrollen (Padding berücksichtigen) – verhindert "Skippen"
+      const ro = new ResizeObserver(() => {
+        // rAF avoids layout thrash
+        requestAnimationFrame(() => measure());
+      });
+      ro.observe(s);
+
+      // also observe wrapper (full-bleed layout changes)
+      if (wrapperRef.current) ro.observe(wrapperRef.current);
+
+      // run once after mount
+      measure();
+
+      return () => ro.disconnect();
+    }, [measure]);
+
+    React.useEffect(
+      () => () => {
+        if (animTimerRef.current) window.clearTimeout(animTimerRef.current);
+      },
+      []
+    );
+
+    // Programmatisches Scrollen (Padding + max clamp berücksichtigen)
     const scrollToIndex = (i: number) => {
       const s = scrollerRef.current;
       if (!s) return;
+
       const kids = Array.from(s.children) as HTMLElement[];
       const k = kids[i];
       if (!k) return;
+
       const padL = getPadLeft();
-      const left = Math.max(0, (k?.offsetLeft ?? 0) - padL);
+      const max = Math.max(0, s.scrollWidth - s.clientWidth);
+
+      const rawLeft = Math.max(0, (k?.offsetLeft ?? 0) - padL);
+      const left = Math.min(max, rawLeft); // IMPORTANT: clamp to max
 
       if (animTimerRef.current) {
         window.clearTimeout(animTimerRef.current);
         animTimerRef.current = null;
       }
+
       isProgrammaticRef.current = true;
       s.scrollTo({ left, behavior: "smooth" });
+
+      // allow snap/scroll settle; edges still update via onScroll (we don't block measure)
       animTimerRef.current = window.setTimeout(() => {
         isProgrammaticRef.current = false;
-      }, 380);
+        // final measure in case scroll event is throttled
+        measure();
+      }, 420);
     };
 
     const next = () => {
+      if (!canScroll) return;
       const i = Math.min(index + 1, items.length - 1);
       scrollToIndex(i);
       setIndex(i);
     };
+
     const prev = () => {
+      if (!canScroll) return;
       const i = Math.max(index - 1, 0);
       scrollToIndex(i);
       setIndex(i);
     };
 
-    React.useImperativeHandle(ref, () => ({ next, prev }), [index, items.length]);
+    React.useImperativeHandle(ref, () => ({ next, prev }), [index, items.length, canScroll]);
 
     return (
       <section className="relative w-full overflow-visible">
-        {/* Full-bleed Wrapper (setzt SSR-stabile Var + wird nach Mount aktualisiert) */}
+        {/* Full-bleed Wrapper */}
         <div
           ref={wrapperRef}
           className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-visible
                      [--slider-gap:16px] md:[--slider-gap:24px]
                      [--y-gap:16px] [--lift:44px]"
-          // SSR-neutraler Startwert – exakt gleich auf Server & Client → keine Hydration-Diffs
           style={{ ["--side-pad" as any]: `${scrollerPaddingX}px` } as React.CSSProperties}
         >
           {/* Scroll-Container: overflow, Snap & Padding */}
@@ -152,8 +224,6 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
             style={
               {
                 gap: "var(--slider-gap)",
-                // Nutzen überall dieselbe CSS-Var (Server & Client identisch),
-                // der echte calc(...) wird NACH Mount in --side-pad geschrieben.
                 paddingLeft: "var(--side-pad)",
                 paddingRight: "var(--side-pad)",
                 scrollPaddingLeft: "var(--side-pad)",
@@ -174,20 +244,34 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation (space stays constant even when slider becomes static) */}
         <div className="max-w-6xl mx-auto px-4 md:px-24 flex items-center gap-2 justify-end mt-[44px] pb-[44px]">
-          <button type="button" aria-label="Zurück" onClick={prev} disabled={index === 0} className={BTN_CLS}>
-            <ChevronLeft className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            aria-label="Weiter"
-            onClick={next}
-            disabled={index === items.length - 1}
-            className={BTN_CLS}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </button>
+          {canScroll ? (
+            <>
+              <button
+                type="button"
+                aria-label="Zurück"
+                onClick={prev}
+                disabled={atStart}
+                className={BTN_CLS}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+
+              <button
+                type="button"
+                aria-label="Weiter"
+                onClick={next}
+                disabled={atEnd}
+                className={BTN_CLS}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </>
+          ) : (
+            // Placeholder: keeps vertical height identical (prevents next section "jump")
+            <div aria-hidden className="h-10 w-[84px]" />
+          )}
         </div>
       </section>
     );

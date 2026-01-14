@@ -159,7 +159,7 @@ export default function Sektor02_FeatureSlider() {
 
   return (
     <section className="relative">
-      <div className="mx-auto max-w-6xl px-4 pt-[56px] md:pt-[88px]">
+      <div className="mx-auto max-w-6xl px-6 pt-[56px] md:pt-[88px]">
         {/* Titel wie Apple: kein Eyebrow darüber */}
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <h2 className="font-semibold tracking-tight text-slate-900 leading-[1.04] text-[clamp(28px,4.4vw,52px)]">
@@ -179,19 +179,14 @@ export default function Sektor02_FeatureSlider() {
           </a>
         </div>
 
-        <div className="h-6 md:h-10" />
+        <div className="h-3 md:h-5" />
 
         {/* Card sizes (Apple-nah, klarer Scale) */}
         <div
-          className="sm:[--card-w:420px] sm:[--card-h:520px] lg:[--card-w:520px] lg:[--card-h:560px]"
-          style={
-            {
-              ["--card-w" as any]: "355px",
-              ["--card-h" as any]: "699px",
-            } as React.CSSProperties
-          }
+          className="[--card-w:277px] [--card-h:505px] sm:[--card-w:350px] sm:[--card-h:680px] lg:[--card-w:350px] lg:[--card-h:680px]"
         >
-          <MobileFullBleedSnapSlider ref={sliderRef} scrollerPaddingX={16}>
+
+          <MobileFullBleedSnapSlider ref={sliderRef} scrollerPaddingX={24}>
             {FEATURE_HIGHLIGHTS.map((item) => (
               <FeatureCard key={item.id} {...item} />
             ))}

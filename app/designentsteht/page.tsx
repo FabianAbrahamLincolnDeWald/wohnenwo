@@ -4,6 +4,7 @@ import * as React from "react";
 import WohnenWoDesignEntstehtNavBar from "@/components/navigation/WohnenWoDesignEntstehtNavBar";
 import HeroBackgroundFullBleedKuechen from "@/components/sektionen/HeroBackgroundFullBleed/Kuechen";
 import GlassPanel from "@/components/sektionen/GlassPanel";
+import Sektor02_FeatureSlider from "@/components/sektionen/landing/sections/Sektor02_FeatureSlider";
 
 function DottedGridBackground() {
   return (
@@ -40,6 +41,7 @@ export default function KuechenPage() {
 
       {/* 2. Apple-Style Glass-Panel */}
       <GlassPanel />
+      <Sektor02_FeatureSlider />
     </main>
   );
 }

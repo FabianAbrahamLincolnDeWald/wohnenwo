@@ -19,9 +19,10 @@ function StoryTile(item: DesignDifferenceStory) {
     ? "bg-[#1d1d1f] text-white border-white/10"
     : "bg-[#f5f5f7] text-slate-900 border-black/10";
 
-  // Apple-ish: Statement groß, CTA kleiner
   const headlineCls = isDark ? "text-white" : "text-slate-900";
-  const ctaCls = isDark ? "text-white/90 hover:text-white" : "text-slate-900 hover:text-slate-950";
+  const ctaCls = isDark
+    ? "text-white/90 hover:text-white"
+    : "text-slate-900 hover:text-slate-950";
 
   return (
     <div
@@ -56,30 +57,33 @@ function StoryTile(item: DesignDifferenceStory) {
               className={[
                 "h-full w-full object-cover",
                 "transition-transform duration-700 ease-out group-hover:scale-[1.02]",
-                isDark ? "opacity-85" : "opacity-95",
+                isDark ? "opacity-95" : "opacity-100",
               ].join(" ")}
               loading="lazy"
             />
 
-            {/* Bottom scrim (Apple: gradient von unten für Lesbarkeit) */}
+            {/* Scrim (Apple-like): Bottom Scrim, klar sichtbar */}
             <div
               className={[
-                "absolute inset-0",
+                "pointer-events-none absolute inset-x-0 bottom-0",
+                "h-[70%]",
                 item.withScrim
-                  ? "bg-gradient-to-t from-black/70 via-black/20 to-black/0"
-                  : "bg-gradient-to-t from-black/55 via-black/10 to-black/0",
+                  ? "bg-gradient-to-t from-black/90 via-black/30 to-transparent"
+                  : "bg-gradient-to-t from-black/82 via-black/22 to-transparent",
               ].join(" ")}
             />
+
+            {/* optional: leichte Vignette */}
+            <div className="pointer-events-none absolute inset-0 bg-black/5" />
           </div>
 
-          {/* Content: unten, wie Apple vertical-align-bottom */}
+          {/* Content: unten wie Apple */}
           <div className="relative z-10 flex h-full flex-col justify-end p-8">
-            <div className="max-w-[34ch]">
+            <div className="max-w-[36ch]">
               <p
                 className={[
-                  // Apple: typography-stories-headline (Statement-Paragraph)
                   "font-semibold tracking-tight",
-                  "text-[22px] leading-[1.08] sm:text-[24px] sm:leading-[1.08]",
+                  "text-[22px] leading-[1.1] sm:text-[24px] sm:leading-[1.1]",
                   headlineCls,
                 ].join(" ")}
               >
@@ -91,12 +95,16 @@ function StoryTile(item: DesignDifferenceStory) {
                   className={[
                     "inline-flex items-center gap-2",
                     "text-[17px] font-medium tracking-tight",
+                    "group-hover:underline underline-offset-4 decoration-current/40",
                     ctaCls,
                   ].join(" ")}
                 >
                   {item.cta.label}
                   {item.cta.external ? (
-                    <ExternalLink className="h-4 w-4 opacity-90" aria-hidden="true" />
+                    <ExternalLink
+                      className="h-4 w-4 opacity-90"
+                      aria-hidden="true"
+                    />
                   ) : (
                     <ArrowRight className="h-4 w-4 opacity-90" aria-hidden="true" />
                   )}
@@ -105,7 +113,7 @@ function StoryTile(item: DesignDifferenceStory) {
             </div>
           </div>
 
-          {/* Soft hover shadow */}
+          {/* Hover/Border + Shadow */}
           <div
             className={[
               "pointer-events-none absolute inset-0 rounded-[28px]",
@@ -125,24 +133,30 @@ export default function Sektor04_DesignDifferenceSection() {
 
   return (
     <section className="relative bg-[#f5f5f7]">
-      <div className="mx-auto max-w-6xl px-4 pt-[56px] md:pt-[88px] pb-[88px] md:pb-[132px]">
-        <h2 className="font-semibold tracking-tight text-slate-900 leading-[1.04] text-[clamp(28px,4.4vw,52px)]">
+      <div className="mx-auto max-w-6xl px-6 pt-[56px] md:pt-[88px] pb-[88px] md:pb-[132px]">
+        <h2 className="font-semibold tracking-tight text-slate-900 leading-[1.04] text-[clamp(28px,4.8vw,56px)]">
           Erlebe, wie barriere­freies Design den Unter­schied macht.
         </h2>
 
-        <div className="h-6 md:h-10" />
+        <div className="h-3 md:h-5" />
 
-        {/* Gleichmäßige Tile-Größe, slider-kompatibel wie Sektor 2 */}
+        {/* Mobile: card-w berechnet für symmetrischen Peek
+            Desktop (lg+): deine Wunschgröße 1111px
+        */}
         <div
-          className="sm:[--card-w:372px] sm:[--card-h:712px] lg:[--card-w:372px] lg:[--card-h:712px]"
-          style={
-            {
-              ["--card-w" as any]: "1111px",
-              ["--card-h" as any]: "699px",
-            } as React.CSSProperties
-          }
+          className="
+            [--peek:24px]
+            [--card-w:min(372px,calc(100vw-2*var(--peek)))]
+            [--card-h:555px]
+            lg:[--card-w:1111px]
+            lg:[--card-h:699px]
+          "
         >
-          <MobileFullBleedSnapSlider ref={sliderRef} scrollerPaddingX={16}>
+          <MobileFullBleedSnapSlider
+            ref={sliderRef}
+            scrollerPaddingX={24}
+            align="centerMobileStartDesktop"
+          >
             {DESIGN_DIFFERENCE_STORIES.map((item) => (
               <StoryTile key={item.id} {...item} />
             ))}

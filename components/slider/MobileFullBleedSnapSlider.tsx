@@ -18,10 +18,15 @@ type SliderProps = {
 };
 
 const BTN_CLS =
-  "h-10 w-10 rounded-full border border-slate-300 flex items-center justify-center " +
-  "bg-white/80 backdrop-blur hover:bg-white hover:shadow-md hover:border-slate-300 " +
-  "active:scale-[0.98] disabled:opacity-35 disabled:cursor-default " +
-  "transition duration-200 ease-[cubic-bezier(.2,.8,.2,1)] cursor-pointer";
+  "h-10 w-10 rounded-full border flex items-center justify-center " +
+  "backdrop-blur active:scale-[0.98] disabled:opacity-35 disabled:cursor-default " +
+  "transition duration-200 ease-[cubic-bezier(.2,.8,.2,1)] cursor-pointer " +
+  // Light
+  "border-slate-300 bg-white/80 hover:bg-white hover:shadow-md hover:border-slate-300 " +
+  // Dark (Apple-like)
+  "dark:border-white/15 dark:bg-white/10 dark:hover:bg-white/14 dark:hover:border-white/25 dark:hover:shadow-[0_10px_30px_rgba(0,0,0,0.45)] " +
+  // Icon color
+  "text-slate-900 dark:text-white";
 
 const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
   function MobileFullBleedSnapSlider(
@@ -212,12 +217,14 @@ const MobileFullBleedSnapSlider = React.forwardRef<SliderHandle, SliderProps>(
       setIndex(i);
     };
 
-    React.useImperativeHandle(ref, () => ({ next, prev }), [index, items.length, canScroll]);
+    React.useImperativeHandle(ref, () => ({ next, prev }), [
+      index,
+      items.length,
+      canScroll,
+    ]);
 
     const itemSnapClass =
-      align === "centerMobileStartDesktop"
-        ? "snap-center lg:snap-start"
-        : "snap-start";
+      align === "centerMobileStartDesktop" ? "snap-center lg:snap-start" : "snap-start";
 
     return (
       <section className="relative w-full overflow-visible">

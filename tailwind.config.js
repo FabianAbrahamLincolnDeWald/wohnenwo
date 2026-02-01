@@ -6,16 +6,14 @@ export default {
     extend: {
       colors: {
         brand: {
-          yellow: '#facc15', // Tailwind yellow-400
+          yellow: "#facc15", // Tailwind yellow-400
         },
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
       },
     },
   },
   plugins: [],
-  safelist: [
-    "rounded-t-[var(--img-radius)]", // für steuerbaren Bildradius in Overlays
-  ],
+  safelist: ["rounded-t-[var(--img-radius)]"],
 };

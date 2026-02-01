@@ -86,10 +86,31 @@ export default function CloseDock({
       type="button"
       aria-label="Overlay schließen"
       onClick={onClose}
-      className="group inline-flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 text-white shadow-md ring-1 ring-white/10 hover:bg-slate-800 hover:shadow-lg hover:ring-white/30 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white transition-transform transition-colors transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none motion-reduce:transform-none cursor-pointer select-none touch-manipulation"
+      className="
+    group inline-flex h-11 w-11 items-center justify-center rounded-full
+    bg-slate-900 text-white
+    dark:bg-white dark:text-slate-900
+
+    shadow-md ring-1 ring-white/10
+    dark:ring-black/10
+
+    hover:bg-slate-800 hover:shadow-lg hover:ring-white/30
+    dark:hover:bg-white/90 dark:hover:ring-black/20
+
+    active:scale-[0.98]
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400
+    focus-visible:ring-offset-2 focus-visible:ring-offset-white
+    dark:focus-visible:ring-offset-black
+
+    transition-transform transition-colors transition-shadow duration-200
+    ease-[cubic-bezier(.2,.8,.2,1)]
+    motion-reduce:transition-none motion-reduce:transform-none
+    cursor-pointer select-none touch-manipulation
+  "
     >
       <X className="h-5 w-5" />
     </button>
+
   );
 
   return (

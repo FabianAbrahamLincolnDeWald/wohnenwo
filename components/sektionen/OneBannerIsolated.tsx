@@ -252,7 +252,7 @@ function TransparencyCalculatorIsolated() {
 
   const agSozialPct = 21.5;
   const urlaubKrankPct = 10.3;
-  const anSozialPct = 20.5;
+  const anSozialPct = 21.5;
   const steuerSchaetzungPct = 12;
   const overheadPct = 22;
   const travelPrepCoordPct = 8;

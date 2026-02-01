@@ -1,3 +1,4 @@
+// /components/overlay/OverlayModal.tsx
 "use client";
 
 import * as React from "react";
@@ -53,7 +54,8 @@ export default function OverlayModal({
   React.useEffect(() => {
     setMounted(true);
     // 2× rAF → Browser lässt erste Styles/Fonts „setzen“, dann weich einblenden
-    let raf1 = 0, raf2 = 0;
+    let raf1 = 0,
+      raf2 = 0;
     raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => setHydrationReady(true));
     });
@@ -90,11 +92,15 @@ export default function OverlayModal({
       contentRef.current ??
       undefined;
 
-    try { focusTarget?.focus(); } catch {}
+    try {
+      focusTarget?.focus();
+    } catch {}
 
     return () => {
       document.body.style.overflow = originalOverflow;
-      try { previouslyFocused.current?.focus?.(); } catch {}
+      try {
+        previouslyFocused.current?.focus?.();
+      } catch {}
     };
   }, [open]);
 
@@ -102,7 +108,10 @@ export default function OverlayModal({
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { e.preventDefault(); onClose(); }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onClose();
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -116,21 +125,30 @@ export default function OverlayModal({
   // Fokus-Trap
   const onKeyDownTrap = (e: React.KeyboardEvent) => {
     if (e.key !== "Tab") return;
-    const root = contentRef.current; if (!root) return;
+    const root = contentRef.current;
+    if (!root) return;
     const focusables = Array.from(
       root.querySelectorAll<HTMLElement>(
         'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'
       )
-    ).filter((el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden"));
+    ).filter(
+      (el) => !el.hasAttribute("disabled") && !el.getAttribute("aria-hidden")
+    );
     if (focusables.length < 2) return;
 
     const first = focusables[0]!;
     const last = focusables[focusables.length - 1]!;
 
     if (e.shiftKey) {
-      if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+      if (document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      }
     } else {
-      if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+      if (document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
   };
 
@@ -155,7 +173,9 @@ export default function OverlayModal({
   // Scroll-Reset bei Open (zweifach rAF)
   React.useEffect(() => {
     const overlay = overlayRef.current;
-    const dialog = contentRef.current as unknown as { scrollTop?: number } | null;
+    const dialog = contentRef.current as unknown as {
+      scrollTop?: number;
+    } | null;
 
     const reset = () => {
       requestAnimationFrame(() => {
@@ -192,6 +212,10 @@ export default function OverlayModal({
   // Sichtbarkeit: während der allerersten Hydration kurz „versteckt“, danach weich eingeblendet
   const visibleNow = open && hydrationReady;
 
+  // ✅ Default Sheet Surface: Light bleibt weiß, Dark wird Apple-like dunkel
+  const sheetDefaultSurface =
+    "bg-white text-slate-900 dark:bg-[#1d1d1f] dark:text-white";
+
   return createPortal(
     <div
       className={[
@@ -207,7 +231,8 @@ export default function OverlayModal({
         ref={overlayRef}
         onMouseDown={onOverlayMouseDown}
         className={[
-          "absolute inset-0 bg-black/40",
+          // ✅ Backdrop: im Dark etwas kräftiger
+          "absolute inset-0 bg-black/40 dark:bg-black/60",
           "supports-[backdrop-filter]:backdrop-blur-[2px] md:supports-[backdrop-filter]:backdrop-blur-md",
           "backdrop-saturate-150 flex items-start md:items-start justify-center",
           "overflow-y-auto p-0 pt-[var(--overlay-top-gap,16px)] sm:pt-[var(--overlay-top-gap-sm,24px)] md:py-12",
@@ -228,24 +253,21 @@ export default function OverlayModal({
           className={[
             "relative mx-0 my-0 w-screen md:w-[min(96vw,680px)]",
             "rounded-t-3xl rounded-b-none md:rounded-3xl",
-            // Schatten & Rahmen bleiben fest
-            "shadow-xl ring-1 ring-black/5 md:shadow-2xl",
+            // Schatten & Rahmen bleiben fest (Dark bekommt heller Ring)
+            "shadow-xl ring-1 ring-black/5 md:shadow-2xl dark:ring-white/10",
             "min-h-[calc(100vh-var(--overlay-top-gap,16px))] sm:min-h-[calc(100vh-var(--overlay-top-gap-sm,24px))]",
             "pb-[env(safe-area-inset-bottom)]",
             "overflow-visible md:overflow-hidden",
             "transition-transform transition-shadow duration-200 ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none",
             "transform-gpu will-change-transform",
-            // HINTERGRUND KOMMT JETZT AUS contentClassName – oder default weiß
-            contentClassName ?? "bg-white md:bg-white",
+            // ✅ Hintergrund/Text: Light bleibt exakt, Dark schaltet um
+            contentClassName ?? sheetDefaultSurface,
           ].join(" ")}
         >
           <CloseDock
             sheetRef={contentRef as unknown as React.RefObject<HTMLElement>}
             active={open}
             onClose={onClose}
-            /* WICHTIG:
-               Wir reichen KEINE zusätzlichen Props weiter, um TS-Fehler mit älteren CloseDock-Versionen zu vermeiden.
-               Passe rootMargin/threshold direkt in deiner CloseDock.tsx an, falls benötigt. */
           />
 
           <div className="px-6 sm:px-8 md:px-[66px] py-[66px] md:py-[99px] antialiased">
@@ -254,7 +276,7 @@ export default function OverlayModal({
                 {title && (
                   <span
                     id="om-title"
-                    className="block font-semibold text-slate-700 leading-[1.1] text-[17px] md:text-[18px]"
+                    className="block font-semibold leading-[1.1] text-[17px] md:text-[18px] text-slate-700 dark:text-white/75"
                   >
                     {title}
                   </span>
@@ -262,7 +284,7 @@ export default function OverlayModal({
                 {headline && (
                   <span
                     id="om-headline"
-                    className="block font-semibold tracking-tight text-slate-900 leading-[1.05] text-[33px] md:text-[56px]"
+                    className="block font-semibold tracking-tight leading-[1.05] text-[33px] md:text-[56px] text-slate-900 dark:text-white"
                   >
                     {headline}
                   </span>
@@ -271,7 +293,7 @@ export default function OverlayModal({
             )}
 
             {children && (
-              <div className="mt-4 antialiased text-[17px] md:text-[18px] leading-[1.3] md:leading-[1.35] text-slate-700">
+              <div className="mt-4 antialiased text-[17px] md:text-[18px] leading-[1.3] md:leading-[1.35] text-slate-700 dark:text-white/80">
                 {children}
               </div>
             )}

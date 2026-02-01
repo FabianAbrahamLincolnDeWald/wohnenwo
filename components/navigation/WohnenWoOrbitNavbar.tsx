@@ -39,7 +39,7 @@ export default function WohnenWoOrbitNavbar() {
       aria-label="Main site navigation"
     >
       {/* DESKTOP-HEADER (>= md) */}
-      <div className="mx-auto hidden h-14 max-w-6xl items-center gap-4 px-4 md:flex">
+      <div className="mx-auto hidden h-14 max-w-6xl items-center gap-4 px-6 md:flex">
         {/* Left: Ecosystem Flyout */}
         <div className="flex items-center gap-4">
           <div

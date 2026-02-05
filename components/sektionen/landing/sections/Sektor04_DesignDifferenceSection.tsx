@@ -17,12 +17,12 @@ function StoryTile(item: DesignDifferenceStory) {
 
   const tileCls = isDark
     ? "bg-[#1d1d1f] text-white border-white/10"
-    : "bg-[#f5f5f7] text-slate-900 border-black/10";
+    : "bg-[#f5f5f7] text-slate-900 border-black/10 dark:bg-[#1d1d1f] dark:text-white dark:border-white/10";
 
-  const headlineCls = isDark ? "text-white" : "text-slate-900";
+  const headlineCls = isDark ? "text-white" : "text-slate-900 dark:text-white";
   const ctaCls = isDark
     ? "text-white/90 hover:text-white"
-    : "text-slate-900 hover:text-slate-950";
+    : "text-slate-900 hover:text-slate-950 dark:text-white/90 dark:hover:text-white";
 
   return (
     <div
@@ -49,7 +49,7 @@ function StoryTile(item: DesignDifferenceStory) {
             tileCls,
           ].join(" ")}
         >
-          {/* Background media */}
+          {/* Background */}
           <div className="absolute inset-0">
             <img
               src={item.image.src}
@@ -62,22 +62,20 @@ function StoryTile(item: DesignDifferenceStory) {
               loading="lazy"
             />
 
-            {/* Scrim (Apple-like): Bottom Scrim, klar sichtbar */}
             <div
               className={[
-                "pointer-events-none absolute inset-x-0 bottom-0",
-                "h-[70%]",
+                "pointer-events-none absolute inset-x-0 bottom-0 h-[70%]",
                 item.withScrim
                   ? "bg-gradient-to-t from-black/90 via-black/30 to-transparent"
                   : "bg-gradient-to-t from-black/82 via-black/22 to-transparent",
+                "dark:from-black/92 dark:via-black/34",
               ].join(" ")}
             />
 
-            {/* optional: leichte Vignette */}
-            <div className="pointer-events-none absolute inset-0 bg-black/5" />
+            <div className="pointer-events-none absolute inset-0 bg-black/5 dark:bg-black/8" />
           </div>
 
-          {/* Content: unten wie Apple */}
+          {/* Content */}
           <div className="relative z-10 flex h-full flex-col justify-end p-8">
             <div className="max-w-[36ch]">
               <p
@@ -101,10 +99,7 @@ function StoryTile(item: DesignDifferenceStory) {
                 >
                   {item.cta.label}
                   {item.cta.external ? (
-                    <ExternalLink
-                      className="h-4 w-4 opacity-90"
-                      aria-hidden="true"
-                    />
+                    <ExternalLink className="h-4 w-4 opacity-90" aria-hidden="true" />
                   ) : (
                     <ArrowRight className="h-4 w-4 opacity-90" aria-hidden="true" />
                   )}
@@ -113,13 +108,15 @@ function StoryTile(item: DesignDifferenceStory) {
             </div>
           </div>
 
-          {/* Hover/Border + Shadow */}
+          {/* Hover */}
           <div
             className={[
               "pointer-events-none absolute inset-0 rounded-[28px]",
               "transition duration-300",
               "group-hover:shadow-[0_18px_50px_rgba(0,0,0,0.45)]",
-              isDark ? "group-hover:border-white/20" : "group-hover:border-black/20",
+              isDark
+                ? "group-hover:border-white/20"
+                : "group-hover:border-black/20 dark:group-hover:border-white/20",
             ].join(" ")}
           />
         </div>
@@ -132,17 +129,15 @@ export default function Sektor04_DesignDifferenceSection() {
   const sliderRef = React.useRef<SliderHandle>(null);
 
   return (
-    <section className="relative bg-[#f5f5f7]">
+    // ✅ Apple-like: Light bleibt #f5f5f7, Dark wird dunkles Grau (nicht schwarz)
+    <section className="relative bg-[#f5f5f7] dark:bg-[#1d1d1f]">
       <div className="mx-auto max-w-6xl px-6 pt-[56px] md:pt-[88px] pb-[88px] md:pb-[132px]">
-        <h2 className="font-semibold tracking-tight text-slate-900 leading-[1.04] text-[clamp(28px,4.8vw,56px)]">
+        <h2 className="font-semibold tracking-tight text-slate-900 dark:text-white leading-[1.04] text-[clamp(28px,4.8vw,56px)]">
           Erlebe, wie barriere­freies Design den Unter­schied macht.
         </h2>
 
         <div className="h-3 md:h-5" />
 
-        {/* Mobile: card-w berechnet für symmetrischen Peek
-            Desktop (lg+): deine Wunschgröße 1111px
-        */}
         <div
           className="
             [--peek:24px]

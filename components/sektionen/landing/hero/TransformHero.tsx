@@ -1,14 +1,10 @@
+// /components/sektionen/landing/hero/TransformHero.tsx
 "use client";
 
 import * as React from "react";
 import type { ReactNode } from "react";
 import Image from "next/image";
-import {
-  motion,
-  useScroll,
-  useTransform,
-  AnimatePresence,
-} from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 
 /* ---------------- TYPES ---------------- */
 
@@ -47,10 +43,7 @@ const HERO_SRC =
    COMPONENT
 ====================================================== */
 
-export default function TransformHero({
-  title,
-  description,
-}: TransformHeroProps) {
+export default function TransformHero({ title, description }: TransformHeroProps) {
   /* ======================================================
      DESKTOP HERO (Transform / Scroll)
   ====================================================== */
@@ -62,87 +55,100 @@ export default function TransformHero({
     offset: ["start start", "end start"],
   });
 
-  const shrinkProgress = useTransform(
-    scrollYProgress,
-    [0, 0.38],
-    [0, 1],
-    { clamp: true }
-  );
+  const shrinkProgress = useTransform(scrollYProgress, [0, 0.38], [0, 1], {
+    clamp: true,
+  });
 
   const clipTop = useTransform(shrinkProgress, [0, 1], ["0%", "11%"]);
   const clipSide = useTransform(shrinkProgress, [0, 1], ["0%", "8%"]);
   const clipRadius = useTransform(shrinkProgress, [0, 1], ["0px", "44px"]);
 
-  const clipPath = useTransform(
-    [clipTop, clipSide, clipRadius],
-    ([t, s, r]) => `inset(${t} ${s} round ${r})`
-  );
+  const clipPath = useTransform([clipTop, clipSide, clipRadius], ([t, s, r]) => {
+    return `inset(${t} ${s} round ${r})`;
+  });
 
   const dimOpacity = useTransform(shrinkProgress, [0.25, 1], [0, 0.45]);
 
   const titleOpacity = useTransform(shrinkProgress, [0, 0.3], [1, 0]);
-  const descriptionOpacity = useTransform(
-    shrinkProgress,
-    [0.3, 0.65],
-    [0, 1]
-  );
+  const descriptionOpacity = useTransform(shrinkProgress, [0.3, 0.65], [0, 1]);
 
   return (
     <>
       {/* ==================================================
-          MOBILE HERO
+          MOBILE: FULL viewport image + centered title,
+          then centered body copy below with Apple-ish paddings.
       ================================================== */}
-      <section className="block md:hidden relative h-[90vh] -mt-14 bg-black">
-        <Image
-          src={HERO_SRC}
-          alt=""
-          fill
-          priority
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-black/45" />
-        <div className="relative z-10 flex h-full items-center justify-center px-6 text-center">
-          <div className="max-w-md">
-            <h1 className="text-[2.4rem] font-semibold tracking-tight text-white">
+      <section className="block md:hidden -mt-14 bg-white dark:bg-black">
+        {/* Full viewport media */}
+        <div
+          className={[
+            "relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]",
+            // Apple-like: echtes Viewport-Fullscreen
+            "h-[100svh] min-h-[100svh] bg-black overflow-hidden",
+          ].join(" ")}
+        >
+          <Image src={HERO_SRC} alt="" fill priority className="object-cover" />
+
+          {/* readable scrim */}
+          <div className="absolute inset-0 bg-black/35" />
+
+          {/* Centered title */}
+          <div className="absolute inset-0 flex items-center justify-center px-6 text-center">
+            <h1
+              className={[
+                "font-semibold tracking-tight text-white",
+                // sizing: groß, aber nicht zu breit
+                "text-[clamp(34px,9.2vw,48px)] leading-[1.02]",
+                "max-w-[16ch]",
+              ].join(" ")}
+            >
               {title}
             </h1>
-            <p className="mt-6 text-[1.1rem] font-medium leading-snug text-white/90">
-              {description}
-            </p>
           </div>
+        </div>
+
+        {/* Copy BELOW media (centered, smaller, Apple-ish spacing) */}
+        <div className="mx-auto max-w-6xl px-2 pt-50 pb-40 text-center">
+          <p className="mx-auto max-w-[34ch] text-[21px] leading-[1.2] font-medium text-slate-800 dark:text-white/85">
+            {description}
+          </p>
         </div>
       </section>
 
       {/* ==================================================
-          TABLET HERO
+          TABLET: Full viewport-ish image + centered title,
+          then centered copy below.
       ================================================== */}
-      <section className="hidden md:block lg:hidden relative h-screen -mt-14 bg-black">
-        <Image
-          src={HERO_SRC}
-          alt=""
-          fill
-          priority
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-black/35" />
-        <div className="relative z-10 flex h-full items-center justify-center px-10 text-center">
-          <div className="max-w-2xl">
-            <h1 className="text-[3.4rem] font-semibold tracking-tight text-white">
+      <section className="hidden md:block lg:hidden -mt-14 bg-white dark:bg-black">
+        <div
+          className={[
+            "relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw]",
+            "h-[100svh] min-h-[100svh] bg-black overflow-hidden",
+          ].join(" ")}
+        >
+          <Image src={HERO_SRC} alt="" fill priority className="object-cover" />
+          <div className="absolute inset-0 bg-black/30" />
+
+          <div className="absolute inset-0 flex items-center justify-center px-10 text-center">
+            <h1 className="text-white font-semibold tracking-tight text-[clamp(48px,5.6vw,64px)] leading-[1.02] max-w-[18ch]">
               {title}
             </h1>
-            <p className="mt-8 text-[1.35rem] font-medium leading-snug text-white/90">
-              {description}
-            </p>
           </div>
+        </div>
+
+        <div className="mx-auto max-w-6xl px-10 pt-10 pb-14 text-center">
+          <p className="mx-auto max-w-3xl text-[18px] leading-[1.5] font-medium text-slate-800 dark:text-white/85">
+            {description}
+          </p>
         </div>
       </section>
 
       {/* ==================================================
-          DESKTOP HERO
+          DESKTOP HERO (Transform / Scroll) + Darkmode Background
       ================================================== */}
       <section
         ref={ref}
-        className="hidden lg:block relative h-[150vh] -mt-14 bg-white"
+        className="hidden lg:block relative h-[150vh] -mt-14 bg-white dark:bg-black"
       >
         <div className="sticky top-0 h-screen flex items-center justify-center">
           <motion.div
@@ -181,7 +187,7 @@ export default function TransformHero({
 }
 
 /* ======================================================
-   CAROUSEL – immer aktiv (wie vorher)
+   CAROUSEL – immer aktiv
 ====================================================== */
 
 function HeroCarousel({ images }: { images: Slide[] }) {
@@ -208,13 +214,7 @@ function HeroCarousel({ images }: { images: Slide[] }) {
           exit={{ opacity: 0 }}
           transition={{ duration: 1.2 }}
         >
-          <Image
-            src={current.src}
-            alt={current.alt ?? ""}
-            fill
-            priority
-            className="object-cover"
-          />
+          <Image src={current.src} alt={current.alt ?? ""} fill priority className="object-cover" />
         </motion.div>
       </AnimatePresence>
     </div>

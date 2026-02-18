@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 type Body = {
   paths: string[];       // storage_path aus invoice_documents
@@ -17,7 +17,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "paths missing" }, { status: 400 });
   }
 
-  // signed urls erzeugen
+  const supabaseAdmin = getSupabaseAdmin();
+
   const results = await Promise.all(
     body.paths.map(async (path) => {
       const { data, error } = await supabaseAdmin.storage

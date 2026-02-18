@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
 type Body = {
-  paths: string[];       // storage_path aus invoice_documents
-  bucket?: string;       // default: "invoice-docs"
-  expiresIn?: number;    // default: 60*10 (10 min)
+  paths: string[];
+  bucket?: string;
+  expiresIn?: number;
 };
 
 export async function POST(req: Request) {

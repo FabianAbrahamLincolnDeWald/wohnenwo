@@ -1,10 +1,13 @@
+// /Users/fabiandewald/Documents/wohnenwo/app/(mein-bereich-detail)/mein-bereich/rechnungen/r/[token]/page.tsx
 "use client";
+
+/* eslint-disable @next/next/no-img-element */
 
 import * as React from "react";
 import { createClient } from "@supabase/supabase-js";
-import { useParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import AuthOverlay, { AuthMode } from "@/components/auth/AuthOverlay";
 import {
-  FileText,
   Layers,
   Sparkles,
   Info,
@@ -12,15 +15,20 @@ import {
   Briefcase,
   Scale,
   Wrench,
+  Lock,
 } from "lucide-react";
 
 /* ──────────────────────────────────────────────────────────────
-  Supabase Client (Browser)
+  Supabase Client (Browser, Public Teaser)
 ────────────────────────────────────────────────────────────── */
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
+
+// Feature Flag: sobald du Supabase "Confirm email" aktivierst, stellst du dies hier auf "true" (via .env)
+const REQUIRE_EMAIL_VERIFICATION =
+  process.env.NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION === "true";
 
 /* ──────────────────────────────────────────────────────────────
   Types
@@ -47,16 +55,14 @@ type InvoiceRow = {
   public_enabled: boolean | null;
   public_token: string | null;
 
-  customer_id: string | null;
-
-  // ✅ neu: frei formulierbarer Mittelteil für den Satz "Ihr Auftrag sorgt dafür, dass ..."
-  customer_story: string | null;
+  customer_id: string | null; // im Teaser nicht anzeigen
+  customer_story: string | null; // ✅ wie Logged-in
 };
 
 type ParticipantRow = {
   id: string;
   invoice_id: string;
-  participant_id: string;
+  participant_id: string; // wohnenwo | hansgrohe | grohe | staat
   label: string;
   description: string | null;
   role: string | null;
@@ -64,27 +70,12 @@ type ParticipantRow = {
   sort_order: number;
   is_clickable: boolean;
 
-  purchase_net: string | number | null;
-  pricing_divisor: string | number | null;
+  purchase_net: string | number | null; // nur Hersteller
+  pricing_divisor: string | number | null; // optional override
 };
 
-type DocumentRow = {
-  id: string;
-  invoice_id: string;
-  participant_id: string;
-  doc_type: string;
-  page_index: number;
-  storage_bucket: string;
-  storage_path: string;
-  mime_type: string | null;
-};
-
-type DocWithUrl = DocumentRow & { signedUrl?: string | null };
-
-// Optional: Arbeits-Etappen (für die Lohnkosten-Tabelle)
 type LaborStepRow = {
   id: string;
-  invoice_id: string;
   label: string;
   description: string | null;
   minutes: number;
@@ -92,7 +83,7 @@ type LaborStepRow = {
 };
 
 /* ──────────────────────────────────────────────────────────────
-  Money helpers (in Cents – stabil gegen Rundungsfehler)
+  Helpers (Money / Format)
 ────────────────────────────────────────────────────────────── */
 
 function toNumber(v: unknown): number {
@@ -139,41 +130,13 @@ function formatDateDE8(dateISO: string | null | undefined) {
   }).format(d);
 }
 
-const TEASER_PREVIEW_PAGES = [
-  "/images/teaser/invoice-page-1.jpg",
-  "/images/teaser/invoice-page-2.jpg",
-  "/images/teaser/invoice-page-3.jpg",
-  "/images/teaser/invoice-page-4.jpg",
-];
-
-function hashToIndex(input: string, modulo: number) {
-  let h = 0;
-  for (let i = 0; i < input.length; i++) {
-    h = (h * 31 + input.charCodeAt(i)) >>> 0;
-  }
-  return modulo > 0 ? h % modulo : 0;
-}
-
-/**
- * Preview-Logik:
- * - erster Tab => immer Page 1
- * - alle anderen Tabs => Rotation aus Page 2..n (stabil, "Teaser-Feeling")
- */
-function previewSrcForTab(tabId: string, firstTabId: string) {
-  const pages = TEASER_PREVIEW_PAGES.filter(Boolean);
-  if (pages.length === 0) return null;
-
-  if (tabId === firstTabId) return pages[0];
-
-  const pool = pages.slice(1);
-  if (pool.length === 0) return pages[0];
-
-  const idx = hashToIndex(tabId, pool.length);
-  return pool[idx] ?? pages[0];
+function fmtOrDashEUR(cents: number) {
+  if (!cents) return "– €";
+  return fmtEURFromCents(cents);
 }
 
 /* ──────────────────────────────────────────────────────────────
-  Modell-Konstanten
+  Modell-Konstanten (wie Logged-in)
 ────────────────────────────────────────────────────────────── */
 
 const WORKER_SOCIAL_RATE = 0.215;
@@ -195,20 +158,14 @@ const COST_WEIGHTS = {
 const INPUT_VAT_BETRIEB = 0.14;
 const INPUT_VAT_FAHRT = 0.159;
 
-/** minimal angepasst, damit Beispielwerte sauber in Cents aufgehen */
 const SUPPLYCHAIN_ABGABEN_RATE = 0.33002;
 
 /* ──────────────────────────────────────────────────────────────
-  Split Helpers
+  Split Helpers (wie Logged-in)
 ────────────────────────────────────────────────────────────── */
 
 type SplitMode = "labor" | "markup";
 
-/**
- * Drittel-Aufteilung in Cents mit festem „Rest-Cent“-Verteilprinzip.
- * - labor: Rest zuerst auf Impact
- * - markup: Rest zuerst auf Worker
- */
 function splitIntoThirdsCents(totalCents: number, mode: SplitMode) {
   const base = Math.floor(totalCents / 3);
   const remainder = totalCents - base * 3;
@@ -285,7 +242,6 @@ function splitNetNoVat_Cents(netCents: number, mode: SplitMode) {
   const profitTax = Math.round(blocks.gewinn * PROFIT_TAX_RATE);
   const profitNet = blocks.gewinn - profitTax;
 
-  // Vorsteuer: als Gesamtsumme runden
   const vorsteuer = Math.round(
     blocks.betrieb * INPUT_VAT_BETRIEB + blocks.fahrt * INPUT_VAT_FAHRT
   );
@@ -352,266 +308,151 @@ function splitLaborNetToGross_Cents(laborNetCents: number, vatRate: number) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-  Dokument-Komponenten (Supabase Signed URLs)
+  Teaser Pages (4 JPGs)
+  - Page 1 immer bei WohnenWo (Dienstleister)
+  - Pages 2–4 pseudo-random für alle anderen Tabs (stabil je token+participant)
 ────────────────────────────────────────────────────────────── */
 
-function DocsLocked() {
+const TEASER_PAGES = [
+  "/images/teaser/invoice-page-1.jpg",
+  "/images/teaser/invoice-page-2.jpg",
+  "/images/teaser/invoice-page-3.jpg",
+  "/images/teaser/invoice-page-4.jpg",
+] as const;
+
+// `!` (non-null assertion) ist hier ok, weil das Array literal immer 4 Einträge hat.
+const SERVICE_PROVIDER_TEASER = TEASER_PAGES[0]!;
+
+const OTHER_TEASERS = [
+  TEASER_PAGES[1]!,
+  TEASER_PAGES[2]!,
+  TEASER_PAGES[3]!,
+] as const;
+
+function hashStringToUInt(str: string) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return h >>> 0;
+}
+
+function teaserUrlForParticipant(participantId: string, token: string): string {
+  if (participantId === "wohnenwo") return SERVICE_PROVIDER_TEASER;
+
+  const h = hashStringToUInt(`${token}:${participantId}`);
+  const idx = h % OTHER_TEASERS.length;
+
+  // Mit noUncheckedIndexedAccess ist OTHER_TEASERS[idx] => string | undefined,
+  // daher fallback (oder `!`).
+  return OTHER_TEASERS[idx] ?? SERVICE_PROVIDER_TEASER;
+}
+
+/* ──────────────────────────────────────────────────────────────
+  Claim Overlay (öffnet AuthOverlay & claimed danach via RPC)
+────────────────────────────────────────────────────────────── */
+
+function ClaimOverlay({
+  onClaim,
+  loading,
+  errorMsg,
+}: {
+  onClaim: () => void;
+  loading?: boolean;
+  errorMsg?: string | null;
+}) {
   return (
-    <div className="flex flex-col items-center">
-      <div className="w-full max-w-[600px] h-[840px] rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center">
-        <div className="text-center px-8">
-          <FileText className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-          <p className="text-[13px] font-medium text-slate-800">
-            Dokumente sind gesperrt
+    <div className="absolute inset-0 flex items-center justify-center p-4">
+      <div className="w-full max-w-[380px] rounded-2xl bg-white/95 backdrop-blur-sm shadow-xl ring-1 ring-black/5">
+        <div className="p-6 text-center">
+          <div className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-white">
+            <Lock className="h-7 w-7" />
+          </div>
+
+          <p className="mt-3 text-[22px] font-semibold leading-tight text-slate-900">
+            Deine Rechnung?
           </p>
-          <p className="mt-1 text-[12px] text-slate-500 leading-snug">
-            Bitte einloggen bzw. Rechnung claimen, um die Originaldokumente zu
-            sehen.
+
+          <p className="mt-2 text-[12px] leading-snug text-slate-600">
+            Verbinde dein Konto, um Originaldokumente freizuschalten und dauerhaft
+            zu speichern.
           </p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-function DocsBlurPreview({
-  src,
-  showAuthHint = true,
-}: {
-  src: string | null;
-  showAuthHint?: boolean;
-}) {
-  const fallback = TEASER_PREVIEW_PAGES[0] ?? "/images/teaser/invoice-page-1.jpg";
-  const used = src ?? fallback;
-
-  return (
-    <div className="flex flex-col items-center">
-      <div className="relative w-full max-w-[600px] h-[840px] overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <img
-          src={used}
-          alt="Dokumentvorschau"
-          className="absolute inset-0 h-full w-full object-cover scale-[1.04] blur-[10px]"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-white/35" />
-
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center px-8">
-            <FileText className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-            <p className="text-[13px] font-medium text-slate-800">
-              Dokumentvorschau
-            </p>
-
-            {showAuthHint ? (
-              <p className="mt-1 text-[12px] text-slate-500 leading-snug">
-                Bitte einloggen bzw. Rechnung claimen, um die Originaldokumente zu sehen.
-              </p>
-            ) : (
-              <p className="mt-1 text-[12px] text-slate-500 leading-snug">
-                Aus Datenschutzgründen werden die Dokumente öffentlich nur anonymisiert gezeigt.
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DesktopDocuments({
-  participantLabel,
-  docs,
-  locked,
-  previewSrc,
-}: {
-  participantLabel: string;
-  docs: DocWithUrl[];
-  locked: boolean;
-  previewSrc?: string | null;
-}) {
-  if (locked) return <DocsBlurPreview src={previewSrc ?? null} showAuthHint />;
-
-  if (docs.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div className="flex flex-col items-center">
-          <div className="w-full max-w-[600px] h-[840px] rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center">
-            <div className="text-center px-8">
-              <FileText className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-              <p className="text-[13px] font-medium text-slate-800">
-                Keine Dokumente hinterlegt
-              </p>
-              <p className="mt-1 text-[12px] text-slate-500 leading-snug">
-                Für diesen Schritt der Wertschöpfung wurden noch keine
-                Rechnungen, Belege oder Nachweise hinzugefügt.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const missing = docs.some((d) => !d.signedUrl);
-  if (missing) return <DocsLocked />;
-
-  return (
-    <div className="space-y-6">
-      {docs
-        .slice()
-        .sort((a, b) => a.page_index - b.page_index)
-        .map((d) => (
-          <div key={d.id} className="flex flex-col items-center">
-            <img
-              src={d.signedUrl!}
-              alt={`${participantLabel} Dokument ${d.page_index}`}
-              className="w-full max-w-[600px] rounded-lg shadow-sm"
-              loading="lazy"
-            />
-          </div>
-        ))}
-    </div>
-  );
-}
-
-function MobileDocumentsCard({
-  participantLabel,
-  docs,
-  locked,
-  previewSrc,
-}: {
-  participantLabel: string;
-  docs: DocWithUrl[];
-  locked: boolean;
-  previewSrc?: string | null;
-}) {
-  if (locked) {
-    return (
-      <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 shadow-sm">
-        <DocsBlurPreview src={previewSrc ?? null} showAuthHint />
-      </section>
-    );
-  }
-
-  const scrollerRef = React.useRef<HTMLDivElement | null>(null);
-  const [activeIndex, setActiveIndex] = React.useState(0);
-
-  const sorted = React.useMemo(
-    () => docs.slice().sort((a, b) => a.page_index - b.page_index),
-    [docs]
-  );
-
-  React.useEffect(() => {
-    setActiveIndex(0);
-    const el = scrollerRef.current;
-    if (el) el.scrollTo({ left: 0 });
-  }, [participantLabel]);
-
-  const pageCount = sorted.length;
-
-  if (pageCount === 0) {
-    return (
-      <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 shadow-sm">
-        <div className="flex flex-col items-center">
-          <div className="w-full h-[56vh] rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center">
-            <div className="text-center px-8">
-              <FileText className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-              <p className="text-[13px] font-medium text-slate-800">
-                Keine Dokumente hinterlegt
-              </p>
-              <p className="mt-1 text-[12px] text-slate-500 leading-snug">
-                Für diesen Schritt der Wertschöpfung wurden noch keine
-                Rechnungen, Belege oder Nachweise hinzugefügt.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  const missing = sorted.some((d) => !d.signedUrl);
-  if (missing) {
-    return (
-      <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 shadow-sm">
-        <DocsLocked />
-      </section>
-    );
-  }
-
-  const scrollToIndex = (i: number) => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const w = el.clientWidth;
-    el.scrollTo({ left: i * w, behavior: "smooth" });
-  };
-
-  const handleScroll = () => {
-    const el = scrollerRef.current;
-    if (!el) return;
-    const w = el.clientWidth || 1;
-    const next = Math.round(el.scrollLeft / w);
-    setActiveIndex((prev) => (prev === next ? prev : next));
-  };
-
-  return (
-    <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 shadow-sm">
-      {pageCount === 1 ? (
-        <div className="flex flex-col items-center">
-          <img
-            src={sorted[0]!.signedUrl!}
-            alt={`${participantLabel} Dokument 1`}
-            className="w-full rounded-lg shadow-sm"
-            loading="lazy"
-          />
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <div
-            ref={scrollerRef}
-            onScroll={handleScroll}
+          <button
+            type="button"
+            onClick={onClaim}
+            disabled={!!loading}
             className={[
-              "overflow-x-auto scroll-smooth",
-              "flex snap-x snap-mandatory",
-              "[-ms-overflow-style:none] [scrollbar-width:none]",
-              "[&::-webkit-scrollbar]:hidden",
+              "mt-5 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-[13px] font-semibold uppercase tracking-wide",
+              "bg-slate-900 text-white hover:bg-slate-800",
+              "disabled:opacity-60 disabled:cursor-not-allowed",
             ].join(" ")}
           >
-            {sorted.map((d, idx) => (
-              <div
-                key={d.id}
-                className="shrink-0 w-full snap-center"
-                aria-label={`Dokumentseite ${idx + 1}`}
-              >
-                <img
-                  src={d.signedUrl!}
-                  alt={`${participantLabel} Dokument ${d.page_index}`}
-                  className="w-full rounded-lg shadow-sm"
-                  loading="lazy"
-                />
-              </div>
-            ))}
-          </div>
+            {loading ? "Wird verbunden…" : "Jetzt verbinden"}
+          </button>
 
-          <div className="flex items-center justify-center gap-2">
-            {sorted.map((_, idx) => {
-              const active = idx === activeIndex;
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => scrollToIndex(idx)}
-                  aria-label={`Zu Seite ${idx + 1} springen`}
-                  className={[
-                    "h-2.5 w-2.5 rounded-full transition",
-                    active ? "bg-slate-900" : "bg-slate-300 hover:bg-slate-400",
-                  ].join(" ")}
-                />
-              );
-            })}
-          </div>
+          {errorMsg && (
+            <p className="mt-3 text-[12px] leading-snug text-red-600">
+              {errorMsg}
+            </p>
+          )}
         </div>
-      )}
+      </div>
+    </div>
+  );
+}
+
+function DesktopDocumentsTeaser({
+  participantLabel,
+  teaserUrl,
+  onClaim,
+  claiming,
+  claimError,
+}: {
+  participantLabel: string;
+  teaserUrl: string;
+  onClaim: () => void;
+  claiming: boolean;
+  claimError: string | null;
+}) {
+  return (
+    <div className="relative flex flex-col items-center">
+      <img
+        src={teaserUrl}
+        alt={`${participantLabel} Dokument`}
+        className="w-full max-w-[600px] rounded-lg shadow-sm blur-md opacity-95 select-none pointer-events-none"
+        loading="lazy"
+      />
+      <ClaimOverlay onClaim={onClaim} loading={claiming} errorMsg={claimError} />
+    </div>
+  );
+}
+
+function MobileDocumentsCardTeaser({
+  participantLabel,
+  teaserUrl,
+  onClaim,
+  claiming,
+  claimError,
+}: {
+  participantLabel: string;
+  teaserUrl: string;
+  onClaim: () => void;
+  claiming: boolean;
+  claimError: string | null;
+}) {
+  return (
+    <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 shadow-sm">
+      <div className="relative flex flex-col items-center">
+        <img
+          src={teaserUrl}
+          alt={`${participantLabel} Dokument`}
+          className="w-full rounded-lg shadow-sm blur-md opacity-95 select-none pointer-events-none"
+          loading="lazy"
+        />
+        <ClaimOverlay onClaim={onClaim} loading={claiming} errorMsg={claimError} />
+      </div>
     </section>
   );
 }
@@ -638,69 +479,234 @@ function Row(props: { label: string; value: React.ReactNode }) {
   );
 }
 
-function fmtOrDashEUR(cents: number) {
-  if (!cents) return "– €";
-  return fmtEURFromCents(cents);
+/** Teaser: personenbezogene Labels entfernen */
+function publicLabel(p: ParticipantRow) {
+  if (p.participant_id === "wohnenwo") return "WohnenWo";
+  return p.label;
 }
 
 /** Nutzt invoice.customer_story als Mittelteil (ohne leading/trailing Komma) */
 function storyMiddle(invoice: InvoiceRow): string {
   const s = (invoice.customer_story ?? "").trim();
   if (s.length > 0) return s;
-  // Fallback (neutral, gefällt dir)
   return "Ihr Anliegen erfolgreich umgesetzt ist";
 }
 
 /* ──────────────────────────────────────────────────────────────
-  Main Page
+  Page
 ────────────────────────────────────────────────────────────── */
 
-export default function RechnungDetailPage() {
-  const params = useParams<{ id: string }>();
+export default function RechnungTeaserPage() {
+  const router = useRouter();
+  const params = useParams<{ token: string }>();
 
-  const invoiceId =
-    typeof params?.id === "string"
-      ? params.id
-      : Array.isArray(params?.id)
-        ? params.id[0]
+  const tokenParam = params?.token;
+  const token =
+    typeof tokenParam === "string"
+      ? tokenParam
+      : Array.isArray(tokenParam)
+        ? tokenParam[0]
         : undefined;
 
-  if (!invoiceId || invoiceId === "undefined") {
+  if (typeof token !== "string" || token === "undefined" || token.length === 0) {
     return (
       <div className="h-full flex items-center justify-center text-slate-600 text-sm">
-        Fehlende oder ungültige Invoice-ID in der URL.
+        Fehlender oder ungültiger Public Token in der URL.
       </div>
     );
   }
+
+  const safeToken = token; // ✅ ab hier: string (nicht mehr undefined)
+  const searchParams = useSearchParams();
+  const autoclaim = searchParams?.get("autoclaim") === "1";
+
+  // verhindert mehrfaches Autoclaim (Rerenders / INITIAL_SESSION)
+  const autoClaimHandledRef = React.useRef(false);
 
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
   const [invoice, setInvoice] = React.useState<InvoiceRow | null>(null);
   const [participants, setParticipants] = React.useState<ParticipantRow[]>([]);
-  const [docs, setDocs] = React.useState<DocWithUrl[]>([]);
   const [laborSteps, setLaborSteps] = React.useState<LaborStepRow[]>([]);
   const [activeParticipantId, setActiveParticipantId] =
     React.useState<string>("");
-  const [canViewDocs, setCanViewDocs] = React.useState(false);
-  const [authTick, setAuthTick] = React.useState(0);
+
+  const [teaserByParticipant, setTeaserByParticipant] = React.useState<
+    Record<string, string>
+  >({});
+
+  // ✅ Claim flow state
+  const [authMode, setAuthMode] = React.useState<AuthMode | null>(null);
+  const [claiming, setClaiming] = React.useState(false);
+  const [claimError, setClaimError] = React.useState<string | null>(null);
+
+  // Claim nur, wenn User aktiv "Jetzt verbinden" geklickt hat
+  const [claimRequested, setClaimRequested] = React.useState(false);
+
+  // Refs gegen Doppeltrigger (Auth-Events / Rerenders)
+  const claimRequestedRef = React.useRef(false);
+  const claimingRef = React.useRef(false);
 
   React.useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
+    claimRequestedRef.current = claimRequested;
+  }, [claimRequested]);
+
+  React.useEffect(() => {
+    claimingRef.current = claiming;
+  }, [claiming]);
+
+  async function doClaim() {
+    try {
+      // Sofortige Sperre gegen Doppeltrigger (Ref wirkt sofort)
+      if (claimingRef.current) return;
+      claimingRef.current = true;
+
+      setClaimError(null);
+      setClaiming(true);
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData.session;
+
+      if (!session) {
+        // User ist (noch) nicht eingeloggt → Overlay öffnen, aber Claim "angefordert" lassen
+        setClaiming(false);
+        claimingRef.current = false;
+        setAuthMode("signin");
+        return;
+      }
+
+      // Optional (Feature-Flag): bei aktivierter E-Mail-Verifikation nur fortfahren, wenn bestätigt
+      if (REQUIRE_EMAIL_VERIFICATION) {
+        const u: any = session.user;
+        const confirmed = !!(u?.email_confirmed_at || u?.confirmed_at);
+        if (!confirmed) {
+          setClaimError(
+            "Bitte bestätige zuerst deine E-Mail-Adresse (Link im Postfach). Danach kannst du die Rechnung verbinden."
+          );
+          setClaiming(false);
+          claimingRef.current = false;
+          // claimRequested bleibt TRUE → sobald der User nach Verifizierung wirklich eingeloggt ist, kann automatisch erneut versucht werden
+          return;
+        }
+      }
+
+      const res = await supabase.rpc("claim_invoice", { p_claim_code: safeToken });
+
+      if (res.error) {
+        const msg = String(res.error.message ?? "").toLowerCase();
+
+        let human = "Verbindung nicht möglich. Bitte erneut versuchen.";
+
+        if (msg.includes("invoice_already_linked")) {
+          human = "Diese Rechnung ist bereits mit einem Konto verbunden.";
+        } else if (msg.includes("invoice_not_found")) {
+          human = "Rechnung nicht gefunden oder nicht freigegeben.";
+        } else if (msg.includes("not_authenticated")) {
+          human = "Bitte anmelden, um fortzufahren.";
+          setAuthMode("signin");
+        } else if (
+          msg.includes("wrong_email") ||
+          msg.includes("email_mismatch") ||
+          msg.includes("recipient_email_mismatch")
+        ) {
+          human =
+            "Bitte melde dich mit der E-Mail-Adresse an, an die diese Rechnung gesendet wurde.";
+        }
+
+        console.error("[claim_invoice]", res.error);
+        setClaimError(human);
+
+        setClaiming(false);
+        claimingRef.current = false;
+        setClaimRequested(false);
+        return;
+      }
+
+      // res.data ist direkt die invoice_id (uuid)
+      const invoiceId = res.data as string | null;
+
+      if (!invoiceId) {
+        setClaimError(
+          "Verbindung ausgeführt, aber die Rechnungs-ID fehlt. Bitte melde dich kurz bei uns."
+        );
+        setClaiming(false);
+        claimingRef.current = false;
+        setClaimRequested(false);
+        return;
+      }
+
+      // ✅ Erfolgreich → Flags runter, weiterleiten
+      setClaiming(false);
+      claimingRef.current = false;
+      setClaimRequested(false);
+      setAuthMode(null);
+
+      router.push(`/mein-bereich/rechnungen/${invoiceId}`);
+    } catch (e) {
+      console.error(e);
+      setClaimError(
+        "Die Verbindung konnte nicht hergestellt werden. Bitte versuche es erneut."
+      );
+      setClaiming(false);
+      claimingRef.current = false;
+      setClaimRequested(false);
+    }
+  }
+
+  async function handleClaimClick() {
+    setClaimError(null);
+    setClaimRequested(true);
+    claimRequestedRef.current = true;
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      setAuthMode("signin");
+      return;
+    }
+
+    await doClaim();
+  }
+
+  // ✅ Wenn die Seite mit ?autoclaim=1 geladen wird (OAuth/Email-Confirm Redirect),
+  // dann automatisch claimen – ohne Klick auf "Jetzt verbinden"
+  React.useEffect(() => {
+    if (!autoclaim) return;
+    if (autoClaimHandledRef.current) return;
+
+    autoClaimHandledRef.current = true;
+
+    setClaimRequested(true);
+    claimRequestedRef.current = true;
+
+    void doClaim();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoclaim, safeToken]);
+
+  // ✅ Wenn User nach Login/Verifizierung zurückkommt: Claim automatisch ausführen (nur wenn zuvor angefordert)
+  React.useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!claimRequestedRef.current) return;
+      if (!session) return;
+      if (claimingRef.current) return;
+
+      // INITIAL_SESSION kann beim Zurückkommen über Bestätigungslink auftreten
       if (
         event === "SIGNED_IN" ||
         event === "TOKEN_REFRESHED" ||
-        event === "INITIAL_SESSION" ||
-        event === "SIGNED_OUT"
+        event === "INITIAL_SESSION"
       ) {
-        setAuthTick((t) => t + 1);
+        setAuthMode(null);
+        void doClaim();
       }
     });
 
     return () => {
       data.subscription.unsubscribe();
     };
-  }, []);
+    // safeToken ist pro Page stabil; doClaim nutzt safeToken/router aus der aktuellen Instanz
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [safeToken]);
 
   React.useEffect(() => {
     let mounted = true;
@@ -709,12 +715,14 @@ export default function RechnungDetailPage() {
       setLoading(true);
       setError(null);
 
-      // 1) Invoice
+      // 1) Invoice (public_token) robust
       const invRes = await supabase
         .from("invoices")
         .select("*")
-        .eq("id", invoiceId)
-        .single();
+        .eq("public_token", safeToken)
+        .eq("public_enabled", true)
+        .order("created_at", { ascending: false })
+        .limit(1);
 
       if (invRes.error) {
         if (!mounted) return;
@@ -723,11 +731,20 @@ export default function RechnungDetailPage() {
         return;
       }
 
+      const inv = (invRes.data?.[0] ?? null) as InvoiceRow | null;
+
+      if (!inv) {
+        if (!mounted) return;
+        setError("Rechnung nicht gefunden oder nicht öffentlich.");
+        setLoading(false);
+        return;
+      }
+
       // 2) Participants
       const partRes = await supabase
         .from("invoice_participants")
         .select("*")
-        .eq("invoice_id", invoiceId)
+        .eq("invoice_id", inv.id)
         .order("sort_order", { ascending: true });
 
       if (partRes.error) {
@@ -737,74 +754,43 @@ export default function RechnungDetailPage() {
         return;
       }
 
-      // 3) Documents
-      const docRes = await supabase
-        .from("invoice_documents")
-        .select("*")
-        .eq("invoice_id", invoiceId)
-        .order("participant_id", { ascending: true })
-        .order("page_index", { ascending: true });
-
-      if (docRes.error) {
-        if (!mounted) return;
-        setError(docRes.error.message);
-        setLoading(false);
-        return;
-      }
-
-      // 4) Optional: Labor Steps
+      // 3) Labor Steps (optional)
       let steps: LaborStepRow[] = [];
       try {
         const stepsRes = await supabase
           .from("invoice_labor_steps")
-          .select("*")
-          .eq("invoice_id", invoiceId)
+          .select("id,label,description,minutes,sort_order")
+          .eq("invoice_id", inv.id)
           .order("sort_order", { ascending: true });
 
-        if (!stepsRes.error) {
-          steps = (stepsRes.data ?? []) as LaborStepRow[];
-        }
+        if (!stepsRes.error) steps = (stepsRes.data ?? []) as LaborStepRow[];
       } catch {
         // ignore
       }
 
-      // 5) Signed URLs + Zugriff (Owner-Check)
-      const { data: sessionData } = await supabase.auth.getSession();
-      const userId = sessionData.session?.user?.id ?? null;
+      if (!mounted) return;
 
-      const inv = invRes.data as InvoiceRow;
+      const parts = (partRes.data ?? []) as ParticipantRow[];
 
-      // ✅ nur Owner darf Docs sehen (dein Claim schreibt customer_id = auth.uid())
-      const canView = !!userId && inv.customer_id === userId;
-
-      const docsRaw = (docRes.data ?? []) as DocumentRow[];
-      let docsWithUrls: DocWithUrl[] = docsRaw.map((d) => ({ ...d, signedUrl: null }));
-
-      if (canView) {
-        docsWithUrls = await Promise.all(
-          docsRaw.map(async (d) => {
-            const { data, error } = await supabase.storage
-              .from(d.storage_bucket)
-              .createSignedUrl(d.storage_path, 60 * 60);
-
-            return { ...d, signedUrl: error ? null : data?.signedUrl ?? null };
-          })
+      const teaserMap: Record<string, string> = {};
+      for (const p of parts) {
+        teaserMap[p.participant_id] = teaserUrlForParticipant(
+          p.participant_id,
+          safeToken
         );
       }
 
-      if (!mounted) return;
-
       setInvoice(inv);
-      setCanViewDocs(canView);
-      setParticipants((partRes.data ?? []) as ParticipantRow[]);
-      setDocs(docsWithUrls);
+      setParticipants(parts);
       setLaborSteps(steps);
+      setTeaserByParticipant(teaserMap);
 
       const firstClickable =
         (partRes.data as ParticipantRow[]).find((p) => p.is_clickable)
           ?.participant_id ??
         (partRes.data as ParticipantRow[])[0]?.participant_id ??
         "";
+
       setActiveParticipantId(firstClickable);
 
       setLoading(false);
@@ -814,24 +800,13 @@ export default function RechnungDetailPage() {
     return () => {
       mounted = false;
     };
-  }, [invoiceId, authTick]);
-
-  const docsByParticipant = React.useMemo(() => {
-    const map = new Map<string, DocWithUrl[]>();
-    for (const d of docs) {
-      const arr = map.get(d.participant_id) ?? [];
-      arr.push(d);
-      map.set(d.participant_id, arr);
-    }
-    return map;
-  }, [docs]);
+  }, [safeToken]);
 
   const computed = React.useMemo(() => {
     if (!invoice) return null;
 
     const vatRate = toNumber(invoice.vat_rate ?? 0.19) || 0.19;
 
-    // ✅ Labor minutes: immer aus Steps, wenn vorhanden
     const minutesFromSteps =
       laborSteps.length > 0
         ? laborSteps.reduce((a, s) => a + (s.minutes ?? 0), 0)
@@ -842,13 +817,11 @@ export default function RechnungDetailPage() {
     const hourlyRateNetCents = toCents(invoice.hourly_rate_net);
     const laborNetCents = Math.round((hourlyRateNetCents * minutes) / 60);
 
-    // USt Labor separat runden
     const laborVatOutCents = Math.round(laborNetCents * vatRate);
     const laborGrossCents = laborNetCents + laborVatOutCents;
 
     const laborSplit = splitLaborNetToGross_Cents(laborNetCents, vatRate);
 
-    // Materials
     const materials = participants
       .filter((p) => p.purchase_net !== null && p.participant_id !== "staat")
       .map((p) => {
@@ -859,7 +832,6 @@ export default function RechnungDetailPage() {
         );
         const safeDiv = divisor || 0.6666666667;
 
-        // ✅ stabil für 2/3 (wenn praktisch 0.666666...)
         const saleNetCents =
           Math.abs(safeDiv - 2 / 3) < 0.000001
             ? Math.round((purchaseNetCents * 3) / 2)
@@ -897,14 +869,8 @@ export default function RechnungDetailPage() {
         };
       });
 
-    // ✅ Header totals: Summe der Positionen
     const totalMaterialsNetCents = materials.reduce(
       (a, m) => a + m.saleNetCents,
-      0
-    );
-    const totalMaterialsVatCents = materials.reduce((a, m) => a + m.vatCents, 0);
-    const totalMaterialsGrossCents = materials.reduce(
-      (a, m) => a + m.grossCents,
       0
     );
 
@@ -928,21 +894,19 @@ export default function RechnungDetailPage() {
       materials.reduce((a, m) => a + m.markupSplit.entrepreneurNet, 0);
 
     const impactTotalCents =
-      laborSplit.impact +
-      materials.reduce((a, m) => a + m.markupSplit.impact, 0);
+      laborSplit.impact + materials.reduce((a, m) => a + m.markupSplit.impact, 0);
 
     const stateTotalModelCents =
       laborSplit.stateTotal +
       materials.reduce((a, m) => a + m.stateTotalMaterialCents, 0);
 
-    // ✅ Cent-Diff ausgleichen (Brutto muss exakt = Service + Bauteile + Staat)
     const bauteilSumCents = materials.reduce((a, m) => a + m.bauteilCents, 0);
     const deltaToGross =
-      totalGrossCents - (serviceMehrwertCents + bauteilSumCents + stateTotalModelCents);
+      totalGrossCents -
+      (serviceMehrwertCents + bauteilSumCents + stateTotalModelCents);
 
     const stateTotalAdjustedCents = stateTotalModelCents + deltaToGross;
 
-    // Impact Allocation
     const impactServicePct = toNumber(invoice.impact_service_pct);
     const impactSocialPct = toNumber(invoice.impact_social_pct);
 
@@ -976,11 +940,9 @@ export default function RechnungDetailPage() {
       entrepreneurTotalCents,
       impactTotalCents,
 
-      // Modell + Delta
       stateTotalModelCents,
       stateTotalAdjustedCents,
 
-      // For tabs sum
       bauteilSumCents,
       deltaToGross,
 
@@ -1004,54 +966,28 @@ export default function RechnungDetailPage() {
         const mat = byId.get(p.participant_id);
 
         let valueCents: number | null = null;
-
-        // ✅ Tabs exakt, aber fachlich sauber:
-        // - WohnenWo: Service-Mehrwert (im System)
-        // - Hersteller: Bauteil
-        // - Staat: Modellwert + Cent-Delta
         if (isState) valueCents = computed.stateTotalAdjustedCents;
         else if (isMain) valueCents = computed.serviceMehrwertCents;
         else if (mat) valueCents = mat.bauteilCents;
 
-        const docs = docsByParticipant.get(p.participant_id) ?? [];
-
         return {
           id: p.participant_id,
-          label: p.label,
+          label: publicLabel(p),
           description: p.description ?? "",
           role: p.role ?? "",
           isClickable: p.is_clickable,
           icon: iconForParticipant(p.participant_id),
           valueCents,
-          docs,
         };
       });
-  }, [participants, docsByParticipant, invoice, computed]);
+  }, [participants, invoice, computed]);
 
   const active = React.useMemo(() => {
     if (!uiParticipants.length) return null;
     return (
-      uiParticipants.find((p) => p.id === activeParticipantId) ??
-      uiParticipants[0]!
+      uiParticipants.find((p) => p.id === activeParticipantId) ?? uiParticipants[0]!
     );
   }, [uiParticipants, activeParticipantId]);
-
-  // ✅ "Erster Tab" (Page 1) = erster klickbarer Tab (nicht Staat)
-  const firstPreviewTabId = React.useMemo(() => {
-    return (
-      uiParticipants.find((p) => p.id !== "staat" && p.isClickable)?.id ??
-      uiParticipants.find((p) => p.id !== "staat")?.id ??
-      active?.id ??
-      ""
-    );
-  }, [uiParticipants, active?.id]);
-
-  // ✅ Preview-Bild für den aktuell aktiven Tab (Rotation wie Teaser)
-  const previewSrc = React.useMemo(() => {
-    if (!active) return null;
-    const first = firstPreviewTabId || active.id;
-    return previewSrcForTab(active.id, first);
-  }, [active?.id, firstPreviewTabId]);
 
   if (loading) {
     return (
@@ -1064,7 +1000,7 @@ export default function RechnungDetailPage() {
   if (error || !invoice || !computed || !active) {
     return (
       <div className="h-full flex items-center justify-center text-slate-600 text-sm">
-        {error ?? "Rechnung nicht gefunden."}
+        {error ?? "Rechnung nicht gefunden oder nicht öffentlich."}
       </div>
     );
   }
@@ -1088,19 +1024,41 @@ export default function RechnungDetailPage() {
       </span>
     );
 
+  const activeTeaserUrl =
+    teaserByParticipant[active.id] ?? "/images/teaser/invoice-page-1.jpg";
+
   return (
     <div className="h-full">
+      {/* ✅ AuthOverlay liegt über dem Teaser-Hintergrund */}
+      <AuthOverlay
+        mode={authMode}
+        onClose={() => {
+          setAuthMode(null);
+          setClaimRequested(false);
+          setClaiming(false);
+          claimingRef.current = false;
+        }}
+        onSwitchMode={(m) => setAuthMode(m)}
+        onAuthed={() => {
+          setAuthMode(null);
+          setClaimRequested(true);
+          claimRequestedRef.current = true;
+          void doClaim();
+        }}
+      />
+
       <div className="flex h-full flex-col lg:flex-row">
-        {/* LEFT: Docs (Desktop) */}
+        {/* LEFT: Docs (Desktop) – als Blur-Teaser */}
         <section className="hidden lg:block flex-1 min-w-0 border-r border-slate-200 bg-white">
           <div className="h-full overflow-y-auto">
             <div className="px-6 py-5">
               <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 md:px-6 py-4 md:py-5">
-                <DesktopDocuments
+                <DesktopDocumentsTeaser
                   participantLabel={active.label}
-                  docs={active.docs}
-                  locked={!canViewDocs}
-                  previewSrc={!canViewDocs ? previewSrc : null}
+                  teaserUrl={activeTeaserUrl}
+                  onClaim={handleClaimClick}
+                  claiming={claiming}
+                  claimError={claimError}
                 />
               </div>
               <div className="h-20" />
@@ -1282,10 +1240,9 @@ export default function RechnungDetailPage() {
                 </div>
 
                 <p className="mt-1 text-[11px] leading-snug text-slate-600">
-                  Tippe auf einen Mitwirkenden: Die linke Dokumentenvorschau
-                  springt automatisch zu den Unterlagen, die diesen Schritt der
-                  Wertschöpfung dokumentieren. Angezeigt werden die Netto-Anteile
-                  nach Steuern und Abgaben.
+                  Tippe auf einen Mitwirkenden: Die linke Dokumentenvorschau ist
+                  im Teaser ausgeblendet. Verbinde die Rechnung, um die Originale
+                  freizuschalten.
                 </p>
               </div>
             </section>
@@ -1293,11 +1250,12 @@ export default function RechnungDetailPage() {
             {/* MOBILE docs: außer bei WohnenWo */}
             <div className="lg:hidden">
               {!isWohnenwo && (
-                <MobileDocumentsCard
+                <MobileDocumentsCardTeaser
                   participantLabel={active.label}
-                  docs={active.docs}
-                  locked={!canViewDocs}
-                  previewSrc={!canViewDocs ? previewSrc : null}
+                  teaserUrl={activeTeaserUrl}
+                  onClaim={handleClaimClick}
+                  claiming={claiming}
+                  claimError={claimError}
                 />
               )}
             </div>
@@ -1325,11 +1283,12 @@ export default function RechnungDetailPage() {
             {/* MOBILE docs: WohnenWo unter Badge */}
             <div className="lg:hidden">
               {isWohnenwo && (
-                <MobileDocumentsCard
+                <MobileDocumentsCardTeaser
                   participantLabel={active.label}
-                  docs={active.docs}
-                  locked={!canViewDocs}
-                  previewSrc={!canViewDocs ? previewSrc : null}
+                  teaserUrl={activeTeaserUrl}
+                  onClaim={handleClaimClick}
+                  claiming={claiming}
+                  claimError={claimError}
                 />
               )}
             </div>
@@ -1469,9 +1428,7 @@ export default function RechnungDetailPage() {
                       />
                       <Row
                         label="Unternehmerische Struktur · Netto"
-                        value={fmtEURFromCents(
-                          computed.laborSplit.entrepreneurNet
-                        )}
+                        value={fmtEURFromCents(computed.laborSplit.entrepreneurNet)}
                       />
                       <Row
                         label="Wirkungsfonds"
@@ -1513,9 +1470,7 @@ export default function RechnungDetailPage() {
                         />
                         <Row
                           label="Materialaufschlag (netto)"
-                          value={fmtEURFromCents(
-                            computed.markupInSystemTotalCents
-                          )}
+                          value={fmtEURFromCents(computed.markupInSystemTotalCents)}
                         />
                       </div>
                     </div>
@@ -1578,7 +1533,7 @@ export default function RechnungDetailPage() {
                   </div>
                 </section>
 
-                {/* Überfluss & Wirkung (2 Absätze bleiben) */}
+                {/* Überfluss & Wirkung */}
                 <section className="rounded-2xl bg-slate-50 text-slate-900 px-4 py-5 space-y-4 shadow-sm border border-slate-200">
                   <header className="space-y-0.5">
                     <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
@@ -1589,18 +1544,16 @@ export default function RechnungDetailPage() {
                     </p>
                   </header>
 
-                  {/* Absatz 1: Mittelteil aus customer_story */}
                   <p className="text-[12px] leading-snug text-slate-800">
                     Ihr Auftrag sorgt dafür, dass{" "}
-                    <span className="font-semibold">{storyMiddle(invoice)}</span>
-                    , gleichzeitig fließen aus Lohn und Materialaufschlag zusammen rund{" "}
+                    <span className="font-semibold">{storyMiddle(invoice)}</span>,
+                    gleichzeitig fließen aus Lohn und Materialaufschlag zusammen rund{" "}
                     <span className="font-semibold">
                       {fmtEURFromCents(computed.impactTotalCents)}
                     </span>{" "}
                     in den Wirkungsfonds.
                   </p>
 
-                  {/* Absatz 2: unverändert */}
                   <p className="text-[12px] leading-snug text-slate-800">
                     <span className="font-semibold">
                       Mit Ihrer Wahl des Dienstleisters entscheiden Sie indirekt,
@@ -1671,11 +1624,9 @@ export default function RechnungDetailPage() {
                     </p>
                   </div>
                   <p className="text-[11px] leading-snug text-slate-600">
-                    Persönliche Daten von Auftraggeber:innen werden in der online
-                    sichtbaren Version datenschutzkonform reduziert. Die
-                    vollständige Original-Rechnung bleibt ausschließlich dir
-                    vorbehalten. Du entscheidest später selbst, welche Details du
-                    für andere sichtbar machen möchtest.
+                    In der öffentlich einsehbaren Version werden Originaldokumente
+                    nicht angezeigt. Verbinde die Rechnung, um sie dauerhaft deinem
+                    Konto zuzuordnen und freizuschalten.
                   </p>
                 </section>
               </>
@@ -1811,9 +1762,7 @@ export default function RechnungDetailPage() {
                       />
                       <Row
                         label="Unternehmerische Struktur · Netto"
-                        value={fmtEURFromCents(
-                          activeMaterial.markupSplit.entrepreneurNet
-                        )}
+                        value={fmtEURFromCents(activeMaterial.markupSplit.entrepreneurNet)}
                       />
                       <Row
                         label="Wirkungsfonds"

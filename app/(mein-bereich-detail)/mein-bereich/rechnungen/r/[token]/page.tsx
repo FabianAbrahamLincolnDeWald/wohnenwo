@@ -500,6 +500,10 @@ export default function RechnungTeaserPage() {
   const router = useRouter();
   const params = useParams<{ token: string }>();
 
+  const searchParams = useSearchParams();
+  const autoclaim = searchParams.get("autoclaim") === "1";
+
+  // ... ab hier Token lesen
   const tokenParam = params?.token;
   const token =
     typeof tokenParam === "string"
@@ -516,9 +520,7 @@ export default function RechnungTeaserPage() {
     );
   }
 
-  const safeToken = token; // ✅ ab hier: string (nicht mehr undefined)
-  const searchParams = useSearchParams();
-  const autoclaim = searchParams?.get("autoclaim") === "1";
+  const safeToken = token;
 
   // verhindert mehrfaches Autoclaim (Rerenders / INITIAL_SESSION)
   const autoClaimHandledRef = React.useRef(false);
@@ -540,6 +542,24 @@ export default function RechnungTeaserPage() {
   const [authMode, setAuthMode] = React.useState<AuthMode | null>(null);
   const [claiming, setClaiming] = React.useState(false);
   const [claimError, setClaimError] = React.useState<string | null>(null);
+
+  // ✅ Schritt B: Pending-Claim persistieren (wichtig für OAuth Redirect)
+  const PENDING_KEY = "ww_pending_claim";
+
+  function setPendingClaim(claimCode: string) {
+    try {
+      localStorage.setItem(
+        PENDING_KEY,
+        JSON.stringify({ claimCode, createdAt: Date.now() })
+      );
+    } catch { }
+  }
+
+  function clearPendingClaim() {
+    try {
+      localStorage.removeItem(PENDING_KEY);
+    } catch { }
+  }
 
   // Claim nur, wenn User aktiv "Jetzt verbinden" geklickt hat
   const [claimRequested, setClaimRequested] = React.useState(false);
@@ -642,6 +662,7 @@ export default function RechnungTeaserPage() {
       setClaimRequested(false);
       setAuthMode(null);
 
+      clearPendingClaim();
       router.push(`/mein-bereich/rechnungen/${invoiceId}`);
     } catch (e) {
       console.error(e);
@@ -656,6 +677,10 @@ export default function RechnungTeaserPage() {
 
   async function handleClaimClick() {
     setClaimError(null);
+
+    // ✅ WICHTIG: bevor OAuth startet, Token persistieren
+    setPendingClaim(safeToken);
+
     setClaimRequested(true);
     claimRequestedRef.current = true;
 
@@ -1033,6 +1058,7 @@ export default function RechnungTeaserPage() {
       <AuthOverlay
         mode={authMode}
         onClose={() => {
+          clearPendingClaim();
           setAuthMode(null);
           setClaimRequested(false);
           setClaiming(false);

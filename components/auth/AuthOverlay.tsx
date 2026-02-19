@@ -24,10 +24,16 @@ const ENABLE_GOOGLE_AUTH =
 function buildReturnToUrlWithAutoClaim(): string | null {
   if (typeof window === "undefined") return null;
 
-  const url = new URL(window.location.href);
-  // wichtig für OAuth + Email-Confirm: nach Rückkehr automatisch claimen
-  url.searchParams.set("autoclaim", "1");
-  return url.toString();
+  const cb = new URL("/auth/callback", window.location.origin);
+
+  // optional: falls kein pendingClaim existiert, können wir wohin zurück?
+  cb.searchParams.set(
+    "next",
+    window.location.pathname + window.location.search
+  );
+
+  cb.searchParams.set("autoclaim", "1");
+  return cb.toString();
 }
 
 export default function AuthOverlay({
@@ -61,11 +67,12 @@ export default function AuthOverlay({
       setOauthLoading(true);
 
       const redirectTo = buildReturnToUrlWithAutoClaim();
-      // OAuth macht Full Redirect → kein "Session sofort" im Client.
-      // Nach Rückkehr setzt Supabase die Session automatisch.
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: redirectTo ? { redirectTo } : undefined,
+        options: redirectTo
+          ? { redirectTo, queryParams: { prompt: "select_account" } }
+          : { queryParams: { prompt: "select_account" } },
       });
 
       if (error) {
@@ -187,15 +194,15 @@ export default function AuthOverlay({
             className={
               isSignin
                 ? [
-                    "rounded-md border px-3 py-1.5 text-[16px] md:text-[14px] font-medium transition",
-                    "border-slate-900 bg-slate-900 text-white hover:bg-black",
-                    "dark:border-white/10 dark:bg-white dark:text-slate-900 dark:hover:bg-white/95",
-                  ].join(" ")
+                  "rounded-md border px-3 py-1.5 text-[16px] md:text-[14px] font-medium transition",
+                  "border-slate-900 bg-slate-900 text-white hover:bg-black",
+                  "dark:border-white/10 dark:bg-white dark:text-slate-900 dark:hover:bg-white/95",
+                ].join(" ")
                 : [
-                    "rounded-md border px-3 py-1.5 text-[16px] md:text-[14px] font-medium transition",
-                    "border-slate-300 bg-white text-slate-700 hover:bg-slate-100",
-                    "dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10",
-                  ].join(" ")
+                  "rounded-md border px-3 py-1.5 text-[16px] md:text-[14px] font-medium transition",
+                  "border-slate-300 bg-white text-slate-700 hover:bg-slate-100",
+                  "dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10",
+                ].join(" ")
             }
           >
             {isSignin ? "Registrieren" : "Anmelden"}

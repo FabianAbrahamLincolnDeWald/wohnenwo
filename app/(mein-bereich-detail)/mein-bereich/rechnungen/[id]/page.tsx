@@ -3,6 +3,7 @@
 import * as React from "react";
 import { createClient } from "@supabase/supabase-js";
 import { useParams } from "next/navigation";
+import WirkungsfondsInfoButton from "@/components/impact/WirkungsfondsInfoButton";
 import {
   FileText,
   Layers,
@@ -12,6 +13,7 @@ import {
   Briefcase,
   Scale,
   Wrench,
+  EyeOff,
 } from "lucide-react";
 
 /* ──────────────────────────────────────────────────────────────
@@ -144,32 +146,31 @@ const TEASER_PREVIEW_PAGES = [
   "/images/teaser/invoice-page-2.jpg",
   "/images/teaser/invoice-page-3.jpg",
   "/images/teaser/invoice-page-4.jpg",
-];
+] as const;
 
-function hashToIndex(input: string, modulo: number) {
-  let h = 0;
-  for (let i = 0; i < input.length; i++) {
-    h = (h * 31 + input.charCodeAt(i)) >>> 0;
+const SERVICE_PROVIDER_TEASER = TEASER_PREVIEW_PAGES[0]!;
+const OTHER_TEASERS = [
+  TEASER_PREVIEW_PAGES[1]!,
+  TEASER_PREVIEW_PAGES[2]!,
+  TEASER_PREVIEW_PAGES[3]!,
+] as const;
+
+// exakt wie im Teaser (FNV-1a 32-bit)
+function hashStringToUInt(str: string) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
   }
-  return modulo > 0 ? h % modulo : 0;
+  return h >>> 0;
 }
 
-/**
- * Preview-Logik:
- * - erster Tab => immer Page 1
- * - alle anderen Tabs => Rotation aus Page 2..n (stabil, "Teaser-Feeling")
- */
-function previewSrcForTab(tabId: string, firstTabId: string) {
-  const pages = TEASER_PREVIEW_PAGES.filter(Boolean);
-  if (pages.length === 0) return null;
-
-  if (tabId === firstTabId) return pages[0];
-
-  const pool = pages.slice(1);
-  if (pool.length === 0) return pages[0];
-
-  const idx = hashToIndex(tabId, pool.length);
-  return pool[idx] ?? pages[0];
+// exakt wie im Teaser: wohnenwo => page1, sonst stabile Rotation page2-4
+function teaserUrlForParticipant(participantId: string, tokenSeed: string): string {
+  if (participantId === "wohnenwo") return SERVICE_PROVIDER_TEASER;
+  const h = hashStringToUInt(`${tokenSeed}:${participantId}`);
+  const idx = h % OTHER_TEASERS.length;
+  return OTHER_TEASERS[idx] ?? SERVICE_PROVIDER_TEASER;
 }
 
 /* ──────────────────────────────────────────────────────────────
@@ -358,15 +359,14 @@ function splitLaborNetToGross_Cents(laborNetCents: number, vatRate: number) {
 function DocsLocked() {
   return (
     <div className="flex flex-col items-center">
-      <div className="w-full max-w-[600px] h-[840px] rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center">
+      <div className="w-full max-w-[600px] aspect-210/297 rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center">
         <div className="text-center px-8">
-          <FileText className="mx-auto mb-3 h-8 w-8 text-slate-300" />
+          <EyeOff className="mx-auto mb-3 h-8 w-8 text-slate-300" />
           <p className="text-[13px] font-medium text-slate-800">
-            Dokumente sind gesperrt
+            Dokumente privat
           </p>
           <p className="mt-1 text-[12px] text-slate-500 leading-snug">
-            Bitte einloggen bzw. Rechnung claimen, um die Originaldokumente zu
-            sehen.
+            Nur Besitzer:in sieht Originale.
           </p>
         </div>
       </div>
@@ -374,43 +374,35 @@ function DocsLocked() {
   );
 }
 
-function DocsBlurPreview({
-  src,
-  showAuthHint = true,
-}: {
-  src: string | null;
-  showAuthHint?: boolean;
-}) {
+
+function DocsBlurPreview({ src }: { src: string | null }) {
   const fallback = TEASER_PREVIEW_PAGES[0] ?? "/images/teaser/invoice-page-1.jpg";
   const used = src ?? fallback;
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-full max-w-[600px] h-[840px] overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <div className="relative w-full max-w-[600px] aspect-210/297 overflow-hidden rounded-lg shadow-sm">
+        {/* Background fills the whole container */}
         <img
           src={used}
           alt="Dokumentvorschau"
-          className="absolute inset-0 h-full w-full object-cover scale-[1.04] blur-[10px]"
+          className="absolute inset-0 h-full w-full object-contain blur-md opacity-95 select-none pointer-events-none"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-white/35" />
 
+        {/* This makes the whole container feel “milky/blurred”, not just the image */}
+        <div className="absolute inset-0 bg-white/30 backdrop-blur-sm" />
+
+        {/* Foreground message (not blurred) */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center px-8">
-            <FileText className="mx-auto mb-3 h-8 w-8 text-slate-300" />
+            <EyeOff className="mx-auto mb-3 h-8 w-8 text-slate-300" />
             <p className="text-[13px] font-medium text-slate-800">
-              Dokumentvorschau
+              Dokumente privat
             </p>
-
-            {showAuthHint ? (
-              <p className="mt-1 text-[12px] text-slate-500 leading-snug">
-                Bitte einloggen bzw. Rechnung claimen, um die Originaldokumente zu sehen.
-              </p>
-            ) : (
-              <p className="mt-1 text-[12px] text-slate-500 leading-snug">
-                Aus Datenschutzgründen werden die Dokumente öffentlich nur anonymisiert gezeigt.
-              </p>
-            )}
+            <p className="mt-1 text-[12px] text-slate-500 leading-snug">
+              Originale nur für Berechtigte.
+            </p>
           </div>
         </div>
       </div>
@@ -429,13 +421,13 @@ function DesktopDocuments({
   locked: boolean;
   previewSrc?: string | null;
 }) {
-  if (locked) return <DocsBlurPreview src={previewSrc ?? null} showAuthHint />;
+  if (locked) return <DocsBlurPreview src={previewSrc ?? null} />;
 
   if (docs.length === 0) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col items-center">
-          <div className="w-full max-w-[600px] h-[840px] rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center">
+          <div className="w-full max-w-[600px] aspect-210/297 rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center">
             <div className="text-center px-8">
               <FileText className="mx-auto mb-3 h-8 w-8 text-slate-300" />
               <p className="text-[13px] font-medium text-slate-800">
@@ -488,7 +480,7 @@ function MobileDocumentsCard({
   if (locked) {
     return (
       <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 shadow-sm">
-        <DocsBlurPreview src={previewSrc ?? null} showAuthHint />
+        <DocsBlurPreview src={previewSrc ?? null} />
       </section>
     );
   }
@@ -1036,22 +1028,13 @@ export default function RechnungDetailPage() {
     );
   }, [uiParticipants, activeParticipantId]);
 
-  // ✅ "Erster Tab" (Page 1) = erster klickbarer Tab (nicht Staat)
-  const firstPreviewTabId = React.useMemo(() => {
-    return (
-      uiParticipants.find((p) => p.id !== "staat" && p.isClickable)?.id ??
-      uiParticipants.find((p) => p.id !== "staat")?.id ??
-      active?.id ??
-      ""
-    );
-  }, [uiParticipants, active?.id]);
-
-  // ✅ Preview-Bild für den aktuell aktiven Tab (Rotation wie Teaser)
-  const previewSrc = React.useMemo(() => {
-    if (!active) return null;
-    const first = firstPreviewTabId || active.id;
-    return previewSrcForTab(active.id, first);
-  }, [active?.id, firstPreviewTabId]);
+// ✅ Preview-Bild für den aktuell aktiven Tab (Rotation wie Teaser)
+// Seed pro Rechnung stabil halten (public_token falls vorhanden, sonst invoice.id)
+const previewSrc = React.useMemo(() => {
+  if (!active || !invoice) return null;
+  const seed = String(invoice.public_token ?? invoice.id);
+  return teaserUrlForParticipant(active.id, seed);
+}, [active?.id, invoice?.id, invoice?.public_token]);
 
   if (loading) {
     return (
@@ -1657,6 +1640,7 @@ export default function RechnungDetailPage() {
                       entsteht aus einem fest definierten Anteil deiner Rechnung –
                       transparent und nachvollziehbar.
                     </p>
+                    <WirkungsfondsInfoButton />
                   </div>
                 </section>
 

@@ -1,12 +1,11 @@
-// /Users/fabiandewald/Documents/wohnenwo/app/(mein-bereich-detail)/mein-bereich/rechnungen/r/[token]/page.tsx
+// /Users/fabiandewald/Documents/wohnenwo/app/(mein-bereich-detail)/mein-bereich/rechnungen/p/[token]/page.tsx
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
 
 import * as React from "react";
 import { createClient } from "@supabase/supabase-js";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import AuthOverlay, { AuthMode } from "@/components/auth/AuthOverlay";
+import { useParams } from "next/navigation";
 import WirkungsfondsInfoButton from "@/components/impact/WirkungsfondsInfoButton";
 import {
   Layers,
@@ -16,20 +15,16 @@ import {
   Briefcase,
   Scale,
   Wrench,
-  Lock,
+  EyeOff,
 } from "lucide-react";
 
 /* ──────────────────────────────────────────────────────────────
-  Supabase Client (Browser, Claim Teaser)
+  Supabase Client (Browser, Public Preview)
 ────────────────────────────────────────────────────────────── */
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
-
-// Feature Flag: sobald du Supabase "Confirm email" aktivierst, stellst du dies hier auf "true" (via .env)
-const REQUIRE_EMAIL_VERIFICATION =
-  process.env.NEXT_PUBLIC_REQUIRE_EMAIL_VERIFICATION === "true";
 
 /* ──────────────────────────────────────────────────────────────
   Types
@@ -53,15 +48,11 @@ type InvoiceRow = {
   impact_social_pct: string | number | null;
   impact_future_pct: string | number | null;
 
-  // Preview-only Felder (im Teaser nicht nötig, aber harmless wenn sie im Row existieren)
   public_enabled: boolean | null;
   public_token: string | null;
 
-  // ✅ Claim-Link Feld
-  claim_code: string | null;
-
-  customer_id: string | null; // im Teaser nicht anzeigen
-  customer_story: string | null; // ✅ wie Logged-in
+  customer_id: string | null; // public preview nicht anzeigen
+  customer_story: string | null;
 };
 
 type ParticipantRow = {
@@ -141,7 +132,7 @@ function fmtOrDashEUR(cents: number) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-  Modell-Konstanten (wie Logged-in)
+  Modell-Konstanten (wie Teaser / Logged-in)
 ────────────────────────────────────────────────────────────── */
 
 const WORKER_SOCIAL_RATE = 0.215;
@@ -166,7 +157,7 @@ const INPUT_VAT_FAHRT = 0.159;
 const SUPPLYCHAIN_ABGABEN_RATE = 0.33002;
 
 /* ──────────────────────────────────────────────────────────────
-  Split Helpers (wie Logged-in)
+  Split Helpers (wie Teaser / Logged-in)
 ────────────────────────────────────────────────────────────── */
 
 type SplitMode = "labor" | "markup";
@@ -313,10 +304,9 @@ function splitLaborNetToGross_Cents(laborNetCents: number, vatRate: number) {
 }
 
 /* ──────────────────────────────────────────────────────────────
-  Teaser Pages (4 JPGs)
+  Preview Pages (Rotation exakt wie Teaser)
   - Page 1 immer bei WohnenWo (Dienstleister)
   - Pages 2–4 pseudo-random für alle anderen Tabs (stabil je token+participant)
-  ✅ Rotation bleibt identisch – nur die Input-Seed ist jetzt claim_code
 ────────────────────────────────────────────────────────────── */
 
 const TEASER_PAGES = [
@@ -327,7 +317,11 @@ const TEASER_PAGES = [
 ] as const;
 
 const SERVICE_PROVIDER_TEASER = TEASER_PAGES[0]!;
-const OTHER_TEASERS = [TEASER_PAGES[1]!, TEASER_PAGES[2]!, TEASER_PAGES[3]!] as const;
+const OTHER_TEASERS = [
+  TEASER_PAGES[1]!,
+  TEASER_PAGES[2]!,
+  TEASER_PAGES[3]!,
+] as const;
 
 function hashStringToUInt(str: string) {
   let h = 0x811c9dc5;
@@ -338,146 +332,92 @@ function hashStringToUInt(str: string) {
   return h >>> 0;
 }
 
-function teaserUrlForParticipant(participantId: string, tokenSeed: string): string {
+function teaserUrlForParticipant(participantId: string, token: string): string {
   if (participantId === "wohnenwo") return SERVICE_PROVIDER_TEASER;
-  const h = hashStringToUInt(`${tokenSeed}:${participantId}`);
+  const h = hashStringToUInt(`${token}:${participantId}`);
   const idx = h % OTHER_TEASERS.length;
   return OTHER_TEASERS[idx] ?? SERVICE_PROVIDER_TEASER;
 }
 
 /* ──────────────────────────────────────────────────────────────
-  Claim Overlay (öffnet AuthOverlay & claimed danach via RPC)
+  Locked Docs UI (wie [id]/page.tsx non-logged-in)
 ────────────────────────────────────────────────────────────── */
 
-function ClaimOverlay({
-  onClaim,
-  loading,
-  errorMsg,
-  alreadyClaimed,
-  locked,
-}: {
-  onClaim: () => void;
-  loading?: boolean;
-  errorMsg?: string | null;
-  alreadyClaimed: boolean;
-  locked: boolean;
-}) {
-  const headline = "Deine Rechnung?";
-  const body = alreadyClaimed
-    ? "Diese Rechnung ist bereits mit einem Konto verbunden. Melde dich an, um deine Originaldokumente zu sehen."
-    : "Verbinde dein Konto, um Originaldokumente freizuschalten und dauerhaft zu speichern.";
-
-  const cta = locked ? "Dokument gesperrt" : alreadyClaimed ? "Jetzt anmelden" : "Jetzt verbinden";
-  const disabled = !!loading || locked;
-
+function DocsLocked() {
   return (
-    <div className="absolute inset-0 flex items-center justify-center p-4">
-      <div className="w-full max-w-[380px] rounded-2xl bg-white/95 backdrop-blur-sm shadow-xl ring-1 ring-black/5">
-        <div className="p-6 text-center">
-          <div className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-white">
-            <Lock className="h-7 w-7" />
-          </div>
-
-          <p className="mt-3 text-[22px] font-semibold leading-tight text-slate-900">
-            {headline}
+    <div className="flex flex-col items-center">
+      <div className="w-full max-w-[600px] aspect-210/297 rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center">
+        <div className="text-center px-8">
+          <EyeOff className="mx-auto mb-3 h-8 w-8 text-slate-300" />
+          <p className="text-[13px] font-medium text-slate-800">
+            Dokumente privat
           </p>
-
-          <p className="mt-2 text-[12px] leading-snug text-slate-600">{body}</p>
-
-          <button
-            type="button"
-            onClick={onClaim}
-            disabled={disabled}
-            className={[
-              "mt-5 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-[13px] font-semibold uppercase tracking-wide",
-              locked
-                ? "bg-slate-200 text-slate-600"
-                : "bg-slate-900 text-white hover:bg-slate-800",
-              "disabled:opacity-60 disabled:cursor-not-allowed",
-            ].join(" ")}
-          >
-            {loading ? "Wird verbunden…" : cta}
-          </button>
-
-          {errorMsg && (
-            <p className="mt-3 text-[12px] leading-snug text-red-600">{errorMsg}</p>
-          )}
+          <p className="mt-1 text-[12px] text-slate-500 leading-snug">
+            Nur Besitzer:in sieht Originale.
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-function DesktopDocumentsTeaser({
-  participantLabel,
-  teaserUrl,
-  onClaim,
-  claiming,
-  claimError,
-  alreadyClaimed,
-  locked,
-}: {
-  participantLabel: string;
-  teaserUrl: string;
-  onClaim: () => void;
-  claiming: boolean;
-  claimError: string | null;
-  alreadyClaimed: boolean;
-  locked: boolean;
-}) {
+function DocsBlurPreview({ src }: { src: string | null }) {
+  const fallback = TEASER_PAGES[0] ?? "/images/teaser/invoice-page-1.jpg";
+  const used = src ?? fallback;
+
   return (
-    <div className="relative flex flex-col items-center">
-      <img
-        src={teaserUrl}
-        alt={`${participantLabel} Dokument`}
-        className="w-full max-w-[600px] rounded-lg shadow-sm blur-md opacity-95 select-none pointer-events-none"
-        loading="lazy"
-      />
-      <ClaimOverlay
-        onClaim={onClaim}
-        loading={claiming}
-        errorMsg={claimError}
-        alreadyClaimed={alreadyClaimed}
-        locked={locked}
-      />
+    <div className="flex flex-col items-center">
+      <div className="relative w-full max-w-[600px] aspect-210/297 overflow-hidden rounded-lg shadow-sm">
+        <img
+          src={used}
+          alt="Dokumentvorschau"
+          className="absolute inset-0 h-full w-full object-contain blur-md opacity-95 select-none pointer-events-none"
+          loading="lazy"
+        />
+
+        <div className="absolute inset-0 bg-white/30 backdrop-blur-sm" />
+
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center px-8">
+            <EyeOff className="mx-auto mb-3 h-8 w-8 text-slate-300" />
+            <p className="text-[13px] font-medium text-slate-800">
+              Dokumente privat
+            </p>
+            <p className="mt-1 text-[12px] text-slate-500 leading-snug">
+              Originale nur für Berechtigte.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-function MobileDocumentsCardTeaser({
+function DesktopDocumentsPreview({
   participantLabel,
   teaserUrl,
-  onClaim,
-  claiming,
-  claimError,
-  alreadyClaimed,
-  locked,
 }: {
   participantLabel: string;
   teaserUrl: string;
-  onClaim: () => void;
-  claiming: boolean;
-  claimError: string | null;
-  alreadyClaimed: boolean;
-  locked: boolean;
+}) {
+  // Public Preview: immer locked
+  // Wenn teaserUrl fehlt, fallback
+  const used = teaserUrl ?? TEASER_PAGES[0]!;
+  // Falls aus irgendeinem Grund kein Bild, zeigen wir das Locked Placeholder
+  if (!used) return <DocsLocked />;
+  return <DocsBlurPreview src={used} />;
+}
+
+function MobileDocumentsCardPreview({
+  participantLabel,
+  teaserUrl,
+}: {
+  participantLabel: string;
+  teaserUrl: string;
 }) {
   return (
     <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 shadow-sm">
-      <div className="relative flex flex-col items-center">
-        <img
-          src={teaserUrl}
-          alt={`${participantLabel} Dokument`}
-          className="w-full rounded-lg shadow-sm blur-md opacity-95 select-none pointer-events-none"
-          loading="lazy"
-        />
-        <ClaimOverlay
-          onClaim={onClaim}
-          loading={claiming}
-          errorMsg={claimError}
-          alreadyClaimed={alreadyClaimed}
-          locked={locked}
-        />
-      </div>
+      <DesktopDocumentsPreview participantLabel={participantLabel} teaserUrl={teaserUrl} />
     </section>
   );
 }
@@ -504,10 +444,12 @@ function Row(props: { label: string; value: React.ReactNode }) {
   );
 }
 
+/** Public: Labels unverändert */
 function publicLabel(p: ParticipantRow) {
   return p.label;
 }
 
+/** Nutzt invoice.customer_story als Mittelteil */
 function storyMiddle(invoice: InvoiceRow): string {
   const s = (invoice.customer_story ?? "").trim();
   if (s.length > 0) return s;
@@ -518,11 +460,8 @@ function storyMiddle(invoice: InvoiceRow): string {
   Page
 ────────────────────────────────────────────────────────────── */
 
-export default function RechnungTeaserPage() {
-  const router = useRouter();
+export default function RechnungPreviewPage() {
   const params = useParams<{ token: string }>();
-  const searchParams = useSearchParams();
-  const autoclaim = searchParams.get("autoclaim") === "1";
 
   const tokenParam = params?.token;
   const token =
@@ -535,14 +474,12 @@ export default function RechnungTeaserPage() {
   if (typeof token !== "string" || token === "undefined" || token.length === 0) {
     return (
       <div className="h-full flex items-center justify-center text-slate-600 text-sm">
-        Fehlender oder ungültiger Claim-Code in der URL.
+        Fehlender oder ungültiger Public Token in der URL.
       </div>
     );
   }
 
   const safeToken = token;
-
-  const autoClaimHandledRef = React.useRef(false);
 
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -550,231 +487,12 @@ export default function RechnungTeaserPage() {
   const [invoice, setInvoice] = React.useState<InvoiceRow | null>(null);
   const [participants, setParticipants] = React.useState<ParticipantRow[]>([]);
   const [laborSteps, setLaborSteps] = React.useState<LaborStepRow[]>([]);
-  const [activeParticipantId, setActiveParticipantId] = React.useState<string>("");
+  const [activeParticipantId, setActiveParticipantId] =
+    React.useState<string>("");
 
-  const [teaserByParticipant, setTeaserByParticipant] = React.useState<Record<string, string>>({});
-
-  // ✅ Claim flow state
-  const [authMode, setAuthMode] = React.useState<AuthMode | null>(null);
-  const [claiming, setClaiming] = React.useState(false);
-  const [claimError, setClaimError] = React.useState<string | null>(null);
-
-  // ✅ Session-Check (für "already claimed + already logged in" → direkt weiterleiten)
-  const [hasSession, setHasSession] = React.useState<boolean>(false);
-  const [sessionChecked, setSessionChecked] = React.useState<boolean>(false);
-  const [sessionUserId, setSessionUserId] = React.useState<string | null>(null);
-
-  // ✅ Zustand: falsches Konto ist eingeloggt (Rechnung ist bereits geclaimt)
-  const wrongAccount =
-    !!invoice?.customer_id &&
-    sessionChecked &&
-    hasSession &&
-    !!sessionUserId &&
-    sessionUserId !== invoice.customer_id;
-
-  // Pending-Claim persistieren (OAuth Redirect)
-  const PENDING_KEY = "ww_pending_claim";
-
-  function setPendingClaim(claimCode: string) {
-    try {
-      localStorage.setItem(PENDING_KEY, JSON.stringify({ claimCode, createdAt: Date.now() }));
-    } catch { }
-  }
-
-  function clearPendingClaim() {
-    try {
-      localStorage.removeItem(PENDING_KEY);
-    } catch { }
-  }
-
-  const [claimRequested, setClaimRequested] = React.useState(false);
-  const claimRequestedRef = React.useRef(false);
-  const claimingRef = React.useRef(false);
-
-  React.useEffect(() => {
-    claimRequestedRef.current = claimRequested;
-  }, [claimRequested]);
-
-  React.useEffect(() => {
-    claimingRef.current = claiming;
-  }, [claiming]);
-
-  // ✅ Session einmal initial prüfen (Hook muss IMMER laufen → keine Hook-Order Fehler)
-  React.useEffect(() => {
-    let alive = true;
-    (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!alive) return;
-      setHasSession(!!data.session);
-      setSessionUserId(data.session?.user?.id ?? null);
-      setSessionChecked(true);
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  // ✅ Session aktuell halten (z.B. nach Login/Logout)
-  React.useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setHasSession(!!session);
-      setSessionUserId(session?.user?.id ?? null);
-      setSessionChecked(true);
-    });
-    return () => {
-      data.subscription.unsubscribe();
-    };
-  }, []);
-
-  async function doClaim() {
-    try {
-      if (claimingRef.current) return;
-      claimingRef.current = true;
-
-      setClaimError(null);
-      setClaiming(true);
-
-      const { data: sessionData } = await supabase.auth.getSession();
-      const session = sessionData.session;
-
-      if (!session) {
-        setClaiming(false);
-        claimingRef.current = false;
-        setAuthMode("signin");
-        return;
-      }
-
-      if (REQUIRE_EMAIL_VERIFICATION) {
-        const u: any = session.user;
-        const confirmed = !!(u?.email_confirmed_at || u?.confirmed_at);
-        if (!confirmed) {
-          setClaimError(
-            "Bitte bestätige zuerst deine E-Mail-Adresse (Link im Postfach). Danach kannst du die Rechnung verbinden."
-          );
-          setClaiming(false);
-          claimingRef.current = false;
-          return;
-        }
-      }
-
-      // ✅ Claim passiert immer über claim_code
-      const res = await supabase.rpc("claim_invoice", { p_claim_code: safeToken });
-
-      if (res.error) {
-        const msg = String(res.error.message ?? "").toLowerCase();
-        let human = "Verbindung nicht möglich. Bitte erneut versuchen.";
-
-        if (msg.includes("invoice_already_linked")) {
-          // ✅ NICHT weiterleiten. Falsches Konto soll auf Teaser bleiben.
-          human = "Diese Rechnung ist bereits mit einem anderen Konto verbunden. Bitte melde dich mit dem richtigen Konto an.";
-        } else if (msg.includes("not_authenticated")) {
-          human = "Bitte anmelden, um fortzufahren.";
-          setAuthMode("signin");
-        } else if (
-          msg.includes("wrong_email") ||
-          msg.includes("email_mismatch") ||
-          msg.includes("recipient_email_mismatch")
-        ) {
-          human =
-            "Bitte melde dich mit der E-Mail-Adresse an, an die diese Rechnung gesendet wurde.";
-        }
-
-        console.error("[claim_invoice]", res.error);
-        setClaimError(human);
-
-        setClaiming(false);
-        claimingRef.current = false;
-        setClaimRequested(false);
-        return;
-      }
-
-      const invoiceId = res.data as string | null;
-
-      if (!invoiceId) {
-        setClaimError(
-          "Verbindung ausgeführt, aber die Rechnungs-ID fehlt. Bitte melde dich kurz bei uns."
-        );
-        setClaiming(false);
-        claimingRef.current = false;
-        setClaimRequested(false);
-        return;
-      }
-
-      setClaiming(false);
-      claimingRef.current = false;
-      setClaimRequested(false);
-      setAuthMode(null);
-
-      clearPendingClaim();
-      router.push(`/mein-bereich/rechnungen/${invoiceId}`);
-    } catch (e) {
-      console.error(e);
-      setClaimError("Die Verbindung konnte nicht hergestellt werden. Bitte versuche es erneut.");
-      setClaiming(false);
-      claimingRef.current = false;
-      setClaimRequested(false);
-    }
-  }
-
-  async function handleClaimClick() {
-    // ✅ Wenn falscher Account eingeloggt ist → Button macht nichts (UI ist gesperrt)
-    if (wrongAccount) return;
-
-    setClaimError(null);
-
-    // ✅ Wenn already claimed & user ist eingeloggt → direkt zur ID-Page (kein RPC nötig)
-    const { data: sessionData } = await supabase.auth.getSession();
-    const session = sessionData.session;
-    // ✅ Nur weiterleiten, wenn eingeloggter User auch wirklich Besitzer ist
-    if (session && invoice?.customer_id && invoice?.id && session.user.id === invoice.customer_id) {
-      clearPendingClaim();
-      router.push(`/mein-bereich/rechnungen/${invoice.id}`);
-      return;
-    }
-
-    setPendingClaim(safeToken);
-
-    setClaimRequested(true);
-    claimRequestedRef.current = true;
-
-    if (!session) {
-      setAuthMode("signin");
-      return;
-    }
-
-    await doClaim();
-  }
-
-  React.useEffect(() => {
-    if (!autoclaim) return;
-    if (autoClaimHandledRef.current) return;
-
-    autoClaimHandledRef.current = true;
-
-    setClaimRequested(true);
-    claimRequestedRef.current = true;
-
-    void doClaim();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoclaim, safeToken]);
-
-  React.useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!claimRequestedRef.current) return;
-      if (!session) return;
-      if (claimingRef.current) return;
-
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
-        setAuthMode(null);
-        void doClaim();
-      }
-    });
-
-    return () => {
-      data.subscription.unsubscribe();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [safeToken]);
+  const [teaserByParticipant, setTeaserByParticipant] = React.useState<
+    Record<string, string>
+  >({});
 
   React.useEffect(() => {
     let mounted = true;
@@ -783,11 +501,12 @@ export default function RechnungTeaserPage() {
       setLoading(true);
       setError(null);
 
-      // ✅ 1) Invoice via claim_code (nicht public_token!)
+      // Invoice (public_token) robust
       const invRes = await supabase
         .from("invoices")
         .select("*")
-        .eq("claim_code", safeToken)
+        .eq("public_token", safeToken)
+        .eq("public_enabled", true)
         .order("created_at", { ascending: false })
         .limit(1);
 
@@ -802,12 +521,12 @@ export default function RechnungTeaserPage() {
 
       if (!inv) {
         if (!mounted) return;
-        setError("Rechnung nicht gefunden. Bitte prüfe den Code oder melde dich bei uns.");
+        setError("Rechnung nicht gefunden oder nicht öffentlich.");
         setLoading(false);
         return;
       }
 
-      // 2) Participants
+      // Participants
       const partRes = await supabase
         .from("invoice_participants")
         .select("*")
@@ -821,7 +540,7 @@ export default function RechnungTeaserPage() {
         return;
       }
 
-      // 3) Labor Steps (optional)
+      // Labor Steps (optional)
       let steps: LaborStepRow[] = [];
       try {
         const stepsRes = await supabase
@@ -839,10 +558,12 @@ export default function RechnungTeaserPage() {
 
       const parts = (partRes.data ?? []) as ParticipantRow[];
 
-      // ✅ Rotation seed bleibt safeToken — ist jetzt claim_code
       const teaserMap: Record<string, string> = {};
       for (const p of parts) {
-        teaserMap[p.participant_id] = teaserUrlForParticipant(p.participant_id, safeToken);
+        teaserMap[p.participant_id] = teaserUrlForParticipant(
+          p.participant_id,
+          safeToken
+        );
       }
 
       setInvoice(inv);
@@ -851,7 +572,8 @@ export default function RechnungTeaserPage() {
       setTeaserByParticipant(teaserMap);
 
       const firstClickable =
-        (partRes.data as ParticipantRow[]).find((p) => p.is_clickable)?.participant_id ??
+        (partRes.data as ParticipantRow[]).find((p) => p.is_clickable)
+          ?.participant_id ??
         (partRes.data as ParticipantRow[])[0]?.participant_id ??
         "";
 
@@ -872,7 +594,9 @@ export default function RechnungTeaserPage() {
     const vatRate = toNumber(invoice.vat_rate ?? 0.19) || 0.19;
 
     const minutesFromSteps =
-      laborSteps.length > 0 ? laborSteps.reduce((a, s) => a + (s.minutes ?? 0), 0) : null;
+      laborSteps.length > 0
+        ? laborSteps.reduce((a, s) => a + (s.minutes ?? 0), 0)
+        : null;
 
     const minutes = minutesFromSteps ?? invoice.labor_minutes ?? 0;
 
@@ -889,7 +613,9 @@ export default function RechnungTeaserPage() {
       .map((p) => {
         const purchaseNetCents = toCents(p.purchase_net);
 
-        const divisor = toNumber(p.pricing_divisor ?? invoice.pricing_divisor ?? 0.6666666667);
+        const divisor = toNumber(
+          p.pricing_divisor ?? invoice.pricing_divisor ?? 0.6666666667
+        );
         const safeDiv = divisor || 0.6666666667;
 
         const saleNetCents =
@@ -902,12 +628,15 @@ export default function RechnungTeaserPage() {
         const vatCents = Math.round(saleNetCents * vatRate);
         const grossCents = saleNetCents + vatCents;
 
-        const prodAbgabenCents = Math.round(purchaseNetCents * SUPPLYCHAIN_ABGABEN_RATE);
+        const prodAbgabenCents = Math.round(
+          purchaseNetCents * SUPPLYCHAIN_ABGABEN_RATE
+        );
         const bauteilCents = purchaseNetCents - prodAbgabenCents;
 
         const markupSplit = splitNetNoVat_Cents(markupNetCents, "markup");
 
-        const stateTotalMaterialCents = vatCents + markupSplit.abgaben + prodAbgabenCents;
+        const stateTotalMaterialCents =
+          vatCents + markupSplit.abgaben + prodAbgabenCents;
 
         return {
           participant_id: p.participant_id,
@@ -926,18 +655,25 @@ export default function RechnungTeaserPage() {
         };
       });
 
-    const totalMaterialsNetCents = materials.reduce((a, m) => a + m.saleNetCents, 0);
+    const totalMaterialsNetCents = materials.reduce(
+      (a, m) => a + m.saleNetCents,
+      0
+    );
 
     const totalNetCents = laborNetCents + totalMaterialsNetCents;
     const totalVatCents = Math.round(totalNetCents * vatRate);
     const totalGrossCents = totalNetCents + totalVatCents;
 
     const laborInSystemCents = laborSplit.inSystem;
-    const markupInSystemTotalCents = materials.reduce((a, m) => a + m.markupSplit.inSystem, 0);
+    const markupInSystemTotalCents = materials.reduce(
+      (a, m) => a + m.markupSplit.inSystem,
+      0
+    );
     const serviceMehrwertCents = laborInSystemCents + markupInSystemTotalCents;
 
     const workerTotalCents =
-      laborSplit.workerNet + materials.reduce((a, m) => a + m.markupSplit.workerNet, 0);
+      laborSplit.workerNet +
+      materials.reduce((a, m) => a + m.markupSplit.workerNet, 0);
 
     const entrepreneurTotalCents =
       laborSplit.entrepreneurNet +
@@ -947,11 +683,13 @@ export default function RechnungTeaserPage() {
       laborSplit.impact + materials.reduce((a, m) => a + m.markupSplit.impact, 0);
 
     const stateTotalModelCents =
-      laborSplit.stateTotal + materials.reduce((a, m) => a + m.stateTotalMaterialCents, 0);
+      laborSplit.stateTotal +
+      materials.reduce((a, m) => a + m.stateTotalMaterialCents, 0);
 
     const bauteilSumCents = materials.reduce((a, m) => a + m.bauteilCents, 0);
     const deltaToGross =
-      totalGrossCents - (serviceMehrwertCents + bauteilSumCents + stateTotalModelCents);
+      totalGrossCents -
+      (serviceMehrwertCents + bauteilSumCents + stateTotalModelCents);
 
     const stateTotalAdjustedCents = stateTotalModelCents + deltaToGross;
 
@@ -960,7 +698,10 @@ export default function RechnungTeaserPage() {
 
     const impactServiceCents = Math.round(impactTotalCents * impactServicePct);
     const impactSocialCents = Math.round(impactTotalCents * impactSocialPct);
-    const impactFutureCents = Math.max(0, impactTotalCents - impactServiceCents - impactSocialCents);
+    const impactFutureCents = Math.max(
+      0,
+      impactTotalCents - impactServiceCents - impactSocialCents
+    );
 
     return {
       vatRate,
@@ -1029,40 +770,10 @@ export default function RechnungTeaserPage() {
 
   const active = React.useMemo(() => {
     if (!uiParticipants.length) return null;
-    return uiParticipants.find((p) => p.id === activeParticipantId) ?? uiParticipants[0]!;
+    return (
+      uiParticipants.find((p) => p.id === activeParticipantId) ?? uiParticipants[0]!
+    );
   }, [uiParticipants, activeParticipantId]);
-
-  // ✅ Redirect BEFORE early returns (Hook order muss stabil bleiben!)
-  React.useEffect(() => {
-    if (!sessionChecked) return;
-    if (!invoice) return;
-    if (!invoice.customer_id) return; // nur wenn already claimed
-    if (!hasSession) return;
-
-    // ✅ Nur Besitzer darf auto-redirect bekommen
-    if (!sessionUserId) return;
-    if (sessionUserId !== invoice.customer_id) return;
-
-    router.replace(`/mein-bereich/rechnungen/${invoice.id}`);
-  }, [sessionChecked, hasSession, sessionUserId, invoice, router]);
-
-  // ✅ Sofortige UI-Rückmeldung (ohne erneuten Button-Klick)
-  React.useEffect(() => {
-    const MSG =
-      "Diese Rechnung ist bereits mit einem anderen Konto verbunden. Bitte melde dich mit dem richtigen Konto an.";
-
-    if (wrongAccount) {
-      setClaimError(MSG);
-
-      setClaiming(false);
-      claimingRef.current = false;
-      setClaimRequested(false);
-      claimRequestedRef.current = false;
-    } else {
-      // ✅ Meldung nur löschen, wenn es genau diese ist (nicht andere Errors wegwischen)
-      setClaimError((prev) => (prev === MSG ? null : prev));
-    }
-  }, [wrongAccount]);
 
   if (loading) {
     return (
@@ -1075,17 +786,17 @@ export default function RechnungTeaserPage() {
   if (error || !invoice || !computed || !active) {
     return (
       <div className="h-full flex items-center justify-center text-slate-600 text-sm">
-        {error ?? "Rechnung nicht gefunden oder nicht freigegeben."}
+        {error ?? "Rechnung nicht gefunden oder nicht öffentlich."}
       </div>
     );
   }
-  const alreadyClaimed = !!invoice.customer_id;
 
   const isWohnenwo = active.id === "wohnenwo";
   const isGrohe = active.id === "grohe";
   const isHansgrohe = active.id === "hansgrohe";
 
-  const activeMaterial = computed.materials.find((m) => m.participant_id === active.id) ?? null;
+  const activeMaterial =
+    computed.materials.find((m) => m.participant_id === active.id) ?? null;
 
   const statusLabel = (invoice.status ?? "open").toLowerCase();
   const statusPill =
@@ -1104,37 +815,15 @@ export default function RechnungTeaserPage() {
 
   return (
     <div className="h-full">
-      <AuthOverlay
-        mode={authMode}
-        onClose={() => {
-          clearPendingClaim();
-          setAuthMode(null);
-          setClaimRequested(false);
-          setClaiming(false);
-          claimingRef.current = false;
-        }}
-        onSwitchMode={(m) => setAuthMode(m)}
-        onAuthed={() => {
-          setAuthMode(null);
-          setClaimRequested(true);
-          claimRequestedRef.current = true;
-          void doClaim();
-        }}
-      />
-
       <div className="flex h-full flex-col lg:flex-row">
+        {/* LEFT: Docs (Desktop) – locked preview (wie [id]) */}
         <section className="hidden lg:block flex-1 min-w-0 border-r border-slate-200 bg-white">
           <div className="h-full overflow-y-auto">
             <div className="px-6 py-5">
               <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 md:px-6 py-4 md:py-5">
-                <DesktopDocumentsTeaser
+                <DesktopDocumentsPreview
                   participantLabel={active.label}
                   teaserUrl={activeTeaserUrl}
-                  onClaim={handleClaimClick}
-                  claiming={claiming}
-                  claimError={claimError}
-                  alreadyClaimed={alreadyClaimed}
-                  locked={wrongAccount}
                 />
               </div>
               <div className="h-20" />
@@ -1142,8 +831,10 @@ export default function RechnungTeaserPage() {
           </div>
         </section>
 
+        {/* RIGHT */}
         <aside className="w-full lg:w-[320px] xl:w-[400px] bg-slate-50">
           <div className="h-full overflow-y-auto border-l border-slate-200 px-5 py-5 space-y-5">
+            {/* Top */}
             <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm">
               <div className="space-y-1">
                 <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
@@ -1157,7 +848,9 @@ export default function RechnungTeaserPage() {
                     </p>
                     <p className="text-[12px] font-medium text-black mt-2">
                       Rechnungs-Nr.:{" "}
-                      <span className="font-mono">{invoice.invoice_number ?? "–"}</span>
+                      <span className="font-mono">
+                        {invoice.invoice_number ?? "–"}
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -1165,7 +858,9 @@ export default function RechnungTeaserPage() {
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-[11px] text-slate-600">
                   <div className="space-y-0.5">
                     <p className="text-slate-500">Rechnungsdatum</p>
-                    <p className="font-medium text-slate-800">{formatDateDE8(invoice.date)}</p>
+                    <p className="font-medium text-slate-800">
+                      {formatDateDE8(invoice.date)}
+                    </p>
                   </div>
                   <div className="space-y-0.5">
                     <p className="text-slate-500">Leistungszeitraum</p>
@@ -1180,26 +875,35 @@ export default function RechnungTeaserPage() {
                     </p>
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-slate-500">Umsatzsteuer ({fmtPct(computed.vatRate)})</p>
+                    <p className="text-slate-500">
+                      Umsatzsteuer ({fmtPct(computed.vatRate)})
+                    </p>
                     <p className="font-medium text-slate-800">
                       {fmtEURFromCents(computed.totalVatCents)}
                     </p>
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-[12px] font-medium text-slate-800">Brutto-Betrag</p>
+                    <p className="text-[12px] font-medium text-slate-800">
+                      Brutto-Betrag
+                    </p>
                     <p className="text-[14px] font-semibold text-black">
                       {fmtEURFromCents(computed.totalGrossCents)}
                     </p>
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-[12px] font-medium text-slate-800">Zahlungsstand</p>
-                    <div className="flex flex-col items-start gap-1">{statusPill}</div>
+                    <p className="text-[12px] font-medium text-slate-800">
+                      Zahlungsstand
+                    </p>
+                    <div className="flex flex-col items-start gap-1">
+                      {statusPill}
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="border-t border-slate-200 mb-3" />
 
+              {/* Tabs */}
               <div className="space-y-3">
                 <header className="space-y-0.5">
                   <p className="text-[13px] font-semibold text-slate-900">
@@ -1227,8 +931,12 @@ export default function RechnungTeaserPage() {
                             {p.icon}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[14px] font-semibold truncate">{p.label}</p>
-                            <p className="text-[11px] truncate text-slate-200">{p.description}</p>
+                            <p className="text-[14px] font-semibold truncate">
+                              {p.label}
+                            </p>
+                            <p className="text-[11px] truncate text-slate-200">
+                              {p.description}
+                            </p>
                           </div>
                           {p.valueCents !== null && (
                             <span className="text-[14px] font-semibold tabular-nums text-white">
@@ -1254,7 +962,9 @@ export default function RechnungTeaserPage() {
                         <div
                           className={[
                             "inline-flex h-8 w-8 items-center justify-center rounded-full shrink-0",
-                            isActive ? "bg-white/10 text-white" : "bg-slate-900 text-white",
+                            isActive
+                              ? "bg-white/10 text-white"
+                              : "bg-slate-900 text-white",
                           ].join(" ")}
                         >
                           {p.icon}
@@ -1295,27 +1005,24 @@ export default function RechnungTeaserPage() {
                 </div>
 
                 <p className="mt-1 text-[11px] leading-snug text-slate-600">
-                  Tippe auf einen Mitwirkenden: Die linke Dokumentenvorschau springt automatisch zu
-                  den Unterlagen, die diesen Schritt der Wertschöpfung dokumentieren. Angezeigt
-                  werden die Netto-Anteile nach Steuern und Abgaben.
+                  Tippe auf einen Mitwirkenden: Die linke Dokumentenvorschau springt
+                  automatisch zu den Unterlagen, die diesen Schritt der Wertschöpfung
+                  dokumentieren. Angezeigt werden die Netto-Anteile nach Steuern und Abgaben.
                 </p>
               </div>
             </section>
 
+            {/* MOBILE docs: außer bei WohnenWo */}
             <div className="lg:hidden">
               {!isWohnenwo && (
-                <MobileDocumentsCardTeaser
+                <MobileDocumentsCardPreview
                   participantLabel={active.label}
                   teaserUrl={activeTeaserUrl}
-                  onClaim={handleClaimClick}
-                  claiming={claiming}
-                  claimError={claimError}
-                  alreadyClaimed={alreadyClaimed}
-                  locked={wrongAccount}
                 />
               )}
             </div>
 
+            {/* Wirkungs-Badge (WohnenWo) */}
             {isWohnenwo && (
               <div className="rounded-xl border border-slate-200 bg-cyan-600 text-white px-3 py-2 shadow-sm">
                 <div className="flex items-start gap-2">
@@ -1325,24 +1032,22 @@ export default function RechnungTeaserPage() {
 
                   <p className="text-[14px] leading-snug text-slate-100">
                     Mit Ihrem Auftrag fließen{" "}
-                    <span className="font-semibold">{fmtEURFromCents(computed.impactTotalCents)}</span>{" "}
-                    in den Ausbau transparenter Wirtschaftskulturen (Plattform, Technologie &amp;
-                    faire Prozesse).
+                    <span className="font-semibold">
+                      {fmtEURFromCents(computed.impactTotalCents)}
+                    </span>{" "}
+                    in den Ausbau transparenter Wirtschaftskulturen (Plattform,
+                    Technologie &amp; faire Prozesse).
                   </p>
                 </div>
               </div>
             )}
 
+            {/* MOBILE docs: WohnenWo unter Badge */}
             <div className="lg:hidden">
               {isWohnenwo && (
-                <MobileDocumentsCardTeaser
+                <MobileDocumentsCardPreview
                   participantLabel={active.label}
                   teaserUrl={activeTeaserUrl}
-                  onClaim={handleClaimClick}
-                  claiming={claiming}
-                  claimError={claimError}
-                  alreadyClaimed={alreadyClaimed}
-                  locked={wrongAccount}
                 />
               )}
             </div>

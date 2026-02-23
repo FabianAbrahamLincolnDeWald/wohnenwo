@@ -32,7 +32,7 @@ function AppleCard({
                 </p>
             </div>
 
-            <div className="mt-3 text-[15px] sm:text-[20px] leading-normal text-slate-700 dark:text-white/80">
+            <div className="mt-3 text-[17px] sm:text-[20px] leading-normal text-slate-700 dark:text-white/80">
                 {children}
             </div>
         </div>

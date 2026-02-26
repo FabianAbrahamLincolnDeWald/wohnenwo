@@ -1,4 +1,6 @@
 // app/(mein-bereich-shell)/mein-bereich/layout.tsx
+export const dynamic = "force-dynamic";
+
 import type { ReactNode } from "react";
 import Sidebar from "@/components/mein-bereich/Sidebar";
 import Topbar from "@/components/mein-bereich/Topbar";

@@ -133,7 +133,7 @@ export default function Sektor04_DesignDifferenceSection() {
     <section className="relative bg-[#f5f5f7] dark:bg-[#1d1d1f]">
       <div className="mx-auto max-w-6xl px-6 pt-[56px] md:pt-[88px] pb-[88px] md:pb-[132px]">
         <h2 className="font-semibold tracking-tight text-slate-900 dark:text-white leading-[1.04] text-[clamp(28px,4.8vw,56px)]">
-          Erlebe, wie barriere­freies Design den Unter­schied macht.
+          Erlebe, wie wertebasiertes Design den Unter­schied macht.
         </h2>
 
         <div className="h-3 md:h-5" />

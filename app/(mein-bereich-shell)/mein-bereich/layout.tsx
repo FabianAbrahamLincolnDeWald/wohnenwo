@@ -2,10 +2,12 @@
 import type { ReactNode } from "react";
 import Sidebar from "@/components/mein-bereich/Sidebar";
 import Topbar from "@/components/mein-bereich/Topbar";
+import AuthRefreshListener from "@/components/auth/AuthRefreshListener";
 
 export default function MeinBereichLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-slate-50 flex">
+      <AuthRefreshListener />
       {/* Linke Spalte: Sidebar (fixer Rahmen links) */}
       <Sidebar />
 

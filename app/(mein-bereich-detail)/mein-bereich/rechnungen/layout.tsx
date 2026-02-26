@@ -2,6 +2,7 @@
 import type { ReactNode } from "react";
 import Sidebar from "@/components/mein-bereich/Sidebar";
 import Topbar from "@/components/mein-bereich/Topbar";
+import AuthRefreshListener from "@/components/auth/AuthRefreshListener";
 
 export default function RechnungDetailLayout({
   children,
@@ -11,6 +12,7 @@ export default function RechnungDetailLayout({
   return (
     // Gesamte App-Hülle: volle Höhe des Viewports
     <div className="flex h-screen bg-slate-50">
+      <AuthRefreshListener />
       {/* Linke Spalte: Sidebar (bereits sticky im eigenen Component) */}
       <Sidebar />
 

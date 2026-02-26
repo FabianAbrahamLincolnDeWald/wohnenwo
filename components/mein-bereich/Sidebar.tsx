@@ -130,7 +130,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="hidden md:flex flex-col shrink-0 h-screen bg-slate-100 py-3 px-5 border-r border-slate-200 sticky top-0 z-40"
+      className="hidden md:flex flex-col shrink-0 h-screen bg-slate-100 py-3 px-5 border-r border-slate-200 sticky top-0 z-40 dark:bg-[#1d1d1f] dark:border-white/10"
       style={{ width: 240 }}
     >
       {/* Ecosystem Flyout */}
@@ -141,7 +141,7 @@ export default function Sidebar() {
       <div className="flex flex-col gap-6">
         {/* Optional: kleiner Hinweis oben, wenn noch geladen wird */}
         {loading && (
-          <div className="text-[11px] text-slate-400 mb-1">
+          <div className="text-[11px] text-slate-400 mb-1 dark:text-white/40">
             Bereich wird personalisiert …
           </div>
         )}
@@ -165,10 +165,10 @@ export default function Sidebar() {
                 <div
                   className={classNames(
                     "flex w-full items-center gap-x-2 p-2.5 rounded-lg group transition-all duration-300 ease-in-out text-sm",
-                    "hover:bg-slate-100",
+                    "hover:bg-slate-100 dark:hover:bg-white/5",
                     isActive
-                      ? "bg-white text-slate-900 shadow-sm border border-slate-200"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-white text-slate-900 shadow-sm border border-slate-200 dark:bg-white/10 dark:text-white dark:border-white/10 dark:hover:bg-white/10"
+                      : "text-slate-500 hover:text-slate-900 dark:text-white/60 dark:hover:text-white"
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
@@ -184,7 +184,7 @@ export default function Sidebar() {
         {/* Community-Bereich */}
         {communityItems.length > 0 && (
           <div className="flex flex-col gap-1.5">
-            <div className="text-xs font-medium text-slate-400 mb-1 tracking-wide">
+            <div className="text-xs font-medium text-slate-400 mb-1 tracking-wide dark:text-white/40">
               Community
             </div>
             <nav className="flex flex-col gap-1.5">
@@ -201,10 +201,10 @@ export default function Sidebar() {
                     <div
                       className={classNames(
                         "flex w-full items-center gap-x-2 p-2.5 rounded-lg group transition-all duration-300 ease-in-out text-sm",
-                        "hover:bg-slate-100",
+                        "hover:bg-slate-100 dark:hover:bg-white/5",
                         isActive
-                          ? "bg-white text-slate-900 shadow-sm border border-slate-200"
-                          : "text-slate-500 hover:text-slate-900"
+                          ? "bg-white text-slate-900 shadow-sm border border-slate-200 dark:bg-white/10 dark:text-white dark:border-white/10 dark:hover:bg-white/10"
+                          : "text-slate-500 hover:text-slate-900 dark:text-white/60 dark:hover:text-white"
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />

@@ -19,7 +19,7 @@ export default function RootLayout({
   return (
     <html lang="de" className="h-full">
       <body
-        className={`${inter.className} h-full antialiased bg-white text-slate-900`}
+        className={`${inter.className} h-full antialiased bg-white text-slate-900 dark:bg-black dark:text-white`}
       >
         <AuthOverlayProvider>
           {children}

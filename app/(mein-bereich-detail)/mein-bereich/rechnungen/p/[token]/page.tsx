@@ -346,13 +346,13 @@ function teaserUrlForParticipant(participantId: string, token: string): string {
 function DocsLocked() {
   return (
     <div className="flex flex-col items-center">
-      <div className="w-full max-w-[600px] aspect-210/297 rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center">
+      <div className="w-full max-w-[600px] aspect-210/297 rounded-lg border border-dashed border-slate-300 bg-white flex items-center justify-center dark:border-white/10 dark:bg-white/5">
         <div className="text-center px-8">
           <EyeOff className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-          <p className="text-[13px] font-medium text-slate-800">
+          <p className="text-[13px] font-medium text-slate-800 dark:text-white/80">
             Dokumente privat
           </p>
-          <p className="mt-1 text-[12px] text-slate-500 leading-snug">
+          <p className="mt-1 text-[12px] text-slate-500 leading-snug dark:text-white/40">
             Nur Besitzer:in sieht Originale.
           </p>
         </div>
@@ -375,15 +375,15 @@ function DocsBlurPreview({ src }: { src: string | null }) {
           loading="lazy"
         />
 
-        <div className="absolute inset-0 bg-white/30 backdrop-blur-sm" />
+        <div className="absolute inset-0 bg-white/30 backdrop-blur-sm dark:bg-black/50" />
 
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center px-8">
             <EyeOff className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-            <p className="text-[13px] font-medium text-slate-800">
+            <p className="text-[13px] font-medium text-slate-800 dark:text-white/80">
               Dokumente privat
             </p>
-            <p className="mt-1 text-[12px] text-slate-500 leading-snug">
+            <p className="mt-1 text-[12px] text-slate-500 leading-snug dark:text-white/40">
               Originale nur für Berechtigte.
             </p>
           </div>
@@ -416,7 +416,7 @@ function MobileDocumentsCardPreview({
   teaserUrl: string;
 }) {
   return (
-    <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 shadow-sm">
+    <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
       <DesktopDocumentsPreview participantLabel={participantLabel} teaserUrl={teaserUrl} />
     </section>
   );
@@ -436,8 +436,8 @@ function Row(props: { label: string; value: React.ReactNode }) {
   const { label, value } = props;
   return (
     <div className="flex items-center justify-between gap-2">
-      <span className="text-[12px] text-slate-600">{label}</span>
-      <span className="text-[12px] font-medium text-slate-900 text-right">
+      <span className="text-[12px] text-slate-600 dark:text-white/50">{label}</span>
+      <span className="text-[12px] font-medium text-slate-900 text-right dark:text-white">
         {value ?? "–"}
       </span>
     </div>
@@ -473,7 +473,7 @@ export default function RechnungPreviewPage() {
 
   if (typeof token !== "string" || token === "undefined" || token.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center text-slate-600 text-sm">
+      <div className="h-full flex items-center justify-center text-slate-600 text-sm dark:text-white/40">
         Fehlender oder ungültiger Public Token in der URL.
       </div>
     );
@@ -777,7 +777,7 @@ export default function RechnungPreviewPage() {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center text-slate-500 text-sm">
+      <div className="h-full flex items-center justify-center text-slate-500 text-sm dark:text-white/50">
         Lade Rechnung…
       </div>
     );
@@ -785,7 +785,7 @@ export default function RechnungPreviewPage() {
 
   if (error || !invoice || !computed || !active) {
     return (
-      <div className="h-full flex items-center justify-center text-slate-600 text-sm">
+      <div className="h-full flex items-center justify-center text-slate-600 text-sm dark:text-white/40">
         {error ?? "Rechnung nicht gefunden oder nicht öffentlich."}
       </div>
     );
@@ -801,11 +801,11 @@ export default function RechnungPreviewPage() {
   const statusLabel = (invoice.status ?? "open").toLowerCase();
   const statusPill =
     statusLabel === "paid" || statusLabel === "bezahlt" ? (
-      <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700 border border-green-500">
+      <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700 border border-green-500 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800">
         Bezahlt
       </span>
     ) : (
-      <span className="inline-flex items-center rounded-full bg-yellow-50 px-2 py-0.5 text-[10px] font-medium text-yellow-700 border border-yellow-500">
+      <span className="inline-flex items-center rounded-full bg-yellow-50 px-2 py-0.5 text-[10px] font-medium text-yellow-700 border border-yellow-500 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800">
         Offen
       </span>
     );
@@ -817,10 +817,10 @@ export default function RechnungPreviewPage() {
     <div className="h-full">
       <div className="flex h-full flex-col lg:flex-row">
         {/* LEFT: Docs (Desktop) – locked preview (wie [id]) */}
-        <section className="hidden lg:block flex-1 min-w-0 border-r border-slate-200 bg-white">
+        <section className="hidden lg:block flex-1 min-w-0 border-r border-slate-200 bg-white dark:border-white/10 dark:bg-[#111113]">
           <div className="h-full overflow-y-auto">
             <div className="px-6 py-5">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 md:px-6 py-4 md:py-5">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 md:px-6 py-4 md:py-5 dark:border-white/10 dark:bg-white/5">
                 <DesktopDocumentsPreview
                   participantLabel={active.label}
                   teaserUrl={activeTeaserUrl}
@@ -832,21 +832,21 @@ export default function RechnungPreviewPage() {
         </section>
 
         {/* RIGHT */}
-        <aside className="w-full lg:w-[320px] xl:w-[400px] bg-slate-50">
-          <div className="h-full overflow-y-auto border-l border-slate-200 px-5 py-5 space-y-5">
+        <aside className="w-full lg:w-[320px] xl:w-[400px] bg-slate-50 dark:bg-[#111113]">
+          <div className="h-full overflow-y-auto border-l border-slate-200 px-5 py-5 space-y-5 dark:border-white/10">
             {/* Top */}
-            <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm">
+            <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
               <div className="space-y-1">
-                <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500 dark:text-white/40">
                   Rechnung · Detailansicht
                 </p>
 
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-0.5">
-                    <p className="text-[13px] font-semibold text-slate-900 leading-snug">
+                    <p className="text-[13px] font-semibold text-slate-900 leading-snug dark:text-white">
                       {invoice.title ?? "–"}
                     </p>
-                    <p className="text-[12px] font-medium text-black mt-2">
+                    <p className="text-[12px] font-medium text-black mt-2 dark:text-white">
                       Rechnungs-Nr.:{" "}
                       <span className="font-mono">
                         {invoice.invoice_number ?? "–"}
@@ -855,43 +855,43 @@ export default function RechnungPreviewPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-[11px] text-slate-600">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-[11px] text-slate-600 dark:text-white/50">
                   <div className="space-y-0.5">
-                    <p className="text-slate-500">Rechnungsdatum</p>
-                    <p className="font-medium text-slate-800">
+                    <p className="text-slate-500 dark:text-white/40">Rechnungsdatum</p>
+                    <p className="font-medium text-slate-800 dark:text-white/80">
                       {formatDateDE8(invoice.date)}
                     </p>
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-slate-500">Leistungszeitraum</p>
-                    <p className="font-medium text-slate-800">
+                    <p className="text-slate-500 dark:text-white/40">Leistungszeitraum</p>
+                    <p className="font-medium text-slate-800 dark:text-white/80">
                       {formatDateDE8(invoice.service_date)}
                     </p>
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-slate-500">Netto-Betrag</p>
-                    <p className="font-medium text-slate-800">
+                    <p className="text-slate-500 dark:text-white/40">Netto-Betrag</p>
+                    <p className="font-medium text-slate-800 dark:text-white/80">
                       {fmtEURFromCents(computed.totalNetCents)}
                     </p>
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-slate-500">
+                    <p className="text-slate-500 dark:text-white/40">
                       Umsatzsteuer ({fmtPct(computed.vatRate)})
                     </p>
-                    <p className="font-medium text-slate-800">
+                    <p className="font-medium text-slate-800 dark:text-white/80">
                       {fmtEURFromCents(computed.totalVatCents)}
                     </p>
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-[12px] font-medium text-slate-800">
+                    <p className="text-[12px] font-medium text-slate-800 dark:text-white/80">
                       Brutto-Betrag
                     </p>
-                    <p className="text-[14px] font-semibold text-black">
+                    <p className="text-[14px] font-semibold text-black dark:text-white">
                       {fmtEURFromCents(computed.totalGrossCents)}
                     </p>
                   </div>
                   <div className="space-y-0.5">
-                    <p className="text-[12px] font-medium text-slate-800">
+                    <p className="text-[12px] font-medium text-slate-800 dark:text-white/80">
                       Zahlungsstand
                     </p>
                     <div className="flex flex-col items-start gap-1">
@@ -901,12 +901,12 @@ export default function RechnungPreviewPage() {
                 </div>
               </div>
 
-              <div className="border-t border-slate-200 mb-3" />
+              <div className="border-t border-slate-200 mb-3 dark:border-white/10" />
 
               {/* Tabs */}
               <div className="space-y-3">
                 <header className="space-y-0.5">
-                  <p className="text-[13px] font-semibold text-slate-900">
+                  <p className="text-[13px] font-semibold text-slate-900 dark:text-white">
                     Wie sich der Rechnungswert verteilt
                   </p>
                 </header>
@@ -920,7 +920,7 @@ export default function RechnungPreviewPage() {
                       return (
                         <div
                           key={p.id}
-                          className="w-full rounded-lg px-3 py-2.5 text-[12px] flex items-center gap-3 border bg-slate-500/80 border-slate-400 text-white shadow-sm"
+                          className="w-full rounded-lg px-3 py-2.5 text-[12px] flex items-center gap-3 border bg-slate-500/80 border-slate-400 text-white shadow-sm dark:bg-white/10 dark:border-white/15"
                           title={
                             computed.deltaToGross !== 0
                               ? `Rundungsausgleich: ${computed.deltaToGross} Cent`
@@ -934,7 +934,7 @@ export default function RechnungPreviewPage() {
                             <p className="text-[14px] font-semibold truncate">
                               {p.label}
                             </p>
-                            <p className="text-[11px] truncate text-slate-200">
+                            <p className="text-[11px] truncate text-slate-200 dark:text-white/60">
                               {p.description}
                             </p>
                           </div>
@@ -955,16 +955,16 @@ export default function RechnungPreviewPage() {
                         className={[
                           "w-full text-left rounded-lg px-3 py-2.5 text-[12px] flex items-center gap-3 transition border",
                           isActive
-                            ? "bg-slate-900 text-white border-slate-900 shadow-sm"
-                            : "bg-white text-slate-900 border-slate-200 hover:bg-slate-50",
+                            ? "bg-slate-900 text-white border-slate-900 shadow-sm dark:bg-white/10 dark:text-white dark:border-white/15"
+                            : "bg-white text-slate-900 border-slate-200 hover:bg-slate-50 dark:bg-white/5 dark:text-white dark:border-white/10 dark:hover:bg-white/10",
                         ].join(" ")}
                       >
                         <div
                           className={[
                             "inline-flex h-8 w-8 items-center justify-center rounded-full shrink-0",
                             isActive
-                              ? "bg-white/10 text-white"
-                              : "bg-slate-900 text-white",
+                              ? "bg-white/10 text-white dark:bg-white/20"
+                              : "bg-slate-900 text-white dark:bg-white/10",
                           ].join(" ")}
                         >
                           {p.icon}
@@ -974,7 +974,7 @@ export default function RechnungPreviewPage() {
                           <p
                             className={[
                               "text-[14px] font-semibold truncate",
-                              isActive ? "text-white" : "text-slate-900",
+                              isActive ? "text-white" : "text-slate-900 dark:text-white",
                             ].join(" ")}
                           >
                             {p.label}
@@ -982,7 +982,7 @@ export default function RechnungPreviewPage() {
                           <p
                             className={[
                               "text-[11px] truncate",
-                              isActive ? "text-slate-200" : "text-slate-500",
+                              isActive ? "text-slate-200" : "text-slate-500 dark:text-white/40",
                             ].join(" ")}
                           >
                             {p.description}
@@ -993,7 +993,7 @@ export default function RechnungPreviewPage() {
                           <span
                             className={[
                               "text-[14px] font-semibold tabular-nums",
-                              isActive ? "text-white" : "text-slate-900",
+                              isActive ? "text-white" : "text-slate-900 dark:text-white",
                             ].join(" ")}
                           >
                             {fmtEURFromCents(p.valueCents)}
@@ -1004,7 +1004,7 @@ export default function RechnungPreviewPage() {
                   })}
                 </div>
 
-                <p className="mt-1 text-[11px] leading-snug text-slate-600">
+                <p className="mt-1 text-[11px] leading-snug text-slate-600 dark:text-white/40">
                   Tippe auf einen Mitwirkenden: Die linke Dokumentenvorschau springt
                   automatisch zu den Unterlagen, die diesen Schritt der Wertschöpfung
                   dokumentieren. Angezeigt werden die Netto-Anteile nach Steuern und Abgaben.
@@ -1024,7 +1024,7 @@ export default function RechnungPreviewPage() {
 
             {/* Wirkungs-Badge (WohnenWo) */}
             {isWohnenwo && (
-              <div className="rounded-xl border border-slate-200 bg-cyan-600 text-white px-3 py-2 shadow-sm">
+              <div className="rounded-xl border border-slate-200 bg-cyan-600 text-white px-3 py-2 shadow-sm dark:border-white/10">
                 <div className="flex items-start gap-2">
                   <div className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10">
                     <Sparkles className="h-4 w-4 text-white" />
@@ -1056,12 +1056,12 @@ export default function RechnungPreviewPage() {
             {isWohnenwo && (
               <>
                 {/* Lohnkosten */}
-                <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm">
+                <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
                   <header className="space-y-0.5">
-                    <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                    <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500 dark:text-white/40">
                       Lohnkosten
                     </p>
-                    <p className="text-[13px] font-semibold text-slate-900">
+                    <p className="text-[13px] font-semibold text-slate-900 dark:text-white">
                       Zeit &amp; Einsatz für Ihren Auftrag
                     </p>
                   </header>
@@ -1073,7 +1073,7 @@ export default function RechnungPreviewPage() {
                       <col className="w-[20%]" />
                     </colgroup>
                     <thead>
-                      <tr className="text-slate-700">
+                      <tr className="text-slate-700 dark:text-white/60">
                         <th className="py-1 text-left font-medium">Tätigkeit</th>
                         <th className="py-1 text-left font-medium">Einordnung</th>
                         <th className="py-1 text-right font-medium">Zeit</th>
@@ -1084,22 +1084,22 @@ export default function RechnungPreviewPage() {
                         <>
                           {laborSteps.map((s) => (
                             <tr key={s.id} className="border-t border-slate-200">
-                              <td className="py-1 text-slate-700">{s.label}</td>
-                              <td className="py-1 text-slate-500">
+                              <td className="py-1 text-slate-700 dark:text-white/60">{s.label}</td>
+                              <td className="py-1 text-slate-500 dark:text-white/40">
                                 {s.description ?? "–"}
                               </td>
-                              <td className="py-1 text-right text-slate-700">
+                              <td className="py-1 text-right text-slate-700 dark:text-white/60">
                                 {s.minutes} min
                               </td>
                             </tr>
                           ))}
 
-                          <tr className="border-t border-slate-300">
-                            <td className="py-1.5 font-semibold text-slate-800">
+                          <tr className="border-t border-slate-300 dark:border-white/20">
+                            <td className="py-1.5 font-semibold text-slate-800 dark:text-white/80">
                               Gesamtzeit
                             </td>
                             <td />
-                            <td className="py-1.5 text-right font-semibold text-slate-800">
+                            <td className="py-1.5 text-right font-semibold text-slate-800 dark:text-white/80">
                               {computed.minutes} min
                             </td>
                           </tr>
@@ -1109,7 +1109,7 @@ export default function RechnungPreviewPage() {
                           <td className="py-1.5 font-semibold text-slate-800">
                             Gesamtzeit
                           </td>
-                          <td className="text-slate-500 py-1.5">
+                          <td className="text-slate-500 py-1.5 dark:text-white/40">
                             (noch keine Etappen hinterlegt)
                           </td>
                           <td className="py-1.5 text-right font-semibold text-slate-800">
@@ -1120,7 +1120,7 @@ export default function RechnungPreviewPage() {
                     </tbody>
                   </table>
 
-                  <p className="text-[11px] leading-snug text-slate-600">
+                  <p className="text-[11px] leading-snug text-slate-600 dark:text-white/40">
                     Abgerechnet werden{" "}
                     <span className="font-medium">{computed.minutes} Minuten</span>{" "}
                     zu einem Stundensatz von{" "}
@@ -1130,24 +1130,24 @@ export default function RechnungPreviewPage() {
                     .
                   </p>
 
-                  <div className="pt-2 border-t border-slate-100 space-y-0.5 text-[11px] text-slate-600">
+                  <div className="pt-2 border-t border-slate-100 space-y-0.5 text-[11px] text-slate-600 dark:border-white/5 dark:text-white/50">
                     <div className="flex justify-between">
                       <span>Arbeitslohn (netto)</span>
-                      <span className="font-medium text-slate-800">
+                      <span className="font-medium text-slate-800 dark:text-white/80">
                         {fmtEURFromCents(computed.laborNetCents)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Umsatzsteuer ({fmtPct(computed.vatRate)})</span>
-                      <span className="font-medium text-slate-800">
+                      <span className="font-medium text-slate-800 dark:text-white/80">
                         {fmtEURFromCents(computed.laborVatOutCents)}
                       </span>
                     </div>
                     <div className="flex justify-between pt-1">
-                      <span className="text-[14px] font-bold text-slate-800">
+                      <span className="text-[14px] font-bold text-slate-800 dark:text-white/80">
                         Arbeitswert (brutto)
                       </span>
-                      <span className="text-[14px] font-bold text-slate-900">
+                      <span className="text-[14px] font-bold text-slate-900 dark:text-white">
                         {fmtEURFromCents(computed.laborGrossCents)}
                       </span>
                     </div>
@@ -1155,18 +1155,18 @@ export default function RechnungPreviewPage() {
                 </section>
 
                 {/* Verantwortung & Gewinn */}
-                <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-5 shadow-sm">
+                <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-5 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
                   <header className="space-y-0.5">
-                    <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                    <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500 dark:text-white/40">
                       Verantwortung &amp; Gewinn
                     </p>
-                    <p className="text-[13px] font-semibold text-slate-900">
+                    <p className="text-[13px] font-semibold text-slate-900 dark:text-white">
                       Wie sich der Arbeitswert zusammensetzt
                     </p>
                   </header>
 
-                  <div className="overflow-hidden rounded-xl border border-slate-200">
-                    <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
+                  <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
+                    <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between dark:bg-[#2c2c2e]">
                       <div className="flex items-center gap-2">
                         <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
                           <Wrench className="h-3.5 w-3.5 text-white" />
@@ -1180,7 +1180,7 @@ export default function RechnungPreviewPage() {
                       </span>
                     </div>
 
-                    <div className="bg-slate-50 px-3 py-3 space-y-1 text-[12px] text-slate-600">
+                    <div className="bg-slate-50 px-3 py-3 space-y-1 text-[12px] text-slate-600 dark:bg-white/5 dark:text-white/50">
                       <Row
                         label="Arbeitnehmer:in · Netto"
                         value={fmtEURFromCents(computed.laborSplit.workerNet)}
@@ -1200,15 +1200,15 @@ export default function RechnungPreviewPage() {
                     </div>
                   </div>
 
-                  <div className="pt-3 border-t border-slate-200 space-y-3">
+                  <div className="pt-3 border-t border-slate-200 space-y-3 dark:border-white/10">
                     <header className="space-y-0.5">
-                      <p className="text-[13px] font-semibold text-slate-900">
+                      <p className="text-[13px] font-semibold text-slate-900 dark:text-white">
                         Welcher Service-Mehrwert entstanden ist
                       </p>
                     </header>
 
-                    <div className="overflow-hidden rounded-xl border border-slate-200">
-                      <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
+                    <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
+                      <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between dark:bg-[#2c2c2e]">
                         <div className="flex items-center gap-2">
                           <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
                             <Layers className="h-3.5 w-3.5 text-white" />
@@ -1222,7 +1222,7 @@ export default function RechnungPreviewPage() {
                         </span>
                       </div>
 
-                      <div className="px-3 py-3 space-y-1 text-[12px] text-slate-600">
+                      <div className="px-3 py-3 space-y-1 text-[12px] text-slate-600 dark:text-white/50">
                         <Row
                           label="Arbeitswert (netto)"
                           value={fmtEURFromCents(computed.laborInSystemCents)}
@@ -1236,55 +1236,55 @@ export default function RechnungPreviewPage() {
 
                     <div className="grid grid-cols-1 gap-2">
                       <header className="space-y-0.5">
-                        <p className="text-[13px] font-semibold text-slate-900">
+                        <p className="text-[13px] font-semibold text-slate-900 dark:text-white">
                           Wie sich der Service-Mehrwert verteilt
                         </p>
                       </header>
 
-                      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-100 px-3 py-2">
+                      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 dark:border-white/10 dark:bg-white/5">
                         <div className="flex items-center gap-2">
-                          <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-300">
+                          <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-300 dark:bg-white/20">
                             <Wrench className="h-3.5 w-3.5 text-white" />
                           </div>
-                          <span className="text-[12px] font-medium text-slate-700">
+                          <span className="text-[12px] font-medium text-slate-700 dark:text-white/70">
                             Arbeitnehmer:in
                           </span>
                         </div>
-                        <span className="text-[12px] font-semibold text-slate-800">
+                        <span className="text-[12px] font-semibold text-slate-800 dark:text-white/80">
                           {fmtEURFromCents(computed.workerTotalCents)}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-100 px-3 py-2">
+                      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 dark:border-white/10 dark:bg-white/5">
                         <div className="flex items-center gap-2">
-                          <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-300">
+                          <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-300 dark:bg-white/20">
                             <Briefcase className="h-3.5 w-3.5 text-white" />
                           </div>
-                          <span className="text-[12px] font-medium text-slate-700">
+                          <span className="text-[12px] font-medium text-slate-700 dark:text-white/70">
                             Unternehmerische Struktur
                           </span>
                         </div>
-                        <span className="text-[12px] font-semibold text-slate-800">
+                        <span className="text-[12px] font-semibold text-slate-800 dark:text-white/80">
                           {fmtEURFromCents(computed.entrepreneurTotalCents)}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-100 px-3 py-2">
+                      <div className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 dark:border-white/10 dark:bg-white/5">
                         <div className="flex items-center gap-2">
-                          <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-300">
+                          <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-300 dark:bg-white/20">
                             <Sparkles className="h-3.5 w-3.5 text-white" />
                           </div>
-                          <span className="text-[12px] font-medium text-slate-700">
+                          <span className="text-[12px] font-medium text-slate-700 dark:text-white/70">
                             Wirkungsfonds
                           </span>
                         </div>
-                        <span className="text-[12px] font-semibold text-slate-800">
+                        <span className="text-[12px] font-semibold text-slate-800 dark:text-white/80">
                           {fmtEURFromCents(computed.impactTotalCents)}
                         </span>
                       </div>
                     </div>
 
-                    <p className="pt-2 text-[11px] leading-snug text-slate-500 border-t border-slate-100">
+                    <p className="pt-2 text-[11px] leading-snug text-slate-500 border-t border-slate-100 dark:text-white/40 dark:border-white/5">
                       Das sind die Anteile, die innerhalb unseres Systems verteilt
                       werden. Geringfügige Abweichungen sind möglich und werden
                       erst mit Abschluss des Kalenderjahres exakt bestimmt.
@@ -1293,17 +1293,17 @@ export default function RechnungPreviewPage() {
                 </section>
 
                 {/* Überfluss & Wirkung */}
-                <section className="rounded-2xl bg-slate-50 text-slate-900 px-4 py-5 space-y-4 shadow-sm border border-slate-200">
+                <section className="rounded-2xl bg-slate-50 text-slate-900 px-4 py-5 space-y-4 shadow-sm border border-slate-200 dark:bg-white/5 dark:text-white dark:border-white/10">
                   <header className="space-y-0.5">
-                    <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                    <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500 dark:text-white/40">
                       Überfluss &amp; Wirkung
                     </p>
-                    <p className="text-[13px] font-semibold text-slate-900">
+                    <p className="text-[13px] font-semibold text-slate-900 dark:text-white">
                       Was ist der Wirkungsfonds?
                     </p>
                   </header>
 
-                  <p className="text-[12px] leading-snug text-slate-800">
+                  <p className="text-[12px] leading-snug text-slate-800 dark:text-white/80">
                     Ihr Auftrag sorgt dafür, dass{" "}
                     <span className="font-semibold">{storyMiddle(invoice)}</span>,
                     gleichzeitig fließen aus Lohn und Materialaufschlag zusammen rund{" "}
@@ -1313,7 +1313,7 @@ export default function RechnungPreviewPage() {
                     in den Wirkungsfonds.
                   </p>
 
-                  <p className="text-[12px] leading-snug text-slate-800">
+                  <p className="text-[12px] leading-snug text-slate-800 dark:text-white/80">
                     <span className="font-semibold">
                       Mit Ihrer Wahl des Dienstleisters entscheiden Sie indirekt,
                       welche Werte gestärkt werden
@@ -1328,13 +1328,13 @@ export default function RechnungPreviewPage() {
 
                   <div className="grid grid-cols-1 gap-2">
                     <header className="space-y-0.5">
-                      <p className="text-[13px] font-semibold text-slate-900">
+                      <p className="text-[13px] font-semibold text-slate-900 dark:text-white">
                         Wirkung, die Sie mit Ihrem Auftrag auslösen
                       </p>
                     </header>
 
-                    <div className="overflow-hidden rounded-xl border border-slate-200 mb-2">
-                      <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
+                    <div className="overflow-hidden rounded-xl border border-slate-200 mb-2 dark:border-white/10">
+                      <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between dark:bg-[#2c2c2e]">
                         <div className="flex items-center gap-2">
                           <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
                             <Sparkles className="h-3.5 w-3.5 text-white" />
@@ -1348,7 +1348,7 @@ export default function RechnungPreviewPage() {
                         </span>
                       </div>
 
-                      <div className="px-3 py-3 space-y-1 text-[12px] text-slate-600">
+                      <div className="px-3 py-3 space-y-1 text-[12px] text-slate-600 dark:text-white/50">
                         <Row
                           label="Service & Qualität (netto)"
                           value={fmtOrDashEUR(computed.impactServiceCents)}
@@ -1364,7 +1364,7 @@ export default function RechnungPreviewPage() {
                       </div>
                     </div>
 
-                    <p className="pt-2 text-[12px] leading-snug text-slate-800 border-t border-slate-200">
+                    <p className="pt-2 text-[12px] leading-snug text-slate-800 border-t border-slate-200 dark:text-white/80 dark:border-white/10">
                       Der Wirkungsfonds ist unser gemeinsamer Zukunfts-Topf. Er
                       entsteht aus einem fest definierten Anteil deiner Rechnung –
                       transparent und nachvollziehbar.
@@ -1374,16 +1374,16 @@ export default function RechnungPreviewPage() {
                 </section>
 
                 {/* Transparenz Hinweis */}
-                <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm">
+                <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
                   <div className="flex items-center gap-2">
-                    <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                    <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-white/40">
                       <Info className="h-3.5 w-3.5" />
                     </div>
-                    <p className="text-[12px] font-medium text-slate-900">
+                    <p className="text-[12px] font-medium text-slate-900 dark:text-white">
                       Transparenz-Hinweis
                     </p>
                   </div>
-                  <p className="text-[11px] leading-snug text-slate-600">
+                  <p className="text-[11px] leading-snug text-slate-600 dark:text-white/40">
                     Persönliche Daten von Auftraggeber:innen werden in der online sichtbaren Version
                     datenschutzkonform reduziert. Die vollständige Original-Rechnung bleibt ausschließlich
                     der Besitzer:in der Rechnung vorbehalten. Die Besitzer:in entscheidet später selbst,
@@ -1396,12 +1396,12 @@ export default function RechnungPreviewPage() {
             {/* ────────────────────────── MATERIAL (Grohe / Hansgrohe) ────────────────────────── */}
             {(isGrohe || isHansgrohe) && activeMaterial && (
               <>
-                <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm">
+                <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
                   <header className="space-y-0.5">
-                    <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                    <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500 dark:text-white/40">
                       Materialkosten
                     </p>
-                    <p className="text-[13px] font-semibold text-slate-900">
+                    <p className="text-[13px] font-semibold text-slate-900 dark:text-white">
                       Wie sich der Materialpreis errechnet
                     </p>
                   </header>
@@ -1413,65 +1413,66 @@ export default function RechnungPreviewPage() {
                       <col className="w-[20%]" />
                     </colgroup>
                     <thead>
-                      <tr className="text-slate-700">
+                      <tr className="text-slate-700 dark:text-white/60">
                         <th className="py-1 text-left font-medium">Position</th>
                         <th className="py-1 text-left font-medium">Einordnung</th>
                         <th className="py-1 text-right font-medium">Betrag</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-t border-slate-200">
-                        <td className="py-1 text-slate-700">Einkaufspreis (netto)</td>
-                        <td className="py-1 text-slate-500">
+                      <tr className="border-t border-slate-200 dark:border-white/10">
+                        <td className="py-1 text-slate-700 dark:text-white/80">Einkaufspreis (netto)</td>
+                        <td className="py-1 text-slate-500 dark:text-white/50">
                           {activeMaterial.label} · Industrie
                         </td>
-                        <td className="py-1 text-right text-slate-700">
+                        <td className="py-1 text-right text-slate-700 dark:text-white/80">
                           {fmtEURFromCents(activeMaterial.purchaseNetCents)}
                         </td>
                       </tr>
-                      <tr className="border-t border-slate-200">
-                        <td className="py-1 text-slate-700">Materialaufschlag</td>
-                        <td className="py-1 text-slate-500">Dienstleister</td>
-                        <td className="py-1 text-right text-slate-700">
+                      <tr className="border-t border-slate-200 dark:border-white/10">
+                        <td className="py-1 text-slate-700 dark:text-white/80">Materialaufschlag</td>
+                        <td className="py-1 text-slate-500 dark:text-white/50">Dienstleister</td>
+                        <td className="py-1 text-right text-slate-700 dark:text-white/80">
                           {fmtEURFromCents(activeMaterial.markupNetCents)}
                         </td>
                       </tr>
-                      <tr className="border-t border-slate-200">
-                        <td className="py-1 text-slate-700">
+                      <tr className="border-t border-slate-200 dark:border-white/10">
+                        <td className="py-1 text-slate-700 dark:text-white/80">
                           Umsatzsteuer ({fmtPct(computed.vatRate)})
                         </td>
-                        <td className="py-1 text-slate-500">Staat</td>
-                        <td className="py-1 text-right text-slate-700">
+                        <td className="py-1 text-slate-500 dark:text-white/50">Staat</td>
+                        <td className="py-1 text-right text-slate-700 dark:text-white/80">
                           {fmtEURFromCents(activeMaterial.vatCents)}
                         </td>
                       </tr>
                     </tbody>
                   </table>
 
-                  <div className="pt-2 border-t border-slate-300 space-y-0.5 text-[11px] text-slate-600">
+                  <div className="pt-2 border-t border-slate-300 space-y-0.5 text-[11px] text-slate-600 dark:border-white/20 dark:text-white/50">
                     <div className="flex justify-between pt-1">
-                      <span className="text-[14px] font-bold text-slate-800">
+                      <span className="text-[14px] font-bold text-slate-800 dark:text-white/80">
                         Materialpreis (brutto)
                       </span>
-                      <span className="text-[14px] font-bold text-slate-900">
+                      <span className="text-[14px] font-bold text-slate-900 dark:text-white">
                         {fmtEURFromCents(activeMaterial.grossCents)}
                       </span>
                     </div>
                   </div>
+
                 </section>
 
-                <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-5 shadow-sm">
+                <section className="rounded-2xl bg-white border border-slate-200 px-4 py-5 space-y-5 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
                   <header className="space-y-0.5">
-                    <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500">
+                    <p className="text-[11px] tracking-[0.18em] uppercase text-slate-500 dark:text-white/40">
                       Materialherkunft &amp; Wertstrom
                     </p>
-                    <p className="text-[13px] font-semibold text-slate-900">
+                    <p className="text-[13px] font-semibold text-slate-900 dark:text-white">
                       Wie sich der Wert dieses Bauteils verteilt
                     </p>
                   </header>
 
-                  <div className="overflow-hidden rounded-xl border border-slate-200">
-                    <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
+                  <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
+                    <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between dark:bg-[#2c2c2e]">
                       <div className="flex items-center gap-2">
                         <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
                           <Scale className="h-4 w-4" />
@@ -1485,7 +1486,7 @@ export default function RechnungPreviewPage() {
                       </span>
                     </div>
 
-                    <div className="px-3 py-3 space-y-1 text-[12px] text-slate-600">
+                    <div className="px-3 py-3 space-y-1 text-[12px] text-slate-600 dark:text-white/50">
                       <Row
                         label="Umsatzsteuer (Endkunde)"
                         value={fmtEURFromCents(activeMaterial.vatCents)}
@@ -1501,8 +1502,8 @@ export default function RechnungPreviewPage() {
                     </div>
                   </div>
 
-                  <div className="overflow-hidden rounded-xl border border-slate-200">
-                    <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
+                  <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
+                    <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between dark:bg-[#2c2c2e]">
                       <div className="flex items-center gap-2">
                         <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
                           <Briefcase className="h-4 w-4" />
@@ -1516,7 +1517,7 @@ export default function RechnungPreviewPage() {
                       </span>
                     </div>
 
-                    <div className="bg-slate-50 px-3 py-3 space-y-1 text-[12px] text-slate-600">
+                    <div className="bg-slate-50 px-3 py-3 space-y-1 text-[12px] text-slate-600 dark:bg-white/5 dark:text-white/50">
                       <Row
                         label="Arbeitnehmer:in · Netto"
                         value={fmtEURFromCents(activeMaterial.markupSplit.workerNet)}
@@ -1532,8 +1533,8 @@ export default function RechnungPreviewPage() {
                     </div>
                   </div>
 
-                  <div className="overflow-hidden rounded-xl border border-slate-200">
-                    <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between">
+                  <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
+                    <div className="bg-slate-800 text-white px-3 py-2 flex items-center justify-between dark:bg-[#2c2c2e]">
                       <div className="flex items-center gap-2">
                         <div className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
                           <Factory className="h-4 w-4" />
@@ -1547,11 +1548,11 @@ export default function RechnungPreviewPage() {
                       </span>
                     </div>
 
-                    <div className="bg-white px-3 py-3 space-y-1 text-[12px] text-slate-600">
-                      <p className="text-[12px] font-medium text-slate-800">
+                    <div className="bg-white px-3 py-3 space-y-1 text-[12px] text-slate-600 dark:bg-[#1d1d1f] dark:text-white/50">
+                      <p className="text-[12px] font-medium text-slate-800 dark:text-white/80">
                         Was dieser Betrag abbildet
                       </p>
-                      <ul className="space-y-1 text-[11px] text-slate-600 list-disc list-inside">
+                      <ul className="space-y-1 text-[11px] text-slate-600 list-disc list-inside dark:text-white/40">
                         <li>Produktion des Bauteils</li>
                         <li>Logistik, Lagerung &amp; Distribution</li>
                         <li>Handel &amp; Plattformabwicklung</li>
@@ -1561,19 +1562,19 @@ export default function RechnungPreviewPage() {
 
                   <div className="pt-2">
                     <div className="flex items-center gap-3">
-                      <div className="flex-1 border-t border-dashed border-slate-300" />
-                      <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400">
+                      <div className="flex-1 border-t border-dashed border-slate-300 dark:border-white/20" />
+                      <span className="text-[10px] uppercase tracking-[0.18em] text-slate-400 dark:text-white/30">
                         Transparenz-Grenze
                       </span>
-                      <div className="flex-1 border-t border-dashed border-slate-300" />
+                      <div className="flex-1 border-t border-dashed border-slate-300 dark:border-white/20" />
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 space-y-2">
-                    <p className="text-[12px] font-medium text-slate-700">
+                  <div className="rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 space-y-2 dark:border-white/10 dark:bg-white/5">
+                    <p className="text-[12px] font-medium text-slate-700 dark:text-white/70">
                       Außerhalb unseres Einblicks
                     </p>
-                    <p className="text-[11px] leading-snug text-slate-600">
+                    <p className="text-[11px] leading-snug text-slate-600 dark:text-white/40">
                       Wie dieser Betrag innerhalb der industriellen Lieferkette
                       zwischen Unternehmen, Mitarbeitenden, Investitionen und
                       Rücklagen verteilt wird, liegt außerhalb unseres Wissens-
@@ -1581,7 +1582,7 @@ export default function RechnungPreviewPage() {
                     </p>
                   </div>
 
-                  <p className="pt-2 text-[11px] leading-snug text-slate-500 border-t border-slate-100">
+                  <p className="pt-2 text-[11px] leading-snug text-slate-500 border-t border-slate-100 dark:text-white/40 dark:border-white/5">
                     Staat &amp; Sozialkassen Beiträge sind geschätzte Anteile
                     basieren auf branchenüblichen Näherungen. Hersteller- und
                     lieferkettenabhängige Abweichungen sind möglich.

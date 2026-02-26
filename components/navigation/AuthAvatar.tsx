@@ -4,6 +4,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { User as UserIcon, LayoutGrid, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuthOverlay } from "@/components/auth/AuthOverlayContext";
 
@@ -28,6 +29,7 @@ function getInitials(user: User): string {
 
 export default function AuthAvatar({ size = "sm" }: AuthAvatarProps) {
   const { openAuthOverlay } = useAuthOverlay();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -72,6 +74,7 @@ export default function AuthAvatar({ size = "sm" }: AuthAvatarProps) {
   async function handleSignOut() {
     try {
       await supabase.auth.signOut();
+      router.refresh();
     } finally {
       setMenuOpen(false);
     }
@@ -153,6 +156,7 @@ export default function AuthAvatar({ size = "sm" }: AuthAvatarProps) {
               absolute right-0 top-full mt-2 w-56
               rounded-xl border border-slate-200
               bg-white p-2 shadow-lg space-y-1 z-50
+              dark:bg-[#1d1d1f] dark:border-white/10
             "
             role="menu"
             aria-label="Account-Menü"
@@ -160,7 +164,7 @@ export default function AuthAvatar({ size = "sm" }: AuthAvatarProps) {
             {(() => {
               const baseClasses =
                 "flex w-full items-center rounded-md px-3 py-1.5 text-sm font-medium transition-colors";
-              const ghost = "text-slate-600/80 hover:bg-slate-100";
+              const ghost = "text-slate-600/80 hover:bg-slate-100 dark:text-white/60 dark:hover:bg-white/5";
 
               return (
                 <>
@@ -173,6 +177,7 @@ export default function AuthAvatar({ size = "sm" }: AuthAvatarProps) {
                       ${baseClasses}
                       bg-slate-200 text-white
                       pt-5 pb-5
+                      dark:bg-white/10
                     `}
                   >
                     <div className="flex items-center gap-3 min-w-0">
@@ -189,11 +194,11 @@ export default function AuthAvatar({ size = "sm" }: AuthAvatarProps) {
 
                       {/* Name + E-Mail untereinander */}
                       <div className="flex min-w-0 flex-col text-left">
-                        <span className="text-[13px] text-black font-semibold leading-snug truncate">
+                        <span className="text-[13px] text-black font-semibold leading-snug truncate dark:text-white">
                           {displayName}
                         </span>
                         {user.email && (
-                          <span className="text-[12px] text-slate-500 leading-snug truncate">
+                          <span className="text-[12px] text-slate-500 leading-snug truncate dark:text-white/60">
                             {user.email}
                           </span>
                         )}

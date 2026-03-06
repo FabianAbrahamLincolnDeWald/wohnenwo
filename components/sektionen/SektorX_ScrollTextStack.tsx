@@ -91,7 +91,7 @@ export default function SektorX_ScrollTextStack() {
   }, [wordPtrs.length]);
 
   const txtSize = "text-[clamp(25.5px,calc(25.5px+29.5*(100vw-320px)/960),55px)]";
-  const txtStyle = `${txtSize} leading-[1.08] tracking-tight font-medium`;
+  const txtStyle = `${txtSize} text-center leading-[1.08] tracking-tight font-medium`;
 
   const [contentH, setContentH] = React.useState(0);
   const contentRef = React.useRef<HTMLDivElement>(null);
@@ -106,7 +106,7 @@ export default function SektorX_ScrollTextStack() {
   }, []);
 
   const renderPara = (tokens: string[], isBlack: boolean, paraIdx: number) => {
-    const cls = (isBlack ? "text-black " : "text-slate-300 ") + txtStyle + " m-0 px-4 md:px-6";
+    const cls = (isBlack ? "text-black " : "text-slate-300 ") + txtStyle + " m-0 px-6 md:px-6";
     return (
       <p className={cls} style={isBlack && !hydrated ? { opacity: 0 } : undefined}>
         {tokens.map((tok, tokenIdx) => {
@@ -139,7 +139,7 @@ export default function SektorX_ScrollTextStack() {
 
       {/* OBERER REVEAL-BLOCK */}
       <section className="relative h-auto">
-        <div className="relative mx-auto max-w-6xl px-4 md:px-6">
+        <div className="relative mx-auto max-w-6xl px-6 md:px-6">
           <div aria-hidden style={{ height: contentH }} />
           <div className={`absolute inset-x-0 top-0 ${PARA_GAP}`}>
             {tokensPerPara.map((tokens, pi) => (
@@ -260,7 +260,7 @@ function BridgeSingleParagraph({ txtStyle }: { txtStyle: string }) {
       />
 
       {/* INHALT */}
-      <div className="relative z-10 mx-auto max-w-6xl px-4 md:px-6">
+      <div className="relative z-10 mx-auto max-w-6xl px-6 md:px-6">
         <div className="h-6 md:h-8" />
 
         <div className="relative">

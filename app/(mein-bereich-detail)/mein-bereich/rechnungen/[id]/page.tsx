@@ -50,6 +50,7 @@ type InvoiceRow = {
   public_token: string | null;
 
   customer_id: string | null;
+  claim_code: string | null; // ✅ für Teaser-Rotation Seed (wie /r/[token])
 
   // ✅ neu: frei formulierbarer Mittelteil für den Satz "Ihr Auftrag sorgt dafür, dass ..."
   customer_story: string | null;
@@ -1028,13 +1029,17 @@ export default function RechnungDetailPage() {
     );
   }, [uiParticipants, activeParticipantId]);
 
-// ✅ Preview-Bild für den aktuell aktiven Tab (Rotation wie Teaser)
-// Seed pro Rechnung stabil halten (public_token falls vorhanden, sonst invoice.id)
-const previewSrc = React.useMemo(() => {
-  if (!active || !invoice) return null;
-  const seed = String(invoice.public_token ?? invoice.id);
-  return teaserUrlForParticipant(active.id, seed);
-}, [active?.id, invoice?.id, invoice?.public_token]);
+  // ✅ Preview-Bild für den aktuell aktiven Tab (Rotation exakt wie Teaser)
+  // Seed stabil pro Rechnung: bevorzugt claim_code (wie /r/[token]), sonst public_token (wie /p/[token]),
+  // sonst invoice.id als Fallback.
+  const previewSrc = React.useMemo(() => {
+    if (!active || !invoice) return null;
+
+    const seed =
+  invoice.public_token || invoice.claim_code || invoice.id || "fallback";
+
+    return teaserUrlForParticipant(active.id, seed);
+  }, [active?.id, invoice?.claim_code, invoice?.public_token, invoice?.id]);
 
   if (loading) {
     return (

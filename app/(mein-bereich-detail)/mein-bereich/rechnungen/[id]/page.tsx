@@ -167,8 +167,12 @@ function hashStringToUInt(str: string) {
 }
 
 // exakt wie im Teaser: wohnenwo => page1, sonst stabile Rotation page2-4
-function teaserUrlForParticipant(participantId: string, tokenSeed: string): string {
-  if (participantId === "wohnenwo") return SERVICE_PROVIDER_TEASER;
+function teaserUrlForParticipant(
+  participantId: string,
+  tokenSeed: string,
+  serviceProviderId: string | null
+): string {
+  if (serviceProviderId && participantId === serviceProviderId) return SERVICE_PROVIDER_TEASER;
   const h = hashStringToUInt(`${tokenSeed}:${participantId}`);
   const idx = h % OTHER_TEASERS.length;
   return OTHER_TEASERS[idx] ?? SERVICE_PROVIDER_TEASER;
@@ -613,9 +617,17 @@ function MobileDocumentsCard({
   UI helpers
 ────────────────────────────────────────────────────────────── */
 
-function iconForParticipant(participantId: string) {
-  if (participantId === "staat") return <Scale className="h-4 w-4" />;
-  if (participantId === "wohnenwo") return <Briefcase className="h-4 w-4" />;
+function iconForParticipant(participantId: string, role?: string | null) {
+  const r = String(role ?? "").toLowerCase();
+
+  // Staat immer fix
+  if (participantId === "staat" || r.includes("gesetz") || r === "staat")
+    return <Scale className="h-4 w-4" />;
+
+  // Dienstleister immer Briefcase
+  if (r === "dienstleister") return <Briefcase className="h-4 w-4" />;
+
+  // Default: Material/Handel
   return <Factory className="h-4 w-4" />;
 }
 
@@ -794,10 +806,11 @@ export default function RechnungDetailPage() {
       setLaborSteps(steps);
 
       const firstClickable =
-        (partRes.data as ParticipantRow[]).find((p) => p.is_clickable)
-          ?.participant_id ??
-        (partRes.data as ParticipantRow[])[0]?.participant_id ??
-        "";
+        (partRes.data as ParticipantRow[])
+          .filter((p) => p.participant_id !== "staat")
+          .find((p) => p.is_clickable)?.participant_id
+        ?? (partRes.data as ParticipantRow[]).filter((p) => p.participant_id !== "staat")[0]?.participant_id
+        ?? "";
       setActiveParticipantId(firstClickable);
 
       setLoading(false);
@@ -983,27 +996,30 @@ export default function RechnungDetailPage() {
     };
   }, [invoice, participants, laborSteps]);
 
+  const serviceProviderId = React.useMemo(() => {
+    const p =
+      participants.find((x) => String(x.role ?? "").toLowerCase() === "dienstleister") ??
+      participants[0] ??
+      null;
+    return p?.participant_id ?? null;
+  }, [participants]);
+
   const uiParticipants = React.useMemo(() => {
     if (!invoice || !computed) return [];
 
     const byId = new Map(computed.materials.map((m) => [m.participant_id, m]));
 
-    return participants
+    const mapped = participants
       .slice()
       .sort((a, b) => a.sort_order - b.sort_order)
+      // ✅ falls noch irgendwo "staat" in DB existiert: hier rausschmeißen
+      .filter((p) => p.participant_id !== "staat")
       .map((p) => {
-        const isState = p.participant_id === "staat";
-        const isMain = p.participant_id === "wohnenwo";
+        const isProvider = !!serviceProviderId && p.participant_id === serviceProviderId;
         const mat = byId.get(p.participant_id);
 
         let valueCents: number | null = null;
-
-        // ✅ Tabs exakt, aber fachlich sauber:
-        // - WohnenWo: Service-Mehrwert (im System)
-        // - Hersteller: Bauteil
-        // - Staat: Modellwert + Cent-Delta
-        if (isState) valueCents = computed.stateTotalAdjustedCents;
-        else if (isMain) valueCents = computed.serviceMehrwertCents;
+        if (isProvider) valueCents = computed.serviceMehrwertCents;
         else if (mat) valueCents = mat.bauteilCents;
 
         const docs = docsByParticipant.get(p.participant_id) ?? [];
@@ -1014,12 +1030,26 @@ export default function RechnungDetailPage() {
           description: p.description ?? "",
           role: p.role ?? "",
           isClickable: p.is_clickable,
-          icon: iconForParticipant(p.participant_id),
+          icon: iconForParticipant(p.participant_id, p.role),
           valueCents,
           docs,
         };
       });
-  }, [participants, docsByParticipant, invoice, computed]);
+
+    // ✅ Staat immer UI-only als letzter Tab
+    const stateTab = {
+      id: "staat",
+      label: "Staat & Sozialkassen",
+      description: "Steuern & Sozialabgaben",
+      role: "Gesetzlich gebundene Abgaben",
+      isClickable: false, // wie deine Original-Rechnung
+      icon: iconForParticipant("staat", "staat"),
+      valueCents: computed.stateTotalAdjustedCents,
+      docs: [] as DocWithUrl[],
+    };
+
+    return [...mapped, stateTab];
+  }, [participants, docsByParticipant, invoice, computed, serviceProviderId]);
 
   const active = React.useMemo(() => {
     if (!uiParticipants.length) return null;
@@ -1029,17 +1059,29 @@ export default function RechnungDetailPage() {
     );
   }, [uiParticipants, activeParticipantId]);
 
+  React.useEffect(() => {
+    if (!uiParticipants.length) return;
+
+    const current = uiParticipants.find((p) => p.id === activeParticipantId);
+    if (current && current.isClickable) return;
+
+    const fallback =
+      uiParticipants.find((p) => p.isClickable)?.id ?? uiParticipants[0]!.id;
+
+    if (fallback !== activeParticipantId) setActiveParticipantId(fallback);
+  }, [uiParticipants, activeParticipantId]);
+
   // ✅ Preview-Bild für den aktuell aktiven Tab (Rotation exakt wie Teaser)
   // Seed stabil pro Rechnung: bevorzugt claim_code (wie /r/[token]), sonst public_token (wie /p/[token]),
   // sonst invoice.id als Fallback.
   const previewSrc = React.useMemo(() => {
     if (!active || !invoice) return null;
 
-    const seed =
-  invoice.public_token || invoice.claim_code || invoice.id || "fallback";
+    // ✅ Seed stabil pro Rechnung
+    const seed = invoice.claim_code || invoice.public_token || invoice.id || "fallback";
 
-    return teaserUrlForParticipant(active.id, seed);
-  }, [active?.id, invoice?.claim_code, invoice?.public_token, invoice?.id]);
+    return teaserUrlForParticipant(active.id, seed, serviceProviderId);
+  }, [active?.id, invoice?.claim_code, invoice?.public_token, invoice?.id, serviceProviderId]);
 
   if (loading) {
     return (
@@ -1057,12 +1099,15 @@ export default function RechnungDetailPage() {
     );
   }
 
-  const isWohnenwo = active.id === "wohnenwo";
-  const isGrohe = active.id === "grohe";
-  const isHansgrohe = active.id === "hansgrohe";
+  const isState = active.id === "staat";
+
+  const isProvider = !!serviceProviderId && active.id === serviceProviderId;
 
   const activeMaterial =
     computed.materials.find((m) => m.participant_id === active.id) ?? null;
+
+  const isMaterialTab = !isState && !isProvider && !!activeMaterial;
+
 
   const statusLabel = (invoice.status ?? "open").toLowerCase();
   const statusPill =
@@ -1280,7 +1325,7 @@ export default function RechnungDetailPage() {
 
             {/* MOBILE docs: außer bei WohnenWo */}
             <div className="lg:hidden">
-              {!isWohnenwo && (
+              {!isProvider && (
                 <MobileDocumentsCard
                   participantLabel={active.label}
                   docs={active.docs}
@@ -1291,7 +1336,7 @@ export default function RechnungDetailPage() {
             </div>
 
             {/* Wirkungs-Badge (WohnenWo) */}
-            {isWohnenwo && (
+            {isProvider && (
               <div className="rounded-xl border border-slate-200 bg-cyan-600 text-white px-3 py-2 shadow-sm dark:border-white/10">
                 <div className="flex items-start gap-2">
                   <div className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10">
@@ -1312,7 +1357,7 @@ export default function RechnungDetailPage() {
 
             {/* MOBILE docs: WohnenWo unter Badge */}
             <div className="lg:hidden">
-              {isWohnenwo && (
+              {isProvider && (
                 <MobileDocumentsCard
                   participantLabel={active.label}
                   docs={active.docs}
@@ -1323,7 +1368,7 @@ export default function RechnungDetailPage() {
             </div>
 
             {/* ────────────────────────── WOHNENWO ────────────────────────── */}
-            {isWohnenwo && (
+            {isProvider && (
               <>
                 {/* Lohnkosten */}
                 <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
@@ -1671,7 +1716,7 @@ export default function RechnungDetailPage() {
             )}
 
             {/* ────────────────────────── MATERIAL (Grohe / Hansgrohe) ────────────────────────── */}
-            {(isGrohe || isHansgrohe) && activeMaterial && (
+            {isMaterialTab && activeMaterial && (
               <>
                 <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
                   <header className="space-y-0.5">

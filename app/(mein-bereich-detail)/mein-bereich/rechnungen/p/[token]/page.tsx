@@ -332,9 +332,13 @@ function hashStringToUInt(str: string) {
   return h >>> 0;
 }
 
-function teaserUrlForParticipant(participantId: string, token: string): string {
-  if (participantId === "wohnenwo") return SERVICE_PROVIDER_TEASER;
-  const h = hashStringToUInt(`${token}:${participantId}`);
+function teaserUrlForParticipant(
+  participantId: string,
+  tokenSeed: string,
+  serviceProviderId: string | null
+): string {
+  if (serviceProviderId && participantId === serviceProviderId) return SERVICE_PROVIDER_TEASER;
+  const h = hashStringToUInt(`${tokenSeed}:${participantId}`);
   const idx = h % OTHER_TEASERS.length;
   return OTHER_TEASERS[idx] ?? SERVICE_PROVIDER_TEASER;
 }
@@ -394,7 +398,6 @@ function DocsBlurPreview({ src }: { src: string | null }) {
 }
 
 function DesktopDocumentsPreview({
-  participantLabel,
   teaserUrl,
 }: {
   participantLabel: string;
@@ -426,9 +429,17 @@ function MobileDocumentsCardPreview({
   UI helpers
 ────────────────────────────────────────────────────────────── */
 
-function iconForParticipant(participantId: string) {
-  if (participantId === "staat") return <Scale className="h-4 w-4" />;
-  if (participantId === "wohnenwo") return <Briefcase className="h-4 w-4" />;
+function iconForParticipant(participantId: string, role?: string | null) {
+  const r = String(role ?? "").toLowerCase();
+
+  // Staat immer fix (UI-only oder DB-rest)
+  if (participantId === "staat" || r.includes("gesetz") || r === "staat")
+    return <Scale className="h-4 w-4" />;
+
+  // Dienstleister immer Briefcase
+  if (r === "dienstleister") return <Briefcase className="h-4 w-4" />;
+
+  // Default: Material/Handel
   return <Factory className="h-4 w-4" />;
 }
 
@@ -558,11 +569,18 @@ export default function RechnungPreviewPage() {
 
       const parts = (partRes.data ?? []) as ParticipantRow[];
 
+      const serviceProviderId =
+        parts.find((p) => String(p.role ?? "").toLowerCase() === "dienstleister")?.participant_id ??
+        parts[0]?.participant_id ??
+        null;
+
       const teaserMap: Record<string, string> = {};
       for (const p of parts) {
+        if (p.participant_id === "staat") continue; // ✅ DB-staat ignorieren (UI-only)
         teaserMap[p.participant_id] = teaserUrlForParticipant(
           p.participant_id,
-          safeToken
+          safeToken,
+          serviceProviderId
         );
       }
 
@@ -571,10 +589,11 @@ export default function RechnungPreviewPage() {
       setLaborSteps(steps);
       setTeaserByParticipant(teaserMap);
 
+      const nonState = parts.filter((p) => p.participant_id !== "staat");
+
       const firstClickable =
-        (partRes.data as ParticipantRow[]).find((p) => p.is_clickable)
-          ?.participant_id ??
-        (partRes.data as ParticipantRow[])[0]?.participant_id ??
+        nonState.find((p) => p.is_clickable)?.participant_id ??
+        nonState[0]?.participant_id ??
         "";
 
       setActiveParticipantId(firstClickable);
@@ -738,22 +757,30 @@ export default function RechnungPreviewPage() {
     };
   }, [invoice, participants, laborSteps]);
 
+  const serviceProviderId = React.useMemo(() => {
+    const nonState = participants.filter((p) => p.participant_id !== "staat");
+    const p =
+      nonState.find((x) => String(x.role ?? "").toLowerCase() === "dienstleister") ??
+      nonState[0] ??
+      null;
+    return p?.participant_id ?? null;
+  }, [participants]);
+
   const uiParticipants = React.useMemo(() => {
     if (!invoice || !computed) return [];
 
     const byId = new Map(computed.materials.map((m) => [m.participant_id, m]));
 
-    return participants
+    const mapped = participants
       .slice()
       .sort((a, b) => a.sort_order - b.sort_order)
+      .filter((p) => p.participant_id !== "staat") // ✅ DB-staat raus
       .map((p) => {
-        const isState = p.participant_id === "staat";
-        const isMain = p.participant_id === "wohnenwo";
+        const isProvider = !!serviceProviderId && p.participant_id === serviceProviderId;
         const mat = byId.get(p.participant_id);
 
         let valueCents: number | null = null;
-        if (isState) valueCents = computed.stateTotalAdjustedCents;
-        else if (isMain) valueCents = computed.serviceMehrwertCents;
+        if (isProvider) valueCents = computed.serviceMehrwertCents;
         else if (mat) valueCents = mat.bauteilCents;
 
         return {
@@ -762,17 +789,39 @@ export default function RechnungPreviewPage() {
           description: p.description ?? "",
           role: p.role ?? "",
           isClickable: p.is_clickable,
-          icon: iconForParticipant(p.participant_id),
+          icon: iconForParticipant(p.participant_id, p.role),
           valueCents,
         };
       });
-  }, [participants, invoice, computed]);
+
+    const stateTab = {
+      id: "staat",
+      label: "Staat & Sozialkassen",
+      description: "Steuern & Sozialabgaben",
+      role: "Gesetzlich gebundene Abgaben",
+      isClickable: false,
+      icon: iconForParticipant("staat", "staat"),
+      valueCents: computed.stateTotalAdjustedCents,
+    };
+
+    return [...mapped, stateTab];
+  }, [participants, invoice, computed, serviceProviderId]);
 
   const active = React.useMemo(() => {
     if (!uiParticipants.length) return null;
-    return (
-      uiParticipants.find((p) => p.id === activeParticipantId) ?? uiParticipants[0]!
-    );
+    return uiParticipants.find((p) => p.id === activeParticipantId) ?? uiParticipants[0]!;
+  }, [uiParticipants, activeParticipantId]);
+
+  React.useEffect(() => {
+    if (!uiParticipants.length) return;
+
+    const current = uiParticipants.find((p) => p.id === activeParticipantId);
+    if (current && current.isClickable) return;
+
+    const fallback =
+      uiParticipants.find((p) => p.isClickable)?.id ?? uiParticipants[0]!.id;
+
+    if (fallback !== activeParticipantId) setActiveParticipantId(fallback);
   }, [uiParticipants, activeParticipantId]);
 
   if (loading) {
@@ -791,12 +840,14 @@ export default function RechnungPreviewPage() {
     );
   }
 
-  const isWohnenwo = active.id === "wohnenwo";
-  const isGrohe = active.id === "grohe";
-  const isHansgrohe = active.id === "hansgrohe";
+  const isState = active.id === "staat";
+  const isProvider = !!serviceProviderId && active.id === serviceProviderId;
 
   const activeMaterial =
     computed.materials.find((m) => m.participant_id === active.id) ?? null;
+
+  const isMaterialTab = !isState && !isProvider && !!activeMaterial;
+
 
   const statusLabel = (invoice.status ?? "open").toLowerCase();
   const statusPill =
@@ -811,7 +862,10 @@ export default function RechnungPreviewPage() {
     );
 
   const activeTeaserUrl =
-    teaserByParticipant[active.id] ?? "/images/teaser/invoice-page-1.jpg";
+    active.id === "staat"
+      ? teaserUrlForParticipant("staat", safeToken, serviceProviderId)
+      : (teaserByParticipant[active.id] ??
+        teaserUrlForParticipant(active.id, safeToken, serviceProviderId));
 
   return (
     <div className="h-full">
@@ -1014,7 +1068,7 @@ export default function RechnungPreviewPage() {
 
             {/* MOBILE docs: außer bei WohnenWo */}
             <div className="lg:hidden">
-              {!isWohnenwo && (
+              {!isProvider && (
                 <MobileDocumentsCardPreview
                   participantLabel={active.label}
                   teaserUrl={activeTeaserUrl}
@@ -1023,7 +1077,7 @@ export default function RechnungPreviewPage() {
             </div>
 
             {/* Wirkungs-Badge (WohnenWo) */}
-            {isWohnenwo && (
+            {isProvider && (
               <div className="rounded-xl border border-slate-200 bg-cyan-600 text-white px-3 py-2 shadow-sm dark:border-white/10">
                 <div className="flex items-start gap-2">
                   <div className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10">
@@ -1044,7 +1098,7 @@ export default function RechnungPreviewPage() {
 
             {/* MOBILE docs: WohnenWo unter Badge */}
             <div className="lg:hidden">
-              {isWohnenwo && (
+              {isProvider && (
                 <MobileDocumentsCardPreview
                   participantLabel={active.label}
                   teaserUrl={activeTeaserUrl}
@@ -1053,7 +1107,7 @@ export default function RechnungPreviewPage() {
             </div>
 
             {/* ────────────────────────── WOHNENWO ────────────────────────── */}
-            {isWohnenwo && (
+            {isProvider && (
               <>
                 {/* Lohnkosten */}
                 <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
@@ -1394,7 +1448,7 @@ export default function RechnungPreviewPage() {
             )}
 
             {/* ────────────────────────── MATERIAL (Grohe / Hansgrohe) ────────────────────────── */}
-            {(isGrohe || isHansgrohe) && activeMaterial && (
+            {isMaterialTab && activeMaterial && (
               <>
                 <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
                   <header className="space-y-0.5">

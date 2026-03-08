@@ -338,8 +338,12 @@ function hashStringToUInt(str: string) {
   return h >>> 0;
 }
 
-function teaserUrlForParticipant(participantId: string, tokenSeed: string): string {
-  if (participantId === "wohnenwo") return SERVICE_PROVIDER_TEASER;
+function teaserUrlForParticipant(
+  participantId: string,
+  tokenSeed: string,
+  serviceProviderId: string | null
+): string {
+  if (serviceProviderId && participantId === serviceProviderId) return SERVICE_PROVIDER_TEASER;
   const h = hashStringToUInt(`${tokenSeed}:${participantId}`);
   const idx = h % OTHER_TEASERS.length;
   return OTHER_TEASERS[idx] ?? SERVICE_PROVIDER_TEASER;
@@ -486,9 +490,16 @@ function MobileDocumentsCardTeaser({
   UI helpers
 ────────────────────────────────────────────────────────────── */
 
-function iconForParticipant(participantId: string) {
-  if (participantId === "staat") return <Scale className="h-4 w-4" />;
-  if (participantId === "wohnenwo") return <Briefcase className="h-4 w-4" />;
+function iconForParticipant(participantId: string, role?: string | null) {
+  const r = String(role ?? "").toLowerCase();
+
+  // Staat immer fix
+  if (participantId === "staat" || r === "staat") return <Scale className="h-4 w-4" />;
+
+  // Dienstleister immer Briefcase (egal wie er heißt)
+  if (r === "dienstleister") return <Briefcase className="h-4 w-4" />;
+
+  // Default (Material/Handel etc.)
   return <Factory className="h-4 w-4" />;
 }
 
@@ -839,10 +850,20 @@ export default function RechnungTeaserPage() {
 
       const parts = (partRes.data ?? []) as ParticipantRow[];
 
+      const serviceProviderId =
+        parts.find((p) => (p.role ?? "").toLowerCase() === "dienstleister")?.participant_id
+        ?? parts[0]?.participant_id
+        ?? null;
+
       // ✅ Rotation seed bleibt safeToken — ist jetzt claim_code
       const teaserMap: Record<string, string> = {};
       for (const p of parts) {
-        teaserMap[p.participant_id] = teaserUrlForParticipant(p.participant_id, safeToken);
+        if (p.participant_id === "staat") continue; // ✅ optional
+        teaserMap[p.participant_id] = teaserUrlForParticipant(
+          p.participant_id,
+          safeToken,
+          serviceProviderId
+        );
       }
 
       setInvoice(inv);
@@ -851,8 +872,8 @@ export default function RechnungTeaserPage() {
       setTeaserByParticipant(teaserMap);
 
       const firstClickable =
-        (partRes.data as ParticipantRow[]).find((p) => p.is_clickable)?.participant_id ??
-        (partRes.data as ParticipantRow[])[0]?.participant_id ??
+        parts.find((p) => p.is_clickable)?.participant_id ??
+        parts[0]?.participant_id ??
         "";
 
       setActiveParticipantId(firstClickable);
@@ -1000,36 +1021,67 @@ export default function RechnungTeaserPage() {
   const uiParticipants = React.useMemo(() => {
     if (!invoice || !computed) return [];
 
+    // Service Provider = erster participant mit role=dienstleister (fallback: erster participant)
+    const serviceProviderId =
+      participants.find((p) => String(p.role ?? "").toLowerCase() === "dienstleister")?.participant_id ??
+      participants[0]?.participant_id ??
+      null;
+
     const byId = new Map(computed.materials.map((m) => [m.participant_id, m]));
 
-    return participants
+    // ✅ Wichtig: DB-"staat" rausfiltern, weil wir Staat UI-only hart codieren
+    const mapped = participants
+      .filter((p) => p.participant_id !== "staat")
       .slice()
       .sort((a, b) => a.sort_order - b.sort_order)
       .map((p) => {
-        const isState = p.participant_id === "staat";
-        const isMain = p.participant_id === "wohnenwo";
+        const isProvider = !!serviceProviderId && p.participant_id === serviceProviderId;
         const mat = byId.get(p.participant_id);
 
         let valueCents: number | null = null;
-        if (isState) valueCents = computed.stateTotalAdjustedCents;
-        else if (isMain) valueCents = computed.serviceMehrwertCents;
+        if (isProvider) valueCents = computed.serviceMehrwertCents;
         else if (mat) valueCents = mat.bauteilCents;
 
         return {
           id: p.participant_id,
-          label: publicLabel(p),
+          label: p.label,
           description: p.description ?? "",
           role: p.role ?? "",
           isClickable: p.is_clickable,
-          icon: iconForParticipant(p.participant_id),
+          icon: iconForParticipant(p.participant_id, p.role),
           valueCents,
         };
       });
+
+    // ✅ START (hart gecodet) = Staat & Sozialkassen — immer zuletzt
+    const startTab = {
+      id: "staat",
+      label: "Staat & Sozialkassen",
+      description: "Steuern & Sozialabgaben",
+      role: "Gesetzlich gebundene Abgaben",
+      isClickable: false, // wie bei deiner Referenz
+      icon: iconForParticipant("staat", "staat"),
+      valueCents: computed.stateTotalAdjustedCents,
+    };
+
+    return [...mapped, startTab];
   }, [participants, invoice, computed]);
 
   const active = React.useMemo(() => {
     if (!uiParticipants.length) return null;
     return uiParticipants.find((p) => p.id === activeParticipantId) ?? uiParticipants[0]!;
+  }, [uiParticipants, activeParticipantId]);
+
+  React.useEffect(() => {
+    if (!uiParticipants.length) return;
+
+    const current = uiParticipants.find((p) => p.id === activeParticipantId);
+    if (current && current.isClickable) return;
+
+    const fallback =
+      uiParticipants.find((p) => p.isClickable)?.id ?? uiParticipants[0]!.id;
+
+    if (fallback !== activeParticipantId) setActiveParticipantId(fallback);
   }, [uiParticipants, activeParticipantId]);
 
   // ✅ Redirect BEFORE early returns (Hook order muss stabil bleiben!)
@@ -1081,11 +1133,18 @@ export default function RechnungTeaserPage() {
   }
   const alreadyClaimed = !!invoice.customer_id;
 
-  const isWohnenwo = active.id === "wohnenwo";
-  const isGrohe = active.id === "grohe";
-  const isHansgrohe = active.id === "hansgrohe";
+  const serviceProviderId =
+    participants.find((p) => (p.role ?? "").toLowerCase() === "dienstleister")?.participant_id ??
+    participants[0]?.participant_id ??
+    null;
 
-  const activeMaterial = computed.materials.find((m) => m.participant_id === active.id) ?? null;
+  const isState = active.id === "staat";
+  const isProvider = !!serviceProviderId && active.id === serviceProviderId;
+
+  const activeMaterial =
+    computed.materials.find((m) => m.participant_id === active.id) ?? null;
+
+  const isMaterialTab = !isState && !isProvider && !!activeMaterial;
 
   const statusLabel = (invoice.status ?? "open").toLowerCase();
   const statusPill =
@@ -1100,7 +1159,10 @@ export default function RechnungTeaserPage() {
     );
 
   const activeTeaserUrl =
-    teaserByParticipant[active.id] ?? "/images/teaser/invoice-page-1.jpg";
+    active.id === "staat"
+      ? teaserUrlForParticipant("staat", safeToken, serviceProviderId)
+      : (teaserByParticipant[active.id] ??
+        teaserUrlForParticipant(active.id, safeToken, serviceProviderId));
 
   return (
     <div className="h-full">
@@ -1303,7 +1365,7 @@ export default function RechnungTeaserPage() {
             </section>
 
             <div className="lg:hidden">
-              {!isWohnenwo && (
+              {!isProvider && (
                 <MobileDocumentsCardTeaser
                   participantLabel={active.label}
                   teaserUrl={activeTeaserUrl}
@@ -1316,7 +1378,7 @@ export default function RechnungTeaserPage() {
               )}
             </div>
 
-            {isWohnenwo && (
+            {isProvider && (
               <div className="rounded-xl border border-slate-200 bg-cyan-600 text-white px-3 py-2 shadow-sm dark:border-white/10">
                 <div className="flex items-start gap-2">
                   <div className="mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10">
@@ -1334,7 +1396,7 @@ export default function RechnungTeaserPage() {
             )}
 
             <div className="lg:hidden">
-              {isWohnenwo && (
+              {isProvider && (
                 <MobileDocumentsCardTeaser
                   participantLabel={active.label}
                   teaserUrl={activeTeaserUrl}
@@ -1348,7 +1410,7 @@ export default function RechnungTeaserPage() {
             </div>
 
             {/* ────────────────────────── WOHNENWO ────────────────────────── */}
-            {isWohnenwo && (
+            {isProvider && (
               <>
                 {/* Lohnkosten */}
                 <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
@@ -1689,7 +1751,7 @@ export default function RechnungTeaserPage() {
             )}
 
             {/* ────────────────────────── MATERIAL (Grohe / Hansgrohe) ────────────────────────── */}
-            {(isGrohe || isHansgrohe) && activeMaterial && (
+            {isMaterialTab && activeMaterial && (
               <>
                 <section className="rounded-2xl bg-white border border-slate-200 px-4 py-4 space-y-3 shadow-sm dark:bg-[#1d1d1f] dark:border-white/10">
                   <header className="space-y-0.5">

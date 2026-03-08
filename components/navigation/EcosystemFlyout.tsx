@@ -107,10 +107,19 @@ export default function EcosystemFlyout({
         >
           {/* Brand Orbit-Icon */}
           <span className="inline-flex h-5.5 w-6.5 items-center justify-center">
+            {/* Light */}
             <img
-              src="https://wohnenwo.vercel.app/images/brand/logos/ww-badge-dark.svg"
+              src="/images/brand/logos/ww-badge-dark.svg"
               alt="Orbit Logo"
-              className="h-5.5 w-5.5 object-contain"
+              className="h-5.5 w-5.5 object-contain dark:hidden"
+              loading="eager"
+            />
+            {/* Dark */}
+            <img
+              src="/images/brand/logos/ww-badge-white.svg"
+              alt="Orbit Logo"
+              className="h-5.5 w-5.5 object-contain hidden dark:block"
+              loading="eager"
             />
           </span>
 

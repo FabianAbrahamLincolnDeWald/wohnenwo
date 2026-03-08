@@ -104,7 +104,7 @@ export default function AuthOverlay({
               className="h-7 w-7 object-contain dark:hidden"
             />
             <img
-              src="https://wohnenwo.vercel.app/images/brand/logos/ww-badge-light.svg"
+              src="https://wohnenwo.vercel.app/images/brand/logos/ww-badge-white.svg"
               alt="WohnenWo Logo"
               className="hidden h-7 w-7 object-contain dark:block"
             />

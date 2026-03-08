@@ -14,6 +14,7 @@ import {
   Scale,
   Wrench,
   EyeOff,
+  Store,
 } from "lucide-react";
 
 /* ──────────────────────────────────────────────────────────────
@@ -621,13 +622,26 @@ function iconForParticipant(participantId: string, role?: string | null) {
   const r = String(role ?? "").toLowerCase();
 
   // Staat immer fix
-  if (participantId === "staat" || r.includes("gesetz") || r === "staat")
+  if (participantId === "staat" || r.includes("gesetz") || r === "staat") {
     return <Scale className="h-4 w-4" />;
+  }
 
-  // Dienstleister immer Briefcase
-  if (r === "dienstleister") return <Briefcase className="h-4 w-4" />;
+  // Dienstleister
+  if (r === "dienstleister") {
+    return <Briefcase className="h-4 w-4" />;
+  }
 
-  // Default: Material/Handel
+  // Händler
+  if (r === "haendler" || r === "händler" || r.includes("haendler") || r.includes("händler")) {
+    return <Store className="h-4 w-4" />;
+  }
+
+  // Hersteller (oder Default Material/Industrie)
+  if (r === "hersteller") {
+    return <Factory className="h-4 w-4" />;
+  }
+
+  // Default
   return <Factory className="h-4 w-4" />;
 }
 

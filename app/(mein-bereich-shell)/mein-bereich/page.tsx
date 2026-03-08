@@ -676,7 +676,7 @@ function SliderShell(props: {
                     "border-slate-200 bg-white text-slate-500 hover:bg-slate-100",
                     "dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10",
                     !canLeft &&
-                      "opacity-30 cursor-not-allowed hover:bg-white pointer-events-none dark:hover:bg-white/5"
+                    "opacity-30 cursor-not-allowed hover:bg-white pointer-events-none dark:hover:bg-white/5"
                   )}
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -695,7 +695,7 @@ function SliderShell(props: {
                     "border-slate-200 bg-white text-slate-500 hover:bg-slate-100",
                     "dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10",
                     !canRight &&
-                      "opacity-30 cursor-not-allowed hover:bg-white pointer-events-none dark:hover:bg-white/5"
+                    "opacity-30 cursor-not-allowed hover:bg-white pointer-events-none dark:hover:bg-white/5"
                   )}
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -859,27 +859,54 @@ function SeeAllCard({ href }: { href: string }) {
       <Link href={href} className="block group">
         <div
           className={[
-            "rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-3 h-full",
-            "transition duration-300 ease-out group-hover:border-slate-300 group-hover:-translate-y-px",
-            "dark:border-white/10 dark:bg-white/5 dark:group-hover:border-white/20",
+            "rounded-2xl border-2 border-dashed border-slate-200",
+            "bg-slate-50 p-3 transition duration-300 ease-out hover:border-slate-300",
+            "dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20",
+            "group-hover:-translate-y-px",
           ].join(" ")}
         >
           <div
             className={[
               "w-full aspect-210/297 rounded-lg border border-slate-200",
               "bg-slate-100/80 group-hover:bg-white",
-              "transition-colors duration-300 ease-out flex items-center justify-center",
+              "transition-colors duration-300 ease-out",
+              "flex items-center justify-center",
               "dark:border-white/10 dark:bg-white/5 dark:group-hover:bg-white/8",
             ].join(" ")}
           >
             <div className="text-center px-4">
               <p className="text-[12px] font-semibold text-slate-900 dark:text-white">
-                Alle ansehen
+                Alle Rechnungen ansehen
               </p>
               <p className="mt-1 text-[11px] text-slate-500 leading-snug dark:text-white/40">
                 Zur vollständigen Übersicht
               </p>
             </div>
+          </div>
+
+          <div className="mt-3 space-y-1">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-[12px] font-semibold text-slate-900 truncate dark:text-white">
+                Rechnungsgalerie öffnen
+              </p>
+
+              <span
+                className={[
+                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium",
+                  "bg-slate-50 text-slate-600 border border-slate-200",
+                  "transition-colors duration-300 ease-out",
+                  "group-hover:bg-slate-100 group-hover:border-slate-300 group-hover:text-slate-700",
+                  "dark:bg-white/5 dark:text-white/50 dark:border-white/10",
+                  "dark:group-hover:bg-white/10 dark:group-hover:border-white/20 dark:group-hover:text-white/70",
+                ].join(" ")}
+              >
+                Übersicht
+              </span>
+            </div>
+
+            <p className="text-[11px] text-slate-500 leading-snug dark:text-white/40">
+              Alle deine Rechnungen an einem Ort.
+            </p>
           </div>
         </div>
       </Link>

@@ -8,7 +8,11 @@ import { PanelsTopLeft, Search, Menu } from "lucide-react";
 
 type AuthMode = "signin" | "signup" | null;
 
-export default function Topbar() {
+type TopbarProps = {
+  onMenuOpen?: () => void;
+};
+
+export default function Topbar({ onMenuOpen }: TopbarProps) {
   const [authMode, setAuthMode] = React.useState<AuthMode>(null);
 
   return (
@@ -69,12 +73,13 @@ export default function Topbar() {
                   </button>
                 </div>
 
-                {/* Mobile: Burger (kann später auch Overlay öffnen, wenn du willst) */}
+                {/* Mobile: Burger öffnet MobileSidebar */}
                 <div className="md:hidden">
                   <button
                     type="button"
-                    className="h-8 w-8 flex items-center justify-center rounded hover:bg-slate-100 transition"
-                    aria-label="Menü öffnen"
+                    onClick={onMenuOpen}
+                    className="h-8 w-8 flex items-center justify-center rounded hover:bg-slate-100 dark:hover:bg-white/10 transition cursor-pointer"
+                    aria-label="Navigation öffnen"
                   >
                     <Menu className="h-[18px] w-[18px]" />
                   </button>

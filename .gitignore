@@ -10,3 +10,5 @@ dist
 .DS_Store
 # Vercel
 .vercel
+# TypeScript build cache
+tsconfig.tsbuildinfo

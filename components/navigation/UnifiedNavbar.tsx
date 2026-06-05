@@ -32,13 +32,6 @@ import {
   Search,
   Menu,
   X,
-  Home,
-  Users,
-  Compass,
-  Sparkles,
-  Package,
-  MessageCircle,
-  Gem,
 } from "lucide-react";
 import AuthAvatar from "@/components/navigation/AuthAvatar";
 import { ecosystemSections } from "@/components/navigation/ecosystem-config";

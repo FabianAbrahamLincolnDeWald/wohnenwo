@@ -97,18 +97,20 @@ export default function AuthOverlay({
       <div className="mt-4 mx-auto w-full max-w-[360px] space-y-6">
         {/* Header */}
         <div className="space-y-4">
-          {/* WohnenWo Wordmark */}
+          {/* WohnenWo Logo */}
           <div className="flex items-center gap-2.5">
-            <div
-              className={[
-                "h-8 w-8 rounded-xl flex items-center justify-center shrink-0",
-                "bg-[#F5C842]",
-              ].join(" ")}
-            >
-              <span className="text-[#0A0A0A] text-[14px] font-black leading-none select-none">
-                W
-              </span>
-            </div>
+            <img
+              src="/images/brand/logos/ww-badge-dark.svg"
+              alt="WohnenWo"
+              className="h-8 w-8 object-contain dark:hidden"
+              loading="eager"
+            />
+            <img
+              src="/images/brand/logos/ww-badge-white.svg"
+              alt="WohnenWo"
+              className="h-8 w-8 object-contain hidden dark:block"
+              loading="eager"
+            />
             <span className="text-[15px] font-semibold tracking-tight text-slate-900 dark:text-white">
               WohnenWo
             </span>

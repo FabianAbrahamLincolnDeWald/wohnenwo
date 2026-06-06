@@ -3,16 +3,21 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import AuthOverlay from "@/components/auth/AuthOverlay";
-import { PanelsTopLeft, Search, Menu, LogOut } from "lucide-react";
+import { PanelsTopLeft, Search, Menu, LogOut, Zap, TrendingUp } from "lucide-react";
 
 type AuthMode = "signin" | "signup" | null;
 
 type Profile = {
   full_name: string | null;
   email: string | null;
+};
+
+type HudStats = {
+  wirkungspunkte: number;
+  wirkungsfonds: number; // in Euro
 };
 
 type TopbarProps = {
@@ -30,11 +35,37 @@ function getInitials(profile: Profile | null): string {
   return "?";
 }
 
+// Animiert eine Zahl von 0 auf target über duration ms
+function useCountUp(target: number, duration = 700): number {
+  const [value, setValue] = useState(0);
+  const raf = useRef<number>(0);
+
+  useEffect(() => {
+    if (target === 0) { setValue(0); return; }
+    const start = performance.now();
+    const animate = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(eased * target));
+      if (progress < 1) raf.current = requestAnimationFrame(animate);
+    };
+    raf.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(raf.current);
+  }, [target, duration]);
+
+  return value;
+}
+
 export default function Topbar({ onMenuOpen }: TopbarProps) {
   const [authMode, setAuthMode] = useState<AuthMode>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authLoaded, setAuthLoaded] = useState(false);
+  const [hudStats, setHudStats] = useState<HudStats>({ wirkungspunkte: 0, wirkungsfonds: 0 });
+
+  const animatedPunkte = useCountUp(hudStats.wirkungspunkte);
+  const animatedFonds = useCountUp(hudStats.wirkungsfonds);
 
   useEffect(() => {
     let mounted = true;
@@ -53,10 +84,9 @@ export default function Topbar({ onMenuOpen }: TopbarProps) {
 
       setIsLoggedIn(true);
 
-      // Profilname laden (nur email + full_name – kein volles Profil nötig)
       const { data } = await supabase
         .from("profiles")
-        .select("full_name, email")
+        .select("full_name, email, wirkungspunkte, wirkungsfonds_anteil")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -65,6 +95,10 @@ export default function Topbar({ onMenuOpen }: TopbarProps) {
       setProfile({
         full_name: data?.full_name ?? null,
         email: data?.email ?? user.email ?? null,
+      });
+      setHudStats({
+        wirkungspunkte: Number(data?.wirkungspunkte) || 0,
+        wirkungsfonds: Number(data?.wirkungsfonds_anteil) || 0,
       });
       setAuthLoaded(true);
     }
@@ -149,6 +183,40 @@ export default function Topbar({ onMenuOpen }: TopbarProps) {
                   </div>
                 </div>
               </div>
+
+              {/* Mitte: Mini-HUD – Gaming Coin Display, nur Mobile+Tablet (< lg) */}
+              {authLoaded && isLoggedIn && (
+                <div className="flex items-center gap-2 lg:hidden">
+                  {/* Wirkungspunkte */}
+                  <div
+                    className={[
+                      "flex items-center gap-1.5 px-2.5 py-1 rounded-full",
+                      "bg-[#F5C842]/10 border border-[#F5C842]/20",
+                      "dark:bg-[#F5C842]/8 dark:border-[#F5C842]/15",
+                    ].join(" ")}
+                  >
+                    <Zap className="h-3 w-3 text-[#F5C842] shrink-0" />
+                    <span className="text-[12px] font-semibold tabular-nums text-slate-900 dark:text-white leading-none">
+                      {animatedPunkte.toLocaleString("de-DE")}
+                      <span className="text-[10px] font-medium text-slate-500 dark:text-white/40 ml-0.5">px</span>
+                    </span>
+                  </div>
+                  {/* Wirkungsfonds */}
+                  <div
+                    className={[
+                      "hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full",
+                      "bg-emerald-50 border border-emerald-100",
+                      "dark:bg-emerald-500/8 dark:border-emerald-500/15",
+                    ].join(" ")}
+                  >
+                    <TrendingUp className="h-3 w-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span className="text-[12px] font-semibold tabular-nums text-slate-900 dark:text-white leading-none">
+                      {animatedFonds.toLocaleString("de-DE")}
+                      <span className="text-[10px] font-medium text-slate-500 dark:text-white/40 ml-0.5">€</span>
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Rechts: Auth-Actions + Mobile-Menü */}
               <div className="flex items-center gap-x-2">

@@ -30,7 +30,7 @@ export default function MeinBereichShell({ children }: Props) {
 
       {/* Hauptcontent – animiert wie Claude Mobile App beim Drawer-Öffnen */}
       <motion.div
-        className="flex flex-1 flex-col h-screen overflow-hidden bg-slate-50 dark:bg-[#0A0A0A]"
+        className="flex flex-1 flex-col h-screen overflow-hidden bg-[#0A0A0A]"
         animate={
           mobileMenuOpen
             ? { scale: 0.93, borderRadius: 20 }

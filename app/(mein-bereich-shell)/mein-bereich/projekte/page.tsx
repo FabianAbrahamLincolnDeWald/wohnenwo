@@ -215,7 +215,7 @@ export default function ProjektePage() {
 
   if (view === "loading") {
     return (
-      <main className="min-h-screen bg-slate-50 dark:bg-[#111113] px-4 pt-20 pb-10">
+      <main className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] px-4 pt-20 pb-10">
         <div className="mx-auto max-w-7xl grid gap-8 lg:grid-cols-[minmax(0,1.9fr)_minmax(260px,1fr)]">
           <div className="space-y-4">
             <div className="h-6 w-40 rounded bg-slate-200 animate-pulse dark:bg-white/10" />
@@ -231,7 +231,7 @@ export default function ProjektePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-[#111113] px-4 pt-20 pb-10">
+    <main className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] px-4 pt-20 pb-10">
       <div className="mx-auto max-w-7xl lg:flex lg:items-start lg:gap-10">
         {/* Linke Spalte */}
         <div className="flex-1 min-w-0 space-y-8">

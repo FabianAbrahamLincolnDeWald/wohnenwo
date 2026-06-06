@@ -7,7 +7,7 @@ import AuthRefreshListener from "@/components/auth/AuthRefreshListener";
 
 export default function MeinBereichLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="dark:bg-[#111113]">
+    <div className="dark:bg-[#0A0A0A]">
       <AuthRefreshListener />
       <MeinBereichShell>{children}</MeinBereichShell>
     </div>

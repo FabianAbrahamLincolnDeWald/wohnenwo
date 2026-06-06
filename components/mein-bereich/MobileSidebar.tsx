@@ -38,34 +38,38 @@ type Props = {
   role?: MeinBereichRole;
 };
 
-export default function MobileSidebar({ isOpen, onClose, role = "guest" }: Props) {
+export default function MobileSidebar({ isOpen, onClose }: Props) {
   const pathname = usePathname();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode | null>(null);
+  // Separate role state so nav items react instantly to login/logout
+  const [navRole, setNavRole] = useState<MeinBereichRole>("guest");
 
-  // Auth-State laden
+  // Auth-State laden (Footer + Nav-Rolle)
   useEffect(() => {
     let mounted = true;
 
-    async function loadAuth() {
-      const { data: { user } } = await supabase.auth.getUser();
+    async function loadAuth(userId?: string) {
+      const uid = userId ?? (await supabase.auth.getUser()).data.user?.id;
       if (!mounted) return;
-      if (!user) {
+      if (!uid) {
         setIsLoggedIn(false);
         setProfile(null);
+        setNavRole("guest");
         setAuthLoaded(true);
         return;
       }
       setIsLoggedIn(true);
       const { data } = await supabase
         .from("profiles")
-        .select("full_name, email")
-        .eq("id", user.id)
+        .select("full_name, email, role")
+        .eq("id", uid)
         .maybeSingle();
       if (!mounted) return;
-      setProfile({ full_name: data?.full_name ?? null, email: data?.email ?? user.email ?? null });
+      setProfile({ full_name: data?.full_name ?? null, email: data?.email ?? null });
+      setNavRole((data?.role as MeinBereichRole | null) ?? "user");
       setAuthLoaded(true);
     }
 
@@ -76,9 +80,11 @@ export default function MobileSidebar({ isOpen, onClose, role = "guest" }: Props
       if (event === "SIGNED_OUT" || !session) {
         setIsLoggedIn(false);
         setProfile(null);
+        setNavRole("guest");
+        setAuthLoaded(true);
       } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         setIsLoggedIn(true);
-        loadAuth();
+        loadAuth(session.user.id);
       }
     });
 
@@ -108,8 +114,7 @@ export default function MobileSidebar({ isOpen, onClose, role = "guest" }: Props
   }, [isOpen]);
 
   const visibleItems = MEIN_BEREICH_NAV_ITEMS.filter((item) => {
-    const roleOk = item.visibleFor.includes(role);
-    return roleOk;
+    return item.visibleFor.includes(navRole);
   });
 
   const mainItems = visibleItems.filter((i) => i.section === "main");

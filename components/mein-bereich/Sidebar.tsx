@@ -34,42 +34,34 @@ export default function Sidebar() {
   useEffect(() => {
     let mounted = true;
 
-    async function loadProfile() {
+    async function loadProfile(userId?: string) {
       try {
         setLoading(true);
 
-        // 1. Aktuellen Auth-User holen
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const uid = userId ?? (await supabase.auth.getUser()).data.user?.id;
 
-        if (!user) {
+        if (!uid) {
           if (!mounted) return;
           setRole("guest");
           setFlags({ hasProjects: false, hasInvoices: false });
           return;
         }
 
-        // 2. Profil aus Supabase laden
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("role, has_projects, has_invoices")
-          .eq("id", user.id)
+          .eq("id", uid)
           .maybeSingle();
 
         if (error) {
           console.error("Fehler beim Laden des Profils:", error);
           if (!mounted) return;
-          // Fallback: angemeldeter User ohne spezielles Profil
           setRole("user");
           setFlags({ hasProjects: false, hasInvoices: false });
           return;
         }
 
-        // 3. Rolle bestimmen
         const dbRole = (profile?.role as MeinBereichRole | null) ?? "user";
-
-        // 4. Flags aus Profil ableiten (oder Fallback)
         const nextFlags: MeinBereichFlagsState = {
           hasProjects: Boolean(profile?.has_projects),
           hasInvoices: Boolean(profile?.has_invoices),
@@ -88,10 +80,26 @@ export default function Sidebar() {
       }
     }
 
+    // Initialer Load
     loadProfile();
+
+    // Reaktiv auf Login/Logout reagieren
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!mounted) return;
+        if (event === "SIGNED_OUT" || !session) {
+          setRole("guest");
+          setFlags({ hasProjects: false, hasInvoices: false });
+          setLoading(false);
+        } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+          loadProfile(session.user.id);
+        }
+      }
+    );
 
     return () => {
       mounted = false;
+      subscription.unsubscribe();
     };
   }, []);
 

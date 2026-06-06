@@ -1,16 +1,35 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X } from "lucide-react";
+import { X, LogOut } from "lucide-react";
 import { MEIN_BEREICH_NAV_ITEMS, MeinBereichRole } from "@/components/mein-bereich/nav-config";
+import { supabase } from "@/lib/supabaseClient";
+import AuthOverlay from "@/components/auth/AuthOverlay";
+import type { AuthMode } from "@/components/auth/AuthOverlay";
 
 const SIDEBAR_WIDTH = 280;
 
 function classNames(...classes: (string | boolean | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
+}
+
+type Profile = {
+  full_name: string | null;
+  email: string | null;
+};
+
+function getInitials(profile: Profile | null): string {
+  if (!profile) return "?";
+  if (profile.full_name?.trim()) {
+    const parts = profile.full_name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0]!.charAt(0).toUpperCase();
+    return `${parts[0]!.charAt(0)}${parts[1]!.charAt(0)}`.toUpperCase();
+  }
+  if (profile.email) return profile.email.charAt(0).toUpperCase();
+  return "?";
 }
 
 type Props = {
@@ -21,6 +40,50 @@ type Props = {
 
 export default function MobileSidebar({ isOpen, onClose, role = "guest" }: Props) {
   const pathname = usePathname();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authLoaded, setAuthLoaded] = useState(false);
+  const [authMode, setAuthMode] = useState<AuthMode | null>(null);
+
+  // Auth-State laden
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadAuth() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!mounted) return;
+      if (!user) {
+        setIsLoggedIn(false);
+        setProfile(null);
+        setAuthLoaded(true);
+        return;
+      }
+      setIsLoggedIn(true);
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!mounted) return;
+      setProfile({ full_name: data?.full_name ?? null, email: data?.email ?? user.email ?? null });
+      setAuthLoaded(true);
+    }
+
+    loadAuth();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      if (event === "SIGNED_OUT" || !session) {
+        setIsLoggedIn(false);
+        setProfile(null);
+      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        setIsLoggedIn(true);
+        loadAuth();
+      }
+    });
+
+    return () => { mounted = false; sub.subscription.unsubscribe(); };
+  }, []);
 
   // ESC schließt die Sidebar
   useEffect(() => {
@@ -52,7 +115,19 @@ export default function MobileSidebar({ isOpen, onClose, role = "guest" }: Props
   const mainItems = visibleItems.filter((i) => i.section === "main");
   const communityItems = visibleItems.filter((i) => i.section === "community");
 
+  const initials = getInitials(profile);
+  const displayName =
+    profile?.full_name?.split(" ")[0] || profile?.email?.split("@")[0] || "Mein Konto";
+
   return (
+    <>
+      <AuthOverlay
+        mode={authMode}
+        onClose={() => setAuthMode(null)}
+        onSwitchMode={(m) => setAuthMode(m)}
+        onAuthed={() => { setAuthMode(null); onClose(); }}
+      />
+
     <AnimatePresence>
       {isOpen && (
         <>
@@ -217,15 +292,69 @@ export default function MobileSidebar({ isOpen, onClose, role = "guest" }: Props
               )}
             </nav>
 
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-slate-200 dark:border-white/[0.06]">
-              <p className="text-[11px] text-slate-400 dark:text-white/25 leading-snug">
-                WohnenWo · Mein Bereich
-              </p>
+            {/* Footer – Auth-Status */}
+            <div className="px-4 py-4 border-t border-slate-200 dark:border-white/[0.06]">
+              {/* Skeleton */}
+              {!authLoaded && (
+                <div className="h-8 w-full rounded-lg bg-slate-100 dark:bg-white/5 animate-pulse" />
+              )}
+
+              {/* Nicht eingeloggt */}
+              {authLoaded && !isLoggedIn && (
+                <button
+                  type="button"
+                  onClick={() => setAuthMode("signin")}
+                  className={[
+                    "w-full rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-150 cursor-pointer",
+                    "border border-slate-200 dark:border-white/10",
+                    "text-slate-700 dark:text-white/70",
+                    "hover:bg-slate-50 dark:hover:bg-white/5",
+                    "hover:text-slate-900 dark:hover:text-white",
+                  ].join(" ")}
+                >
+                  Anmelden
+                </button>
+              )}
+
+              {/* Eingeloggt: Avatar + Name + Abmelden */}
+              {authLoaded && isLoggedIn && (
+                <div className="flex items-center gap-3">
+                  <div
+                    className={[
+                      "h-8 w-8 rounded-full flex items-center justify-center shrink-0",
+                      "bg-slate-900 text-white text-[11px] font-semibold",
+                      "dark:bg-white dark:text-slate-900",
+                    ].join(" ")}
+                  >
+                    {initials}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium text-slate-900 dark:text-white truncate">
+                      {displayName}
+                    </p>
+                    <p className="text-[11px] text-slate-400 dark:text-white/35 truncate">
+                      {profile?.email ?? ""}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => supabase.auth.signOut()}
+                    title="Abmelden"
+                    className={[
+                      "h-8 w-8 flex items-center justify-center rounded-lg transition-colors duration-150 cursor-pointer shrink-0",
+                      "text-slate-400 hover:text-slate-700 hover:bg-slate-100",
+                      "dark:text-white/35 dark:hover:text-white dark:hover:bg-white/10",
+                    ].join(" ")}
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
           </motion.aside>
         </>
       )}
     </AnimatePresence>
+    </>
   );
 }

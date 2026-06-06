@@ -154,11 +154,52 @@ function computeImpactForInvoiceCents(
   return (laborSplit.impact ?? 0) + materialsImpact;
 }
 
+// ──────────────────────────────────────────────────────────────
+// New table types for tax-year metrics
+// ──────────────────────────────────────────────────────────────
+
+type TaxYearRow = {
+  id: string;
+  year: number;
+  status: string | null;
+};
+
+type InvestmentMetricsRow = {
+  total_revenue: number | string | null;
+  total_net_income: number | string | null;
+  avg_profit_margin: number | string | null;
+  reinvestment_amount: number | string | null;
+  reinvestment_rate: number | string | null;
+  expert_rate: number | string | null;
+  income_stream_count: number | null;
+  largest_client_share: number | string | null;
+  property_count: number | null;
+};
+
+type ValueProfileRow = {
+  headline: string | null;
+  tax_filing_streak: number | null;
+  active_income_streams: number | null;
+  profile_tier: string | null;
+};
+
 export function useWirkungskontoStats(customerId: string | null) {
   const [loading, setLoading] = React.useState(false);
   const [investedEUR, setInvestedEUR] = React.useState(0);
   const [impactEUR, setImpactEUR] = React.useState(0);
   const [invoiceCount, setInvoiceCount] = React.useState(0);
+
+  // New: tax year metrics
+  const [totalRevenue2024, setTotalRevenue2024] = React.useState(0);
+  const [totalNetIncome2024, setTotalNetIncome2024] = React.useState(0);
+  const [reinvestmentRate, setReinvestmentRate] = React.useState(0);
+  const [expertRate, setExpertRate] = React.useState(0);
+  const [avgProfitMargin, setAvgProfitMargin] = React.useState(0);
+  const [clientDiversificationScore, setClientDiversificationScore] = React.useState(0);
+  const [incomeStreamCount, setIncomeStreamCount] = React.useState(0);
+  const [taxFilingStreak, setTaxFilingStreak] = React.useState(0);
+  const [profileTier, setProfileTier] = React.useState<string>("basic");
+  const [taxYearStatus, setTaxYearStatus] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let alive = true;
@@ -169,6 +210,16 @@ export function useWirkungskontoStats(customerId: string | null) {
         setInvestedEUR(0);
         setImpactEUR(0);
         setInvoiceCount(0);
+        setTotalRevenue2024(0);
+        setTotalNetIncome2024(0);
+        setReinvestmentRate(0);
+        setExpertRate(0);
+        setAvgProfitMargin(0);
+        setClientDiversificationScore(0);
+        setIncomeStreamCount(0);
+        setTaxFilingStreak(0);
+        setProfileTier("basic");
+        setTaxYearStatus(null);
         return;
       }
 
@@ -235,6 +286,60 @@ export function useWirkungskontoStats(customerId: string | null) {
         }, 0);
 
         setImpactEUR(impactCentsTotal / 100);
+
+        // ── Parallele Abfragen: tax_years + investment_metrics + value_profile ──
+        try {
+          const [taxYearResult, valueProfileResult] = await Promise.all([
+            supabase
+              .from("tax_years")
+              .select("id, year, status")
+              .eq("user_id", customerId)
+              .eq("year", 2024)
+              .single(),
+            supabase
+              .from("value_profile")
+              .select("headline, tax_filing_streak, active_income_streams, profile_tier")
+              .eq("user_id", customerId)
+              .single(),
+          ]);
+
+          const taxYear = taxYearResult.data as TaxYearRow | null;
+          const valueProfile = valueProfileResult.data as ValueProfileRow | null;
+
+          if (!alive) return;
+
+          if (taxYear?.id) {
+            setTaxYearStatus(taxYear.status ?? null);
+
+            const { data: metricsData } = await supabase
+              .from("investment_metrics")
+              .select(
+                "total_revenue, total_net_income, avg_profit_margin, reinvestment_amount, reinvestment_rate, expert_rate, income_stream_count, largest_client_share, property_count"
+              )
+              .eq("tax_year_id", taxYear.id)
+              .single();
+
+            if (!alive) return;
+
+            const metrics = metricsData as InvestmentMetricsRow | null;
+            if (metrics) {
+              setTotalRevenue2024(toNumber(metrics.total_revenue));
+              setTotalNetIncome2024(toNumber(metrics.total_net_income));
+              setAvgProfitMargin(toNumber(metrics.avg_profit_margin));
+              setReinvestmentRate(toNumber(metrics.reinvestment_rate));
+              setExpertRate(toNumber(metrics.expert_rate));
+              setIncomeStreamCount(metrics.income_stream_count ?? 0);
+              setClientDiversificationScore(toNumber(metrics.largest_client_share));
+            }
+          }
+
+          if (valueProfile) {
+            setTaxFilingStreak(valueProfile.tax_filing_streak ?? 0);
+            setProfileTier(valueProfile.profile_tier ?? "basic");
+          }
+        } catch {
+          // Tabellen noch leer oder nicht existent – kein Crash, Fallbacks bleiben
+        }
       } catch (e) {
         console.error("useWirkungskontoStats error:", e);
         if (!alive) return;
@@ -252,5 +357,20 @@ export function useWirkungskontoStats(customerId: string | null) {
     };
   }, [customerId]);
 
-  return { loading, investedEUR, impactEUR, invoiceCount };
+  return {
+    loading,
+    investedEUR,
+    impactEUR,
+    invoiceCount,
+    totalRevenue2024,
+    totalNetIncome2024,
+    reinvestmentRate,
+    expertRate,
+    avgProfitMargin,
+    clientDiversificationScore,
+    incomeStreamCount,
+    taxFilingStreak,
+    profileTier,
+    taxYearStatus,
+  };
 }

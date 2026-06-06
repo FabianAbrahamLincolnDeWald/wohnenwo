@@ -103,21 +103,28 @@ export default function EcosystemFlyout({
           aria-expanded={open}
           aria-label="Ecosystem Dropdown"
           onClick={toggleFlyout}
-          className="border border-slate-200/80 rounded-md p-1 flex items-center justify-center shadow-sm ring-1 ring-black/5 bg-white"
+          className="border border-slate-200/80 rounded-md p-1 flex items-center justify-center shadow-sm ring-1 ring-black/5 bg-white dark:bg-white/5 dark:border-white/10 dark:ring-white/10"
         >
-          {/* Brand Orbit-Icon */}
+          {/* Brand Orbit-Icon – Light/Dark */}
           <span className="inline-flex h-5.5 w-6.5 items-center justify-center">
             <img
-              src="https://wohnenwo.vercel.app/images/brand/logos/ww-badge-dark.svg"
+              src="/images/brand/logos/ww-badge-dark.svg"
               alt="Orbit Logo"
-              className="h-5.5 w-5.5 object-contain"
+              className="h-5.5 w-5.5 object-contain dark:hidden"
+              loading="eager"
+            />
+            <img
+              src="/images/brand/logos/ww-badge-white.svg"
+              alt="Orbit Logo"
+              className="h-5.5 w-5.5 object-contain hidden dark:block"
+              loading="eager"
             />
           </span>
 
           <span
             aria-hidden="true"
             className={cx(
-              "inline-flex h-5 w-4 items-center justify-center text-slate-800 transition-transform",
+              "inline-flex h-5 w-4 items-center justify-center text-slate-800 transition-transform dark:text-white",
               open && "rotate-180"
             )}
           >
@@ -144,17 +151,17 @@ export default function EcosystemFlyout({
             className="rounded-xl overflow-hidden"
             style={{ marginTop: GAP }}
           >
-            <div className="relative rounded-[inherit] bg-white border border-slate-200/80 shadow-[0_18px_45px_rgba(15,23,42,0.25)]">
+            <div className="relative rounded-[inherit] bg-white border border-slate-200/80 shadow-[0_18px_45px_rgba(15,23,42,0.25)] dark:bg-[#1d1d1f] dark:border-white/10">
               {/* Kein Glas-Effekt mehr */}
-              <div className="relative z-10 flex text-[13px] text-slate-700">
+              <div className="relative z-10 flex text-[13px] text-slate-700 dark:text-white/80">
                 {/* Linke Spalte: Handeln + Entdecken */}
-                <div className="flex w-1/2 flex-col border-r border-slate-200">
+                <div className="flex w-1/2 flex-col border-r border-slate-200 dark:border-white/10">
                   {handeln && (
                     <SectionBlock section={handeln} variant="top" />
                   )}
 
                   {handeln && entdecken && (
-                    <div className="h-px w-full bg-slate-200/70" />
+                    <div className="h-px w-full bg-slate-200/70 dark:bg-white/10" />
                   )}
 
                   {entdecken && (
@@ -174,7 +181,7 @@ export default function EcosystemFlyout({
                           <li key={link.href}>
                             <Link
                               href={link.href}
-                              className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-100"
+                              className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-white/5"
                             >
                               <BadgeRenderer badge={link.badge} />
                               <span>{link.label}</span>
@@ -218,7 +225,7 @@ function SectionBlock({
           <li key={link.href}>
             <Link
               href={link.href}
-              className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-100"
+              className="flex items-center gap-3 rounded-md px-2.5 py-2 hover:bg-slate-100 dark:hover:bg-white/5"
             >
               <BadgeRenderer badge={link.badge} />
               <span>{link.label}</span>

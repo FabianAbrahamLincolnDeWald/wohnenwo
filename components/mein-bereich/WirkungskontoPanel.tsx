@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Lock, Sparkles } from "lucide-react";
+import { Lock, Sparkles, ChevronDown, AlertTriangle } from "lucide-react";
 
 function formatCurrency(amount: number, currency: string) {
   if (Number.isNaN(amount)) return "–";
@@ -39,7 +39,35 @@ export type WirkungskontoPanelProps = {
   hasImpact: boolean;
 
   showNextStep: boolean;
+
+  // Steuerjahr-Kennzahlen (optional – kein Render wenn leer)
+  totalRevenue2024?: number;
+  totalNetIncome2024?: number;
+  reinvestmentRate?: number;
+  expertRate?: number;
+  avgProfitMargin?: number;
+  clientDiversificationScore?: number;
+  incomeStreamCount?: number;
+  taxFilingStreak?: number;
+  profileTier?: string;
+  taxYearStatus?: string | null;
 };
+
+function fmtEUR(n: number) {
+  return new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+function fmtPct(n: number) {
+  return new Intl.NumberFormat("de-DE", {
+    style: "percent",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(n / 100);
+}
 
 export default function WirkungskontoPanel(props: WirkungskontoPanelProps) {
   const {
@@ -55,7 +83,18 @@ export default function WirkungskontoPanel(props: WirkungskontoPanelProps) {
     hasFirstInvoice,
     hasImpact,
     showNextStep,
+    totalRevenue2024 = 0,
+    totalNetIncome2024 = 0,
+    reinvestmentRate = 0,
+    expertRate = 0,
+    clientDiversificationScore = 0,
+    incomeStreamCount = 0,
+    taxYearStatus,
   } = props;
+
+  const [taxYearOpen, setTaxYearOpen] = React.useState(false);
+
+  const hasTaxData = totalNetIncome2024 > 0;
 
   const progressPct = Math.max(
     0,
@@ -189,6 +228,102 @@ export default function WirkungskontoPanel(props: WirkungskontoPanelProps) {
               ))}
             </div>
           </div>
+
+          {/* Steuerjahr 2024 – aufklappbar, nur wenn Daten vorhanden */}
+          {hasTaxData && (
+            <div className="pt-2 border-t border-slate-100/80 dark:border-white/10 space-y-2">
+              <button
+                type="button"
+                onClick={() => setTaxYearOpen((v) => !v)}
+                className="w-full flex items-center justify-between text-left cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500 dark:text-white/40">
+                    Steuerjahr 2024
+                  </p>
+                  {taxYearStatus && (
+                    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800/40">
+                      {taxYearStatus}
+                    </span>
+                  )}
+                </div>
+                <ChevronDown
+                  className={[
+                    "h-3.5 w-3.5 text-slate-400 dark:text-white/30 transition-transform duration-200",
+                    taxYearOpen ? "rotate-180" : "",
+                  ].join(" ")}
+                />
+              </button>
+
+              {taxYearOpen && (
+                <div className="rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 overflow-hidden">
+                  {/* Gewinn + Umsatz */}
+                  <div className="px-4 py-3 space-y-1">
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-[11px] text-slate-500 dark:text-white/40">Gesamtgewinn</span>
+                      <span className="text-[14px] font-semibold text-[#F5C842] tabular-nums">
+                        {fmtEUR(totalNetIncome2024)}
+                      </span>
+                    </div>
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-[11px] text-slate-500 dark:text-white/40">Gesamtumsatz</span>
+                      <span className="text-[12px] font-medium text-slate-600 dark:text-white/60 tabular-nums">
+                        {fmtEUR(totalRevenue2024)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-slate-200/60 dark:bg-white/10" />
+
+                  {/* Raten */}
+                  <div className="px-4 py-3 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-slate-500 dark:text-white/40">Reinvestitionsrate</span>
+                      <span className="text-[12px] font-semibold text-[#F5C842] tabular-nums">
+                        {fmtPct(reinvestmentRate)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-slate-500 dark:text-white/40">Experteneinsatz</span>
+                      <span className="text-[12px] font-medium text-slate-600 dark:text-white/60 tabular-nums">
+                        {fmtPct(expertRate)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-slate-200/60 dark:bg-white/10" />
+
+                  {/* Diversifikation */}
+                  <div className="px-4 py-3 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-slate-500 dark:text-white/40">Einkunftsarten</span>
+                      <span className="text-[12px] font-medium text-slate-600 dark:text-white/60 tabular-nums">
+                        {incomeStreamCount}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] text-slate-500 dark:text-white/40">Klumpenrisiko</span>
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={[
+                            "text-[12px] font-medium tabular-nums",
+                            clientDiversificationScore > 40
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-slate-600 dark:text-white/60",
+                          ].join(" ")}
+                        >
+                          {fmtPct(clientDiversificationScore)}
+                        </span>
+                        {clientDiversificationScore > 40 && (
+                          <AlertTriangle className="h-3 w-3 text-amber-500 dark:text-amber-400 shrink-0" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Kennzahlen */}
           <div className="space-y-3 text-[12px] text-slate-600 dark:text-white/60">

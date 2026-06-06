@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { createClient } from "@supabase/supabase-js";
 import { useParams } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 import WirkungsfondsInfoButton from "@/components/impact/WirkungsfondsInfoButton";
 import {
   FileText,
@@ -15,14 +15,6 @@ import {
   Wrench,
   EyeOff,
 } from "lucide-react";
-
-/* ──────────────────────────────────────────────────────────────
-  Supabase Client (Browser)
-────────────────────────────────────────────────────────────── */
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 /* ──────────────────────────────────────────────────────────────
   Types

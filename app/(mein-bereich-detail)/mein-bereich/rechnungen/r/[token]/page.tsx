@@ -4,8 +4,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import * as React from "react";
-import { createClient } from "@supabase/supabase-js";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 import AuthOverlay, { AuthMode } from "@/components/auth/AuthOverlay";
 import WirkungsfondsInfoButton from "@/components/impact/WirkungsfondsInfoButton";
 import {
@@ -18,14 +18,6 @@ import {
   Wrench,
   Lock,
 } from "lucide-react";
-
-/* ──────────────────────────────────────────────────────────────
-  Supabase Client (Browser, Claim Teaser)
-────────────────────────────────────────────────────────────── */
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 // Feature Flag: sobald du Supabase "Confirm email" aktivierst, stellst du dies hier auf "true" (via .env)
 const REQUIRE_EMAIL_VERIFICATION =

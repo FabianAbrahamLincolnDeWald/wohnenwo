@@ -4,8 +4,8 @@
 /* eslint-disable @next/next/no-img-element */
 
 import * as React from "react";
-import { createClient } from "@supabase/supabase-js";
 import { useParams } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
 import WirkungsfondsInfoButton from "@/components/impact/WirkungsfondsInfoButton";
 import {
   Layers,
@@ -17,14 +17,6 @@ import {
   Wrench,
   EyeOff,
 } from "lucide-react";
-
-/* ──────────────────────────────────────────────────────────────
-  Supabase Client (Browser, Public Preview)
-────────────────────────────────────────────────────────────── */
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
 
 /* ──────────────────────────────────────────────────────────────
   Types

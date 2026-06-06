@@ -12,6 +12,9 @@ import {
   ChevronLeft,
   ChevronRight,
   UserPlus,
+  Zap,
+  RefreshCw,
+  Layers,
 } from "lucide-react";
 
 /* ──────────────────────────────────────────────────────────────
@@ -275,9 +278,21 @@ export default function MeinBereichPage() {
   const isKunde = view === "kunde";
 
   // ✅ Zentrale Stats (kein lokales Rechnen mehr)
-  const { investedEUR, impactEUR, invoiceCount } = useWirkungskontoStats(
-    isAuthed ? profile?.id ?? null : null
-  );
+  const {
+    investedEUR,
+    impactEUR,
+    invoiceCount,
+    totalRevenue2024,
+    totalNetIncome2024,
+    reinvestmentRate,
+    expertRate,
+    avgProfitMargin,
+    clientDiversificationScore,
+    incomeStreamCount,
+    taxFilingStreak,
+    profileTier,
+    taxYearStatus,
+  } = useWirkungskontoStats(isAuthed ? profile?.id ?? null : null);
 
   const name =
     profile?.full_name ||
@@ -554,6 +569,66 @@ export default function MeinBereichPage() {
               })()}
             </SliderShell>
           </section>
+          {/* Kennzahlen-Band – nur wenn Steuerjahr-Daten vorliegen */}
+          {isAuthed && totalNetIncome2024 > 0 && (
+            <section>
+              <div className="space-y-3">
+                <h2 className="text-[18px] sm:text-[20px] font-semibold text-slate-900 dark:text-white leading-tight">
+                  Steuerjahr 2024
+                </h2>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {/* Kachel 1: Gesamtgewinn */}
+                  <div className="rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-[#F5C842] shrink-0" />
+                      <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500 dark:text-white/40">
+                        Gesamtgewinn 2024
+                      </span>
+                    </div>
+                    <p className="text-[22px] font-semibold text-[#F5C842] tabular-nums leading-none">
+                      {new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(totalNetIncome2024)}
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-white/40">
+                      von {new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(totalRevenue2024)} Umsatz
+                    </p>
+                  </div>
+
+                  {/* Kachel 2: Reinvestition */}
+                  <div className="rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4 text-[#F5C842] shrink-0" />
+                      <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500 dark:text-white/40">
+                        Reinvestition
+                      </span>
+                    </div>
+                    <p className="text-[22px] font-semibold text-[#F5C842] tabular-nums leading-none">
+                      {new Intl.NumberFormat("de-DE", { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(reinvestmentRate / 100)}
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-white/40">
+                      Wachstumsinvest.
+                    </p>
+                  </div>
+
+                  {/* Kachel 3: Einkunftsarten */}
+                  <div className="rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-4 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Layers className="h-4 w-4 text-[#F5C842] shrink-0" />
+                      <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500 dark:text-white/40">
+                        Einkunftsarten
+                      </span>
+                    </div>
+                    <p className="text-[22px] font-semibold text-[#F5C842] tabular-nums leading-none">
+                      {incomeStreamCount}
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-white/40">
+                      Diversifikation
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
         </div>
 
         {/* Rechte Spalte: Wirkungskonto */}
@@ -570,6 +645,16 @@ export default function MeinBereichPage() {
           hasFirstInvoice={hasFirstInvoice}
           hasImpact={hasImpact}
           showNextStep={!hasAnyRealData}
+          totalRevenue2024={totalRevenue2024}
+          totalNetIncome2024={totalNetIncome2024}
+          reinvestmentRate={reinvestmentRate}
+          expertRate={expertRate}
+          avgProfitMargin={avgProfitMargin}
+          clientDiversificationScore={clientDiversificationScore}
+          incomeStreamCount={incomeStreamCount}
+          taxFilingStreak={taxFilingStreak}
+          profileTier={profileTier}
+          taxYearStatus={taxYearStatus}
         />
       </div>
     </main>

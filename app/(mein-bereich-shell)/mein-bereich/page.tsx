@@ -104,13 +104,13 @@ export default function MeinBereichPage() {
   if (view === "loading") {
     return (
       <main className="min-h-screen bg-slate-50 px-4 pt-20 pb-10">
-        <div className="mx-auto max-w-7xl grid gap-8 lg:grid-cols-[minmax(0,1.9fr)_minmax(260px,1fr)]">
+        <div className="mx-auto max-w-7xl grid gap-8 md:grid-cols-[minmax(0,1.9fr)_minmax(260px,1fr)]">
           <div className="space-y-4">
             <div className="h-6 w-40 rounded bg-slate-200 animate-pulse" />
             <div className="h-4 w-64 rounded bg-slate-200 animate-pulse" />
             <div className="h-64 w-full rounded-xl bg-slate-100 animate-pulse" />
           </div>
-          <aside className="hidden lg:block">
+          <aside className="hidden md:block">
             <div className="h-48 w-full rounded-2xl bg-slate-100 animate-pulse" />
           </aside>
         </div>
@@ -146,7 +146,7 @@ export default function MeinBereichPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 pt-20 pb-10">
-      <div className="mx-auto max-w-7xl lg:flex lg:items-start lg:gap-10">
+      <div className="mx-auto max-w-7xl md:flex md:items-start md:gap-10">
         {/* Linke Spalte: Slider-Bereiche */}
         <div className="flex-1 min-w-0 space-y-10">
           {/* Header */}
@@ -374,11 +374,11 @@ export default function MeinBereichPage() {
         {/* Rechte Spalte: sticky Wirkungskonto mit Divider */}
         <aside
           className="
-            hidden lg:block
+            hidden md:block
             w-[300px]
-            lg:pl-8
-            lg:border-l lg:border-slate-200/80
-            lg:sticky lg:top-24
+            md:pl-8
+            md:border-l md:border-slate-200/80
+            md:sticky md:top-24
             self-start
           "
         >

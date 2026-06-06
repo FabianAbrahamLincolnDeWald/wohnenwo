@@ -96,18 +96,22 @@ export default function AuthOverlay({
     >
       <div className="mt-4 mx-auto w-full max-w-[360px] space-y-6">
         {/* Header */}
-        <div className="space-y-3">
-          <div>
-            <img
-              src="https://wohnenwo.vercel.app/images/brand/logos/ww-badge-dark.svg"
-              alt="WohnenWo Logo"
-              className="h-7 w-7 object-contain dark:hidden"
-            />
-            <img
-              src="https://wohnenwo.vercel.app/images/brand/logos/ww-badge-light.svg"
-              alt="WohnenWo Logo"
-              className="hidden h-7 w-7 object-contain dark:block"
-            />
+        <div className="space-y-4">
+          {/* WohnenWo Wordmark */}
+          <div className="flex items-center gap-2.5">
+            <div
+              className={[
+                "h-8 w-8 rounded-xl flex items-center justify-center shrink-0",
+                "bg-[#F5C842]",
+              ].join(" ")}
+            >
+              <span className="text-[#0A0A0A] text-[14px] font-black leading-none select-none">
+                W
+              </span>
+            </div>
+            <span className="text-[15px] font-semibold tracking-tight text-slate-900 dark:text-white">
+              WohnenWo
+            </span>
           </div>
 
           <div>

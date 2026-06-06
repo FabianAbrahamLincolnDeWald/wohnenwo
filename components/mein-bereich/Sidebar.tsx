@@ -130,7 +130,13 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="hidden md:flex flex-col shrink-0 h-screen bg-slate-100 py-3 px-5 border-r border-slate-200 sticky top-0 z-40"
+      className={classNames(
+        "hidden md:flex flex-col shrink-0 h-screen sticky top-0 z-40",
+        "py-3 px-4",
+        "border-r",
+        "bg-white dark:bg-[#111111]",
+        "border-slate-200 dark:border-white/[0.06]",
+      )}
       style={{ width: 240 }}
     >
       {/* Ecosystem Flyout */}
@@ -139,15 +145,14 @@ export default function Sidebar() {
       </div>
 
       <div className="flex flex-col gap-6">
-        {/* Optional: kleiner Hinweis oben, wenn noch geladen wird */}
         {loading && (
-          <div className="text-[11px] text-slate-400 mb-1">
+          <div className="text-[11px] text-slate-400 dark:text-white/25 mb-1">
             Bereich wird personalisiert …
           </div>
         )}
 
         {/* Hauptnavigation */}
-        <nav className="flex flex-col gap-1.5">
+        <nav className="flex flex-col gap-0.5">
           {mainItems.map((item) => {
             const isActive =
               item.href === "/mein-bereich"
@@ -164,15 +169,30 @@ export default function Sidebar() {
               >
                 <div
                   className={classNames(
-                    "flex w-full items-center gap-x-2 p-2.5 rounded-lg group transition-all duration-300 ease-in-out text-sm",
-                    "hover:bg-slate-100",
+                    "flex w-full items-center gap-x-2.5 px-3 py-2.5 rounded-lg transition-colors duration-150",
                     isActive
-                      ? "bg-white text-slate-900 shadow-sm border border-slate-200"
-                      : "text-slate-500 hover:text-slate-900"
+                      ? [
+                          "bg-slate-100 dark:bg-white/[0.08]",
+                          "text-slate-900 dark:text-white",
+                          "border border-slate-200/80 dark:border-white/[0.06]",
+                        ].join(" ")
+                      : [
+                          "text-slate-500 dark:text-white/45",
+                          "hover:bg-slate-50 dark:hover:bg-white/[0.05]",
+                          "hover:text-slate-800 dark:hover:text-white/80",
+                          "border border-transparent",
+                        ].join(" ")
                   )}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <div className="text-[15px] font-medium leading-tight">
+                  <Icon
+                    className={classNames(
+                      "h-4 w-4 shrink-0",
+                      isActive
+                        ? "text-[#F5C842]"
+                        : "text-slate-400 dark:text-white/35"
+                    )}
+                  />
+                  <div className="text-[14px] font-medium leading-tight">
                     {item.label}
                   </div>
                 </div>
@@ -183,11 +203,11 @@ export default function Sidebar() {
 
         {/* Community-Bereich */}
         {communityItems.length > 0 && (
-          <div className="flex flex-col gap-1.5">
-            <div className="text-xs font-medium text-slate-400 mb-1 tracking-wide">
+          <div className="flex flex-col gap-0.5">
+            <div className="px-3 pb-1 text-[11px] font-medium text-slate-400 dark:text-white/25 tracking-[0.12em] uppercase">
               Community
             </div>
-            <nav className="flex flex-col gap-1.5">
+            <nav className="flex flex-col gap-0.5">
               {communityItems.map((item) => {
                 const isActive = pathname?.startsWith(item.href);
                 const Icon = item.icon;
@@ -200,15 +220,30 @@ export default function Sidebar() {
                   >
                     <div
                       className={classNames(
-                        "flex w-full items-center gap-x-2 p-2.5 rounded-lg group transition-all duration-300 ease-in-out text-sm",
-                        "hover:bg-slate-100",
+                        "flex w-full items-center gap-x-2.5 px-3 py-2.5 rounded-lg transition-colors duration-150",
                         isActive
-                          ? "bg-white text-slate-900 shadow-sm border border-slate-200"
-                          : "text-slate-500 hover:text-slate-900"
+                          ? [
+                              "bg-slate-100 dark:bg-white/[0.08]",
+                              "text-slate-900 dark:text-white",
+                              "border border-slate-200/80 dark:border-white/[0.06]",
+                            ].join(" ")
+                          : [
+                              "text-slate-500 dark:text-white/45",
+                              "hover:bg-slate-50 dark:hover:bg-white/[0.05]",
+                              "hover:text-slate-800 dark:hover:text-white/80",
+                              "border border-transparent",
+                            ].join(" ")
                       )}
                     >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <div className="text-[15px] font-medium leading-tight">
+                      <Icon
+                        className={classNames(
+                          "h-4 w-4 shrink-0",
+                          isActive
+                            ? "text-[#F5C842]"
+                            : "text-slate-400 dark:text-white/35"
+                        )}
+                      />
+                      <div className="text-[14px] font-medium leading-tight">
                         {item.label}
                       </div>
                     </div>

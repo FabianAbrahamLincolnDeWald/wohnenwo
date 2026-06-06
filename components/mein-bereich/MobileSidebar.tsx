@@ -74,20 +74,20 @@ export default function MobileSidebar({ isOpen, onClose, role = "guest" }: Props
             initial={{ x: -SIDEBAR_WIDTH }}
             animate={{ x: 0 }}
             exit={{ x: -SIDEBAR_WIDTH }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.35, ease: [0.32, 0.72, 0, 1] }}
             style={{ width: SIDEBAR_WIDTH }}
             className={[
               "fixed left-0 top-0 bottom-0 z-50 md:hidden",
               "flex flex-col",
-              "bg-slate-100 dark:bg-[#111111]",
-              "border-r border-slate-200 dark:border-white/10",
-              "shadow-xl",
+              "bg-white dark:bg-[#111111]",
+              "border-r border-slate-200 dark:border-white/[0.06]",
+              "shadow-2xl dark:shadow-black/60",
             ].join(" ")}
             aria-label="Mobile Navigation"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-white/10">
-              <p className="text-[13px] font-semibold tracking-tight text-slate-900 dark:text-white">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 dark:border-white/[0.06]">
+              <p className="text-[13px] font-semibold tracking-tight text-slate-900 dark:text-white/90">
                 Mein Bereich
               </p>
               <button
@@ -218,8 +218,8 @@ export default function MobileSidebar({ isOpen, onClose, role = "guest" }: Props
             </nav>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-slate-200 dark:border-white/10">
-              <p className="text-[11px] text-slate-400 dark:text-white/30 leading-snug">
+            <div className="px-5 py-4 border-t border-slate-200 dark:border-white/[0.06]">
+              <p className="text-[11px] text-slate-400 dark:text-white/25 leading-snug">
                 WohnenWo · Mein Bereich
               </p>
             </div>

@@ -162,6 +162,7 @@ type TaxYearRow = {
   id: string;
   year: number;
   status: string | null;
+  filed_at: string | null;
 };
 
 type InvestmentMetricsRow = {
@@ -289,17 +290,25 @@ export function useWirkungskontoStats(customerId: string | null) {
 
         // ── Parallele Abfragen: tax_years + investment_metrics + value_profile ──
         try {
+          // Explizit den eingeloggten User aus dem Auth-Layer holen
+          const { data: { user } } = await supabase.auth.getUser();
+          const userId = user?.id;
+
+          if (!userId) return; // kein Login → keine Abfrage
+
+          if (!alive) return;
+
           const [taxYearResult, valueProfileResult] = await Promise.all([
             supabase
               .from("tax_years")
-              .select("id, year, status")
-              .eq("user_id", customerId)
+              .select("id, year, status, filed_at")
+              .eq("user_id", userId)
               .eq("year", 2024)
               .single(),
             supabase
               .from("value_profile")
               .select("headline, tax_filing_streak, active_income_streams, profile_tier")
-              .eq("user_id", customerId)
+              .eq("user_id", userId)
               .single(),
           ]);
 

@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import EcosystemFlyout from "@/components/navigation/EcosystemFlyout";
+import { PanelLeft } from "lucide-react";
 import {
   MEIN_BEREICH_NAV_ITEMS,
   MeinBereichRole,
@@ -109,39 +108,51 @@ export default function Sidebar() {
       initial={false}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* Header: Flyout collapsed or Logo icon */}
-      <div
-        className={cn(
-          "flex items-center border-b border-white/[0.06] shrink-0",
-          isExpanded ? "px-4 py-3" : "justify-center px-2 py-3"
+      {/* Header */}
+      <AnimatePresence mode="wait" initial={false}>
+        {isExpanded ? (
+          <motion.div
+            key="header-expanded"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0"
+          >
+            <span className="text-[14px] font-semibold text-white tracking-tight select-none">
+              WohnenWo
+            </span>
+            <button
+              type="button"
+              onClick={toggle}
+              title="Sidebar einklappen"
+              className="h-7 w-7 flex items-center justify-center rounded-lg text-white/35 hover:text-white/70 hover:bg-white/[0.08] transition-colors duration-150 cursor-pointer"
+            >
+              <PanelLeft className="h-4 w-4" />
+            </button>
+          </motion.div>
+        ) : (
+          <motion.button
+            key="header-collapsed"
+            type="button"
+            onClick={toggle}
+            title="Sidebar ausklappen"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="group w-full flex justify-center items-center py-4 px-2 border-b border-white/[0.06] shrink-0 cursor-pointer"
+          >
+            <div className="h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:shadow-[0_0_18px_rgba(245,200,66,0.35)] group-hover:ring-1 group-hover:ring-[#F5C842]/20">
+              <img
+                src="/images/brand/logos/ww-badge-white.svg"
+                alt="WohnenWo"
+                className="h-7 w-7 object-contain"
+              />
+            </div>
+          </motion.button>
         )}
-      >
-        <AnimatePresence mode="wait" initial={false}>
-          {isExpanded ? (
-            <motion.div
-              key="flyout"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="w-full"
-            >
-              <EcosystemFlyout panelWidth={640} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="logo-icon"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="h-8 w-8 rounded-lg bg-[#F5C842]/10 flex items-center justify-center shrink-0"
-            >
-              <span className="text-[#F5C842] text-[11px] font-bold tracking-tight">W</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      </AnimatePresence>
 
       {/* Nav */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2">
@@ -267,26 +278,6 @@ export default function Sidebar() {
         )}
       </div>
 
-      {/* Toggle Button */}
-      <div
-        className={cn(
-          "shrink-0 border-t border-white/[0.06] py-3",
-          isExpanded ? "px-4 flex justify-end" : "flex justify-center"
-        )}
-      >
-        <button
-          type="button"
-          onClick={toggle}
-          title={isExpanded ? "Sidebar einklappen" : "Sidebar ausklappen"}
-          className="h-7 w-7 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.08] transition-colors duration-150 cursor-pointer"
-        >
-          {isExpanded ? (
-            <ChevronLeft className="h-3.5 w-3.5" />
-          ) : (
-            <ChevronRight className="h-3.5 w-3.5" />
-          )}
-        </button>
-      </div>
     </motion.aside>
   );
 }

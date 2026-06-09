@@ -14,7 +14,7 @@ export default function MeinBereichDetailShell({ children }: Props) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-[#0A0A0A]">
+    <div className="flex h-screen bg-[#FAFAFA] dark:bg-[#0A0A0A]">
       <Sidebar />
 
       <MobileSidebar

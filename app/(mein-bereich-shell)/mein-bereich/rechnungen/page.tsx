@@ -326,7 +326,7 @@ export default function RechnungenPage() {
 
   if (view === "loading") {
     return (
-      <main className="min-h-screen bg-slate-50 px-4 pt-20 pb-10 dark:bg-[#0A0A0A]">
+      <main className="min-h-screen bg-[#FAFAFA] px-4 pt-6 pb-10 dark:bg-[#0A0A0A]">
         <div className="mx-auto max-w-7xl grid gap-8 lg:grid-cols-[minmax(0,1.9fr)_minmax(260px,1fr)]">
           <div className="space-y-4">
             <div className="h-6 w-40 rounded bg-slate-200 animate-pulse dark:bg-white/10" />
@@ -346,7 +346,7 @@ export default function RechnungenPage() {
   const totalSlots = Math.max(hasInvoices ? invoices!.length : 0, MIN_SLOTS);
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 pt-20 pb-10 dark:bg-[#0A0A0A]">
+    <main className="min-h-screen bg-[#FAFAFA] px-6 pt-6 pb-10 dark:bg-[#0A0A0A]">
       <div className="mx-auto max-w-7xl lg:flex lg:items-start lg:gap-10">
         {/* Linke Spalte: Rechnungs-Galerie */}
         <div className="flex-1 min-w-0 space-y-8">
@@ -388,7 +388,7 @@ export default function RechnungenPage() {
                 {Array.from({ length: MIN_SLOTS }).map((_, i) => (
                   <div
                     key={i}
-                    className="rounded-2xl bg-white border border-slate-200 p-3 dark:bg-[#1d1d1f] dark:border-white/10"
+                    className="rounded-2xl bg-white border border-slate-200 p-3 dark:bg-[#111111] dark:border-white/10"
                   >
                     <div className="w-full aspect-210/297 rounded-lg bg-slate-100 animate-pulse dark:bg-white/5" />
                     <div className="mt-3 h-3 w-2/3 rounded bg-slate-100 animate-pulse dark:bg-white/10" />
@@ -449,14 +449,14 @@ function InvoiceGridCard({ invoice }: { invoice: Invoice }) {
             "rounded-2xl border border-slate-200 bg-white p-3 shadow-sm",
             "transition duration-300 ease-out",
             "group-hover:-translate-y-px group-hover:shadow-md group-hover:border-slate-300",
-            "dark:bg-[#1d1d1f] dark:border-white/10 dark:shadow-[0_10px_30px_rgba(0,0,0,0.25)]",
+            "dark:bg-[#111111] dark:border-white/10 dark:shadow-[0_10px_30px_rgba(0,0,0,0.25)]",
             "dark:group-hover:border-white/15",
           ].join(" ")}
         >
           <div
             className={[
               "w-full aspect-210/297 overflow-hidden rounded-lg border border-slate-200",
-              "bg-slate-100/80 group-hover:bg-white",
+              "bg-slate-100/80 group-hover:bg-white dark:group-hover:bg-white/[0.07]",
               "transition-colors duration-300 ease-out",
               "dark:border-white/10 dark:bg-white/5 dark:group-hover:bg-white/7",
             ].join(" ")}

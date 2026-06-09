@@ -215,7 +215,7 @@ export default function ProjektePage() {
 
   if (view === "loading") {
     return (
-      <main className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] px-4 pt-20 pb-10">
+      <main className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] px-4 pt-6 pb-10">
         <div className="mx-auto max-w-7xl grid gap-8 lg:grid-cols-[minmax(0,1.9fr)_minmax(260px,1fr)]">
           <div className="space-y-4">
             <div className="h-6 w-40 rounded bg-slate-200 animate-pulse dark:bg-white/10" />
@@ -231,7 +231,7 @@ export default function ProjektePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] px-4 pt-20 pb-10">
+    <main className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] px-4 pt-6 pb-10">
       <div className="mx-auto max-w-7xl lg:flex lg:items-start lg:gap-10">
         {/* Linke Spalte */}
         <div className="flex-1 min-w-0 space-y-8">
@@ -343,7 +343,7 @@ function ProjectGridCard({ project }: { project: Project }) {
           bg-slate-50 flex flex-col h-[220px] sm:h-[240px] md:h-[260px]
           transition duration-300 ease-out
 
-          dark:bg-white/5 dark:border-white/10
+          dark:bg-[#111111] dark:border-white/10
         "
       >
         {/* Top */}
@@ -377,7 +377,7 @@ function ProjectGridCard({ project }: { project: Project }) {
               transition-colors duration-300 ease-out
               flex items-center justify-center overflow-hidden
 
-              dark:border-white/10 dark:bg-white/5 dark:group-hover:bg-white/8
+              dark:border-white/10 dark:bg-white/5 dark:group-hover:bg-white/[0.07]
             "
           >
             <div className="flex items-center justify-center opacity-40">
@@ -389,7 +389,7 @@ function ProjectGridCard({ project }: { project: Project }) {
         </div>
 
         {/* Bottom */}
-        <div className="bg-white px-3 py-2.5 space-y-1 h-[82.5px] flex flex-col justify-center dark:bg-[#1d1d1f]">
+        <div className="bg-white px-3 py-2.5 space-y-1 h-[82.5px] flex flex-col justify-center dark:bg-[#111111]">
           <p className="text-sm font-medium text-slate-900 line-clamp-1 dark:text-white">
             {project.title}
           </p>
@@ -416,7 +416,7 @@ function ProjectPlaceholderCard({ highlight }: { highlight?: boolean }) {
           bg-slate-50 flex flex-col h-[220px] sm:h-[240px] md:h-[260px]
           transition duration-300 ease-out
 
-          dark:bg-white/5 dark:border-white/10
+          dark:bg-[#111111] dark:border-white/10
         "
       >
         <div className="relative flex-1 bg-slate-100/80 dark:bg-white/5">
@@ -450,7 +450,7 @@ function ProjectPlaceholderCard({ highlight }: { highlight?: boolean }) {
               transition-colors duration-300 ease-out
               flex items-center justify-center overflow-hidden
 
-              dark:border-white/10 dark:bg-white/5 dark:group-hover:bg-white/8
+              dark:border-white/10 dark:bg-white/5 dark:group-hover:bg-white/[0.07]
             "
           >
             <div className="flex items-center justify-center opacity-40">
@@ -461,7 +461,7 @@ function ProjectPlaceholderCard({ highlight }: { highlight?: boolean }) {
           </div>
         </div>
 
-        <div className="bg-white px-3 py-2.5 space-y-1 h-[82.5px] flex flex-col justify-center dark:bg-[#1d1d1f]">
+        <div className="bg-white px-3 py-2.5 space-y-1 h-[82.5px] flex flex-col justify-center dark:bg-[#111111]">
           <p className="text-sm font-medium text-slate-900 line-clamp-1 dark:text-white">
             {highlight ? "Projekt-Slots warten auf dich" : "Freier Projektslot"}
           </p>

@@ -123,7 +123,7 @@ export default function WirkungskontoPanel(props: WirkungskontoPanelProps) {
             border border-slate-200/80
             px-4 py-5 space-y-5 shadow-sm
 
-            dark:bg-[#1d1d1f]
+            dark:bg-[#111111]
             dark:border-white/10
           "
         >

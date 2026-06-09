@@ -144,7 +144,7 @@ export default function Topbar({ onMenuOpen }: TopbarProps) {
       />
 
       <header className="sticky top-0 z-20 w-full">
-        <div className="w-full mx-auto bg-slate-50 dark:bg-[#111111] border-b border-slate-200 dark:border-white/10">
+        <div className="w-full mx-auto bg-[#FAFAFA] dark:bg-[#111111] border-b border-slate-200 dark:border-white/10">
           {/* Hauptzeile */}
           <div className="relative w-full px-4 md:px-5">
             <nav className="flex items-center justify-between h-14">

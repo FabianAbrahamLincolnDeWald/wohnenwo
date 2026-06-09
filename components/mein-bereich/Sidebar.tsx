@@ -4,31 +4,29 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import EcosystemFlyout from "@/components/navigation/EcosystemFlyout";
 import {
   MEIN_BEREICH_NAV_ITEMS,
   MeinBereichRole,
   MeinBereichFlag,
 } from "@/components/mein-bereich/nav-config";
+import { useSidebarState } from "@/components/mein-bereich/SidebarContext";
 import { supabase } from "@/lib/supabaseClient";
 
-function classNames(...classes: (string | boolean | null | undefined)[]) {
+function cn(...classes: (string | boolean | null | undefined)[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-type MeinBereichFlagsState = {
-  hasProjects: boolean;
-  hasInvoices: boolean;
-};
+type FlagsState = { hasProjects: boolean; hasInvoices: boolean };
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { isExpanded, toggle } = useSidebarState();
 
   const [role, setRole] = useState<MeinBereichRole>("guest");
-  const [flags, setFlags] = useState<MeinBereichFlagsState>({
-    hasProjects: false,
-    hasInvoices: false,
-  });
+  const [flags, setFlags] = useState<FlagsState>({ hasProjects: false, hasInvoices: false });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,65 +35,48 @@ export default function Sidebar() {
     async function loadProfile(userId?: string) {
       try {
         setLoading(true);
-
         const uid = userId ?? (await supabase.auth.getUser()).data.user?.id;
-
         if (!uid) {
           if (!mounted) return;
           setRole("guest");
           setFlags({ hasProjects: false, hasInvoices: false });
           return;
         }
-
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("role, has_projects, has_invoices")
           .eq("id", uid)
           .maybeSingle();
-
+        if (!mounted) return;
         if (error) {
-          console.error("Fehler beim Laden des Profils:", error);
-          if (!mounted) return;
           setRole("user");
           setFlags({ hasProjects: false, hasInvoices: false });
           return;
         }
-
-        const dbRole = (profile?.role as MeinBereichRole | null) ?? "user";
-        const nextFlags: MeinBereichFlagsState = {
+        setRole((profile?.role as MeinBereichRole | null) ?? "user");
+        setFlags({
           hasProjects: Boolean(profile?.has_projects),
           hasInvoices: Boolean(profile?.has_invoices),
-        };
-
-        if (!mounted) return;
-        setRole(dbRole);
-        setFlags(nextFlags);
-      } catch (err) {
-        console.error("Unerwarteter Fehler beim Laden des Profils:", err);
-        if (!mounted) return;
-        setRole("guest");
-        setFlags({ hasProjects: false, hasInvoices: false });
+        });
       } finally {
         if (mounted) setLoading(false);
       }
     }
 
-    // Initialer Load
     loadProfile();
 
-    // Reaktiv auf Login/Logout reagieren
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!mounted) return;
-        if (event === "SIGNED_OUT" || !session) {
-          setRole("guest");
-          setFlags({ hasProjects: false, hasInvoices: false });
-          setLoading(false);
-        } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-          loadProfile(session.user.id);
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      if (event === "SIGNED_OUT" || !session) {
+        setRole("guest");
+        setFlags({ hasProjects: false, hasInvoices: false });
+        setLoading(false);
+      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        loadProfile(session.user.id);
       }
-    );
+    });
 
     return () => {
       mounted = false;
@@ -103,118 +84,138 @@ export default function Sidebar() {
     };
   }, []);
 
-  // kleine Hilfsfunktion: prüft, ob ein Item sichtbar sein darf
-  function isItemVisible(
-    requiredRoles: MeinBereichRole[],
-    requiresFlag?: MeinBereichFlag
-  ) {
+  function isVisible(requiredRoles: MeinBereichRole[], flag?: MeinBereichFlag) {
     const roleOk = requiredRoles.includes(role);
-
-    if (!requiresFlag || requiresFlag === "none") {
-      return roleOk;
-    }
-
+    if (!flag || flag === "none") return roleOk;
     const flagMap: Record<MeinBereichFlag, boolean> = {
       none: true,
       hasProjects: flags.hasProjects,
       hasInvoices: flags.hasInvoices,
     };
-
-    const flagOk = flagMap[requiresFlag];
-    return roleOk && flagOk;
+    return roleOk && flagMap[flag];
   }
 
   const mainItems = MEIN_BEREICH_NAV_ITEMS.filter(
-    (item) =>
-      item.section === "main" &&
-      isItemVisible(item.visibleFor, item.requiresFlag)
+    (item) => item.section === "main" && isVisible(item.visibleFor, item.requiresFlag)
   );
-
   const communityItems = MEIN_BEREICH_NAV_ITEMS.filter(
-    (item) =>
-      item.section === "community" &&
-      isItemVisible(item.visibleFor, item.requiresFlag)
+    (item) => item.section === "community" && isVisible(item.visibleFor, item.requiresFlag)
   );
 
   return (
-    <aside
-      className={classNames(
-        "hidden md:flex flex-col shrink-0 h-screen sticky top-0 z-40",
-        "py-3 px-4",
-        "border-r",
-        "bg-white dark:bg-[#111111]",
-        "border-slate-200 dark:border-white/[0.06]",
-      )}
-      style={{ width: 240 }}
+    <motion.aside
+      className="hidden md:flex flex-col shrink-0 h-screen sticky top-0 z-40 overflow-hidden border-r border-white/[0.06] bg-[#111111]"
+      animate={{ width: isExpanded ? 240 : 64 }}
+      initial={false}
+      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
     >
-      {/* Ecosystem Flyout */}
-      <div className="mb-5">
-        <EcosystemFlyout panelWidth={640} />
+      {/* Header: Flyout collapsed or Logo icon */}
+      <div
+        className={cn(
+          "flex items-center border-b border-white/[0.06] shrink-0",
+          isExpanded ? "px-4 py-3" : "justify-center px-2 py-3"
+        )}
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          {isExpanded ? (
+            <motion.div
+              key="flyout"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="w-full"
+            >
+              <EcosystemFlyout panelWidth={640} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="logo-icon"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="h-8 w-8 rounded-lg bg-[#F5C842]/10 flex items-center justify-center shrink-0"
+            >
+              <span className="text-[#F5C842] text-[11px] font-bold tracking-tight">W</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      <div className="flex flex-col gap-6">
-        {loading && (
-          <div className="text-[11px] text-slate-400 dark:text-white/25 mb-1">
-            Bereich wird personalisiert …
-          </div>
+      {/* Nav */}
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2">
+        {loading && isExpanded && (
+          <div className="px-3 py-2 text-[11px] text-white/25">Wird geladen…</div>
         )}
 
-        {/* Hauptnavigation */}
         <nav className="flex flex-col gap-0.5">
           {mainItems.map((item) => {
             const isActive =
               item.href === "/mein-bereich"
                 ? pathname === "/mein-bereich"
                 : pathname?.startsWith(item.href);
-
             const Icon = item.icon;
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="w-full cursor-pointer"
+                title={!isExpanded ? item.label : undefined}
               >
                 <div
-                  className={classNames(
-                    "flex w-full items-center gap-x-2.5 px-3 py-2.5 rounded-lg transition-colors duration-150",
+                  className={cn(
+                    "flex items-center rounded-lg transition-colors duration-150 cursor-pointer",
+                    isExpanded ? "gap-x-2.5 px-3 py-2.5" : "justify-center p-3",
                     isActive
-                      ? [
-                          "bg-slate-100 dark:bg-white/[0.08]",
-                          "text-slate-900 dark:text-white",
-                          "border border-slate-200/80 dark:border-white/[0.06]",
-                        ].join(" ")
-                      : [
-                          "text-slate-500 dark:text-white/45",
-                          "hover:bg-slate-50 dark:hover:bg-white/[0.05]",
-                          "hover:text-slate-800 dark:hover:text-white/80",
-                          "border border-transparent",
-                        ].join(" ")
+                      ? "bg-white/[0.08] border border-white/[0.06] text-white"
+                      : "border border-transparent hover:bg-white/[0.05] hover:text-white/80"
                   )}
                 >
                   <Icon
-                    className={classNames(
-                      "h-4 w-4 shrink-0",
-                      isActive
-                        ? "text-[#F5C842]"
-                        : "text-slate-400 dark:text-white/35"
+                    className={cn(
+                      "h-4 w-4 shrink-0 transition-colors duration-150",
+                      isActive ? "text-[#F5C842]" : "text-white/35"
                     )}
                   />
-                  <div className="text-[14px] font-medium leading-tight">
-                    {item.label}
-                  </div>
+                  <AnimatePresence initial={false}>
+                    {isExpanded && (
+                      <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
+                        className={cn(
+                          "text-[14px] font-medium leading-tight whitespace-nowrap",
+                          isActive ? "text-white" : "text-white/45"
+                        )}
+                      >
+                        {item.label}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </div>
               </Link>
             );
           })}
         </nav>
 
-        {/* Community-Bereich */}
         {communityItems.length > 0 && (
-          <div className="flex flex-col gap-0.5">
-            <div className="px-3 pb-1 text-[11px] font-medium text-slate-400 dark:text-white/25 tracking-[0.12em] uppercase">
-              Community
-            </div>
+          <div className="mt-4 flex flex-col gap-0.5">
+            <AnimatePresence initial={false}>
+              {isExpanded && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="px-3 pb-1.5 text-[11px] font-medium text-white/25 tracking-[0.12em] uppercase"
+                >
+                  Community
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <nav className="flex flex-col gap-0.5">
               {communityItems.map((item) => {
                 const isActive = pathname?.startsWith(item.href);
@@ -224,36 +225,39 @@ export default function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="w-full cursor-pointer"
+                    title={!isExpanded ? item.label : undefined}
                   >
                     <div
-                      className={classNames(
-                        "flex w-full items-center gap-x-2.5 px-3 py-2.5 rounded-lg transition-colors duration-150",
+                      className={cn(
+                        "flex items-center rounded-lg transition-colors duration-150 cursor-pointer",
+                        isExpanded ? "gap-x-2.5 px-3 py-2.5" : "justify-center p-3",
                         isActive
-                          ? [
-                              "bg-slate-100 dark:bg-white/[0.08]",
-                              "text-slate-900 dark:text-white",
-                              "border border-slate-200/80 dark:border-white/[0.06]",
-                            ].join(" ")
-                          : [
-                              "text-slate-500 dark:text-white/45",
-                              "hover:bg-slate-50 dark:hover:bg-white/[0.05]",
-                              "hover:text-slate-800 dark:hover:text-white/80",
-                              "border border-transparent",
-                            ].join(" ")
+                          ? "bg-white/[0.08] border border-white/[0.06] text-white"
+                          : "border border-transparent hover:bg-white/[0.05] hover:text-white/80"
                       )}
                     >
                       <Icon
-                        className={classNames(
-                          "h-4 w-4 shrink-0",
-                          isActive
-                            ? "text-[#F5C842]"
-                            : "text-slate-400 dark:text-white/35"
+                        className={cn(
+                          "h-4 w-4 shrink-0 transition-colors duration-150",
+                          isActive ? "text-[#F5C842]" : "text-white/35"
                         )}
                       />
-                      <div className="text-[14px] font-medium leading-tight">
-                        {item.label}
-                      </div>
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.span
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className={cn(
+                              "text-[14px] font-medium leading-tight whitespace-nowrap",
+                              isActive ? "text-white" : "text-white/45"
+                            )}
+                          >
+                            {item.label}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </Link>
                 );
@@ -262,6 +266,27 @@ export default function Sidebar() {
           </div>
         )}
       </div>
-    </aside>
+
+      {/* Toggle Button */}
+      <div
+        className={cn(
+          "shrink-0 border-t border-white/[0.06] py-3",
+          isExpanded ? "px-4 flex justify-end" : "flex justify-center"
+        )}
+      >
+        <button
+          type="button"
+          onClick={toggle}
+          title={isExpanded ? "Sidebar einklappen" : "Sidebar ausklappen"}
+          className="h-7 w-7 flex items-center justify-center rounded-lg text-white/35 hover:text-white/80 hover:bg-white/[0.08] transition-colors duration-150 cursor-pointer"
+        >
+          {isExpanded ? (
+            <ChevronLeft className="h-3.5 w-3.5" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5" />
+          )}
+        </button>
+      </div>
+    </motion.aside>
   );
 }

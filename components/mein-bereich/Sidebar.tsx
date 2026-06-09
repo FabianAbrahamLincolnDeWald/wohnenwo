@@ -103,7 +103,7 @@ export default function Sidebar() {
 
   return (
     <motion.aside
-      className="hidden md:flex flex-col shrink-0 h-screen sticky top-0 z-40 overflow-hidden border-r border-white/[0.06] bg-[#111111]"
+      className="hidden md:flex flex-col shrink-0 h-screen sticky top-0 z-40 overflow-hidden border-r border-gray-100 dark:border-white/[0.06] bg-white dark:bg-[#111111]"
       animate={{ width: isExpanded ? 240 : 64 }}
       initial={false}
       transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
@@ -117,16 +117,16 @@ export default function Sidebar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06] shrink-0"
+            className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/[0.06] shrink-0"
           >
-            <span className="text-[14px] font-semibold text-white tracking-tight select-none">
+            <span className="text-[14px] font-semibold text-gray-900 dark:text-white tracking-tight select-none">
               WohnenWo
             </span>
             <button
               type="button"
               onClick={toggle}
               title="Sidebar einklappen"
-              className="h-7 w-7 flex items-center justify-center rounded-lg text-white/35 hover:text-white/70 hover:bg-white/[0.08] transition-colors duration-150 cursor-pointer"
+              className="h-7 w-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 dark:text-white/35 dark:hover:text-white/70 dark:hover:bg-white/[0.08] transition-colors duration-150 cursor-pointer"
             >
               <PanelLeft className="h-4 w-4" />
             </button>
@@ -141,7 +141,7 @@ export default function Sidebar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="group w-full flex justify-center items-center py-4 px-2 border-b border-white/[0.06] shrink-0 cursor-pointer"
+            className="group w-full flex justify-center items-center py-4 px-2 border-b border-gray-100 dark:border-white/[0.06] shrink-0 cursor-pointer"
           >
             <div className="h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-200 group-hover:shadow-[0_0_18px_rgba(245,200,66,0.35)] group-hover:ring-1 group-hover:ring-[#F5C842]/20">
               <img
@@ -157,7 +157,7 @@ export default function Sidebar() {
       {/* Nav */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2">
         {loading && isExpanded && (
-          <div className="px-3 py-2 text-[11px] text-white/25">Wird geladen…</div>
+          <div className="px-3 py-2 text-[11px] text-gray-400 dark:text-white/25">Wird geladen…</div>
         )}
 
         <nav className="flex flex-col gap-0.5">
@@ -179,14 +179,14 @@ export default function Sidebar() {
                     "flex items-center rounded-lg transition-colors duration-150 cursor-pointer",
                     isExpanded ? "gap-x-2.5 px-3 py-2.5" : "justify-center p-3",
                     isActive
-                      ? "bg-white/[0.08] border border-white/[0.06] text-white"
-                      : "border border-transparent hover:bg-white/[0.05] hover:text-white/80"
+                      ? "bg-gray-100 border border-gray-200 text-gray-900 dark:bg-white/[0.08] dark:border-white/[0.06] dark:text-white"
+                      : "border border-transparent hover:bg-gray-50 hover:text-gray-700 dark:hover:bg-white/[0.05] dark:hover:text-white/80"
                   )}
                 >
                   <Icon
                     className={cn(
                       "h-4 w-4 shrink-0 transition-colors duration-150",
-                      isActive ? "text-[#F5C842]" : "text-white/35"
+                      isActive ? "text-[#F5C842]" : "text-gray-400 dark:text-white/35"
                     )}
                   />
                   <AnimatePresence initial={false}>
@@ -198,7 +198,7 @@ export default function Sidebar() {
                         transition={{ duration: 0.15 }}
                         className={cn(
                           "text-[14px] font-medium leading-tight whitespace-nowrap",
-                          isActive ? "text-white" : "text-white/45"
+                          isActive ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-white/45"
                         )}
                       >
                         {item.label}
@@ -220,7 +220,7 @@ export default function Sidebar() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="px-3 pb-1.5 text-[11px] font-medium text-white/25 tracking-[0.12em] uppercase"
+                  className="px-3 pb-1.5 text-[11px] font-medium text-gray-400 dark:text-white/25 tracking-[0.12em] uppercase"
                 >
                   Community
                 </motion.div>
@@ -250,7 +250,7 @@ export default function Sidebar() {
                       <Icon
                         className={cn(
                           "h-4 w-4 shrink-0 transition-colors duration-150",
-                          isActive ? "text-[#F5C842]" : "text-white/35"
+                          isActive ? "text-[#F5C842]" : "text-gray-400 dark:text-white/35"
                         )}
                       />
                       <AnimatePresence initial={false}>
@@ -262,7 +262,7 @@ export default function Sidebar() {
                             transition={{ duration: 0.15 }}
                             className={cn(
                               "text-[14px] font-medium leading-tight whitespace-nowrap",
-                              isActive ? "text-white" : "text-white/45"
+                              isActive ? "text-gray-900 dark:text-white" : "text-gray-500 dark:text-white/45"
                             )}
                           >
                             {item.label}

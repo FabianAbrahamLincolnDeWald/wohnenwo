@@ -15,7 +15,7 @@ const PLACEHOLDER_CARDS = [
 
 export default function CommunityPage() {
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-[#0A0A0A] px-4 pt-6 pb-10">
+    <main className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0A0A] px-4 pt-6 pb-10">
       <div className="mx-auto max-w-7xl space-y-8">
         {/* Header */}
         <motion.header

@@ -17,7 +17,7 @@ export default function MeinBereichShell({ children }: Props) {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-[#0A0A0A] flex overflow-hidden">
+      <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#0A0A0A] flex overflow-hidden">
         <Sidebar />
 
         <MobileSidebar
@@ -26,7 +26,7 @@ export default function MeinBereichShell({ children }: Props) {
         />
 
         <motion.div
-          className="flex flex-1 flex-col h-screen overflow-hidden bg-[#0A0A0A]"
+          className="flex flex-1 flex-col h-screen overflow-hidden bg-[#FAFAFA] dark:bg-[#0A0A0A]"
           animate={mobileMenuOpen ? { scale: 0.93, borderRadius: 20 } : { scale: 1, borderRadius: 0 }}
           transition={{ duration: 0.35, ease: DRAWER_EASE }}
           style={{ transformOrigin: "center center" }}
